@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { WalletConnectProvider, useWalletConnect, useAccount, ChainTypeEnum } from "@dogeos/dogeos-sdk";
+import { WalletConnectProvider, useWalletConnect, useAccount, useDogeOSAuth, ChainTypeEnum } from "@dogeos/dogeos-sdk";
 import "@dogeos/dogeos-sdk/style.css";
 import { chain, networkConfig } from "./network.js";
-import { PracticePanel } from "./practice-panel.jsx";
+import { TradingPanel } from "./trading-panel.jsx";
 import { InjectedWallet } from "./injected-wallet.jsx";
 
 const validAddress = value => typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
@@ -29,7 +29,8 @@ export function MyDogeApp({ clientId }) {
 }
 
 function AccountPanel() {
-  const { isConnected, isConnecting, openModal, disconnect, error } = useWalletConnect();
+  const { isConnected, isConnecting, openModal, closeModal, disconnect, error } = useWalletConnect();
+  const auth = useDogeOSAuth();
   const { address, chainType, chainId, currentProvider, currentWallet, switchChain } = useAccount();
   const [balance, setBalance] = useState(null);
   const [message, setMessage] = useState("");
@@ -39,12 +40,18 @@ function AccountPanel() {
   const generation = useRef(0);
   const identity = useRef(null);
   const connected = !locallyDisconnected && isConnected && validAddress(address) && chainType === "evm" && typeof currentProvider?.request === "function";
+  const deliveryRejected = !connected && auth.state.kind === "error" && auth.state.error?.code === "invalid_delivery";
   const onDogeOS = connected && normalizeId(chainId) === BigInt(chain.id);
   const key = connected ? `${address.toLowerCase()}:${chainType}:${chainId}` : "";
   // Replaced during render so late reads cannot win a race with an account change.
   const currentIdentity = useMemo(() => ({ key, provider: currentProvider }), [key, currentProvider]);
   identity.current = currentIdentity;
   const displayedBalance = onDogeOS && balance?.identity === currentIdentity ? balance.text : onDogeOS ? "Loading…" : "—";
+  useEffect(() => {
+    // Surface a recoverable action instead of the SDK's generic retry loop.
+    // Do not alter the SDK's delivery origin or bypass its authorization checks.
+    if (deliveryRejected) closeModal();
+  }, [deliveryRejected, closeModal]);
 
   useEffect(() => {
     const request = ++generation.current;
@@ -93,11 +100,21 @@ function AccountPanel() {
     try { await disconnect(); }
     catch { setMessage("Disconnected from this view. You can also remove Vela’s connection in your wallet."); }
   }
+  async function resetLogin() {
+    setBusy(true); setMessage("");
+    try {
+      await auth.logout();
+      location.reload();
+    } catch {
+      setMessage("MyDoge could not reset this login. Open Vela in a new browser tab or connect MetaMask.");
+      setBusy(false);
+    }
+  }
   return <><section className="wallet-stage" aria-labelledby="mydoge-title">
     <span className="stage-mark" aria-hidden="true">Ð</span>
     <p className="stage-eyebrow">MYDOGE WALLET · DOGEOS</p>
     <h1 id="mydoge-title">Your wallet.<br /><em>Your possibilities.</em></h1>
-    <p>Open Vela in MyDoge to use your wallet in the app. On the web, continue through DogeOS’s wallet connection.</p>
+    <p>Connect your wallet, get faucet DOGE and start your own AI trading portfolio.</p>
     {connected ? <div className="stage-account">
       <span className="stage-connected">CONNECTED · {currentWallet?.info?.name || "DogeOS Wallet"}</span>
       <strong id="mydoge-address" title={address}>{address.slice(0, 6)}…{address.slice(-4)}</strong>
@@ -111,10 +128,22 @@ function AccountPanel() {
     </div> : <button id="mydoge-open" className="stage-primary" disabled={busy || isConnecting} onClick={connect}>{isConnecting ? "Connecting…" : "Continue with MyDoge"} <span>↗</span></button>}
     {isConnected && !locallyDisconnected && !connected && <p role="status">Choose an EVM account for DogeOS Chikyū in the wallet connection.</p>}
     {(message || error) && <p id="mydoge-message" className="stage-message" role="status">{message || "The wallet connection needs attention. Open your wallet and try again."}</p>}
+    {deliveryRejected && <div className="stage-notice" role="alert">
+      <p>MyDoge rejected this email sign-in request. Reset and start a fresh request.</p>
+      <button id="mydoge-reset-login" className="stage-primary" disabled={busy} onClick={resetLogin}>Reset sign-in ↗</button>
+      <a className="stage-secondary" href="https://defivela.xyz/mydoge" target="_blank" rel="noopener noreferrer">Open Vela in a new tab ↗</a>
+      <small>If it repeats, MyDoge needs to check this app’s email-login configuration. MyDoge mobile and MetaMask connect separately.</small>
+    </div>}
     <a className="stage-secondary" href="/mydoge.html?wallet=metamask">Use MetaMask <span>↗</span></a>
     <a className="stage-secondary" href="/">Back to Vela <span>↗</span></a>
     <a className="stage-secondary" href={networkConfig.faucetUrl} target="_blank" rel="noopener noreferrer">Get DOGE from the faucet ↗</a>
     <a className="stage-secondary" href="#ai-portfolio">Open AI portfolio ↓</a>
-    <p className="stage-footnote">The practice portfolio below uses a virtual balance. No wallet deposit or gas is required.</p>
-  </section><PracticePanel/></>;
+    <p className="stage-footnote">Your faucet DOGE funds your portfolio. One approval to start, one to stop and receive DOGE back.</p>
+  </section>{connected ? <TradingPanel address={address} provider={currentProvider} onDogeOS={onDogeOS}
+    embedded={currentWallet?.isEmbeddedWallet === true}
+    onSettled={() => setRefresh(n => n + 1)}/> :
+    <section id="ai-portfolio" className="trading-workspace"><p className="stage-eyebrow">YOUR DOGE. ONE AGENT TEAM.</p>
+      <h2>Faucet to <em>portfolio.</em></h2><p className="trading-intro">Connect → fund your wallet from the faucet → choose an amount → START TRADING. The vault wraps your DOGE and credits TUSDC for the AI agents. Stop to close your positions and receive DOGE back.</p>
+      <button className="stage-primary" disabled={busy || isConnecting} onClick={connect}>Connect to start ↗</button>
+    </section>}</>;
 }

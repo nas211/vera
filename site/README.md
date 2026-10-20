@@ -21,14 +21,12 @@ no requests to the original WHY system.
   and an illustrative six-role agent workflow.
 
 The wallet connection reads public account information. `/mydoge.html#ai-portfolio`
-now defaults to the independent practice portfolio: a virtual DOGE amount,
-START, actual AI research/review/direction, live prices, positions, equity, trade
-history and STOP. It uses no wallet transactions or gas. An unguessable browser
-capability controls only that simulated portfolio; clearing browser storage
-loses this device's access. Practice writes are isolated from the vault ledger.
-The previous vault flow in `src/trading-panel.jsx` is retained but paused.
-DogeOS still manages optional wallet login and consent. TUSDC is test
-accounting, not real USDC or a DEX swap. Rewards and yield remain illustrative.
+now opens the wallet-funded showcase: each visitor deposits faucet DOGE,
+receives TUSDC credit, runs the AI agents and requests DOGE settlement on STOP.
+The unrelated virtual-balance practice default was removed. Public deposits
+remain blocked while the operator's network-fee budget is exhausted.
+DogeOS manages wallet login and consent. TUSDC is test accounting, not real
+USDC or a DEX swap. Rewards and yield remain illustrative.
 
 Backend/deployment instructions and actual testnet receipts are in the parent
 repository's `docs/TESTNET.md` and `snapshot/testnet-e2e.json`.
@@ -171,19 +169,20 @@ product teaser. `node checks/earn.cjs` checks that page and its calculator.
 The requested ZK privacy layer remains a planned feature, not an enabled shield:
 current vault transactions are public. There are no separate Earn/Bonus/APY
 products or four-box opening row. The main CTA says Start earning. Visible
-paper-trading labels were removed at the owner's request. The practice portfolio
-explicitly explains that balances are virtual and returns are not withdrawable.
+paper-trading banners were removed at the owner's request. The portfolio
+explains simulated execution and TUSDC accounting in its details.
 
 Official SDK login configuration includes email, external wallets and Google.
 X is explicitly excluded through `login.socialLogins`, not hidden with CSS.
 
 The trading app shows one Vela AI Agents portfolio. Rule signal families are
 internal inputs; model review is required. A real model/live-price browser
-round trip passed with zero wallet transactions; see the parent
+engineering round trip passed with zero wallet transactions; this was not
+the wallet-funded flow. See the parent
 `snapshot/practice-e2e.json`. `checks/practice.cjs` uses the actual backend and
 configured model, so running it makes bounded paid model requests.
 
-In the retained, paused vault flow, email wallets sign
+In the public wallet-funded flow, email wallets sign
 once with `eth_signTransaction`, then Vela verifies the signed payload and sends
 it directly to the official RPC. Native MyDoge and MetaMask use their normal
 send flow. Preflight checks the connected address's balance, gas and vault state.
@@ -192,3 +191,8 @@ Additional checks: `node checks/transaction.cjs` verifies an ephemeral signed
 transaction, sender/payload matching, direct broadcast, rejected requests and
 ambiguous timeouts. `node checks/injected.cjs` checks the explicit MetaMask
 alternative. These use local fixtures, not real mobile/email approval.
+
+The SDK's hosted email path reached its verification-code screen from
+`https://defivela.xyz` in a fresh browser. Code delivery/completed login remain
+unverified. `invalid_delivery` now offers an explicit sign-in reset and a new
+top-level tab; provider origin checks are preserved. No X login is enabled.

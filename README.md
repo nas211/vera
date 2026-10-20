@@ -3,11 +3,14 @@
 Independent WHY source snapshot, extended with the Vela DogeOS Chikyū
 **testnet + paper-only** showcase.
 
-The default website now runs an independent **practice portfolio** with a
-virtual balance, genuine AI research/review/direction, live public prices,
-persisted positions, P&L and STOP. No wallet deposit, signature or gas is needed.
-The separate blockchain vault flow is paused after a network-fee incident.
-V2 contracts are prepared and locally tested, not deployed.
+The public flow is wallet funded: MyDoge/email or MetaMask → faucet DOGE →
+one START transaction → wrapped DOGE and TUSDC credit → AI paper trading →
+one STOP transaction → operator settlement returns DOGE. The separate
+virtual-balance practice screen was removed from the public product.
+
+**Public deposits remain paused** after the network-fee incident. The correct
+visitor flow is restored, but this is not a claim that on-chain operation is
+ready. The deployed V1 vault is retained; V2 is prepared, not deployed.
 No real exchange orders, WHY services, forex/MT5 or live protection are changed.
 
 ## Run the showcase
@@ -27,12 +30,15 @@ PYTHONPATH=backend .venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
 .venv/bin/python tools/configure_model.py worker-service
 ```
 
-Open `/mydoge.html#ai-portfolio`. Choose a virtual DOGE amount and press
-START AI TRADING; STOP closes at fresh market prices and saves results.
-Practice access is saved in this browser; it is not ownership of a wallet.
-The original wallet connection remains available separately. Actual mobile
-approval of the paused vault flow remains untested. TUSDC is test accounting,
-not real USDC or a DEX swap.
+Open `/mydoge.html#ai-portfolio`, connect the wallet that holds your faucet DOGE,
+and choose the deposit amount. START prepares a fresh conversion price, shows
+full network fees and requests one transaction signature. STOP requests one
+signature; the operator closes positions, logs trades and returns DOGE.
+The backend must be ready before START becomes available.
+
+Actual mobile/email transaction approval remains untested. TUSDC is test
+accounting, not real USDC or a DEX swap. `VELA_ENABLE_PRACTICE=true` enables the
+separate internal engineering harness; it is disabled in the public deployment.
 
 Canonical addresses and network sources: [`config/dogeos-testnet.json`](config/dogeos-testnet.json).
 Actual verification hashes and payout: [`snapshot/testnet-e2e.json`](snapshot/testnet-e2e.json).

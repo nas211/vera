@@ -22,6 +22,7 @@ class Settings:
     loss_budget: Decimal = Decimal("2")
     max_price_age: int = 60
     chain_writes: bool = False
+    practice_enabled: bool = False  # Internal engineering harness, never the public showcase.
     max_tx_fee: Decimal = Decimal("0.25")
     daily_fee_budget: Decimal = Decimal("0.5")
     gas_reserve: Decimal = Decimal("1")
@@ -62,6 +63,7 @@ class Settings:
             slippage=Decimal(os.getenv("VELA_SLIPPAGE", ".0002")),
             loss_budget=Decimal(os.getenv("VELA_LOSS_BUDGET", "2")),
             chain_writes=os.getenv("VELA_CHAIN_WRITES", "false").lower() == "true",
+            practice_enabled=os.getenv("VELA_ENABLE_PRACTICE", "false").lower() == "true",
             max_tx_fee=Decimal(os.getenv("VELA_MAX_TX_FEE_DOGE", "0.25")),
             daily_fee_budget=Decimal(os.getenv("VELA_DAILY_FEE_BUDGET_DOGE", "0.5")),
             gas_reserve=Decimal(os.getenv("VELA_GAS_RESERVE_DOGE", "1")),

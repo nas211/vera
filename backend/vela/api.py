@@ -66,7 +66,7 @@ def create_app(settings=None):
         health = health_all()
         abi_name = "VelaVaultV2.abi.json" if deployment and deployment.get("version",1)>=2 else "VelaVault.abi.json"
         return dict(chain=chain, mode="testnet-paper", deployment=deployment,
-                    defaultPortfolio="practice",
+                    defaultPortfolio="vault",
                     abi=json.loads((ROOT / "config" / abi_name).read_text()) if deployment else [],
                     ready=health["ready"], reasons=health["reasons"],
                     fees=dict(maxTransactionDoge=str(settings.max_tx_fee),
@@ -89,13 +89,15 @@ def create_app(settings=None):
     def start_quote(body: QuoteRequest):
         if not Web3.is_address(body.address) or int(body.amountWei)>10**30:
             raise HTTPException(400,"Invalid wallet or amount")
-        if settings.config.get("deployment",{}).get("version",1)<2:
-            raise HTTPException(503,"Entry quotes require the replacement vault; deployment pending")
         if not health_all()["ready"]:
             raise HTTPException(503,"Trading is paused; no transaction submitted")
         with database() as db:
             if not get(db,"ai_model_configured",False):
                 raise HTTPException(503,"AI research model is not connected")
+            existing = db.execute("SELECT id FROM start_quotes WHERE user=? AND strategy=? AND value_wei=? "
+                "AND status='pending' AND created>?", (body.address.lower(),body.strategy,body.amountWei,time.time()-90)).fetchone()
+            if existing:
+                return dict(id=existing["id"],status="pending")
             if db.execute("SELECT count(*) FROM start_quotes WHERE created>?",(time.time()-60,)).fetchone()[0]>=30:
                 raise HTTPException(429,"Quote request limit reached; retry shortly")
             identifier=uuid.uuid4().hex
@@ -112,7 +114,7 @@ def create_app(settings=None):
         if not row:
             raise HTTPException(404)
         result=json.loads(row["result"]) if row["result"] else None
-        expired=(result and int(result["deadline"])<time.time()) or (row["status"]=="pending" and time.time()-row["created"]>30)
+        expired=(result and int(result["deadline"])<time.time()) or (row["status"]=="pending" and time.time()-row["created"]>90)
         return dict(status="expired" if expired else row["status"],quote=result,error=row["error"])
 
     @app.get("/api/network-fees")
@@ -124,6 +126,8 @@ def create_app(settings=None):
 
     @contextmanager
     def practice_database(token):
+        if not settings.practice_enabled:
+            raise HTTPException(404, "Not available")
         try:
             practice.identity(token)
         except ValueError:
@@ -163,6 +167,8 @@ def create_app(settings=None):
 
     @app.get("/api/practice/leaderboard")
     def practice_board():
+        if not settings.practice_enabled:
+            raise HTTPException(404, "Not available")
         db=connect(practice.practice_settings(settings).db_path)
         try:
             rows=db.execute("""SELECT count(*) trades,coalesce(sum(pnl_micro),0) pnl,
@@ -211,7 +217,10 @@ def create_app(settings=None):
                 user.update(equity=None, pnl=None, pnlPercent=None, dogeEquivalent=None)
             trades = [dict(r) for r in db.execute("SELECT * FROM trades WHERE session=? ORDER BY closed DESC LIMIT 100", (user["session"],))]
             history = [dict(r) for r in db.execute("SELECT ts,equity,pnl FROM equity WHERE session=? ORDER BY ts DESC LIMIT 500", (user["session"],))][::-1]
-            return dict(user=user, positions=positions, trades=trades, equity=history, scope="current session")
+            decision = get(db, "ai-decision:" + address.lower())
+            if decision and decision.get("session") != user["session"]:
+                decision = None
+            return dict(user=user, positions=positions, trades=trades, equity=history, decision=decision, scope="current session")
 
     @app.get("/api/leaderboard")
     def leaderboard():

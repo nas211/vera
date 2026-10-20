@@ -20,12 +20,12 @@ async function requestEntryQuote(address,strategy,amountWei,valid) {
   if(!response.ok)throw new Error("A fresh entry quote is unavailable. No transaction submitted.");
   const request=await response.json();
   if(!/^[0-9a-f]{32}$/.test(request.id))throw new Error("Invalid quote response");
-  for(let tries=0;tries<30;tries++){
+  for(let tries=0;tries<90;tries++){
     if(!valid())throw new Error("Wallet account changed");
     const result=await get(`/api/start-quote/${request.id}`);
     if(result.status==="ready")return result.quote;
     if(result.status!=="pending")throw new Error(result.error||"Entry quote expired; retry.");
-    await new Promise(resolve=>setTimeout(resolve,500));
+    await new Promise(resolve=>setTimeout(resolve,1000));
   }
   throw new Error("Entry quote timed out. No transaction submitted.");
 }
@@ -109,16 +109,17 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
       const value = action === "start" ? parseEther(amount) : 0n;
       if (action === "start" && value <= 0n) throw new Error("Enter a positive DOGE amount.");
       let entryQuote=null;
-      if(action==="start" && config.deployment.version>=2){
+      if(action==="start"){
         entryQuote=approved && review?.entryQuote && Number(review.entryQuote.deadline)>Date.now()/1000+20 ? review.entryQuote :
           await requestEntryQuote(address,selected,value,()=>identity.current===chosen);
         if(entryQuote.user.toLowerCase()!==address.toLowerCase() || entryQuote.vault.toLowerCase()!==config.deployment.vault.toLowerCase() ||
             Number(entryQuote.chainId)!==chain.id || BigInt(entryQuote.dogeIn)!==value || Number(entryQuote.strategyId)!==selected ||
             Number(entryQuote.deadline)<=Date.now()/1000)throw new Error("Entry quote does not match your wallet and deposit.");
       }
+      const signedQuote = entryQuote && config.deployment.version>=2;
       const data = encodeFunctionData({abi:config.abi,
-        functionName:action==="stop"?"stopTrading":entryQuote?"startTradingWithQuote":"startTrading",
-        args:action==="stop"?[]:entryQuote?[BigInt(selected),BigInt(entryQuote.price),BigInt(entryQuote.issuedAt),BigInt(entryQuote.deadline),BigInt(entryQuote.nonce),entryQuote.signature]:[BigInt(selected)]});
+        functionName:action==="stop"?"stopTrading":signedQuote?"startTradingWithQuote":"startTrading",
+        args:action==="stop"?[]:signedQuote?[BigInt(selected),BigInt(entryQuote.price),BigInt(entryQuote.issuedAt),BigInt(entryQuote.deadline),BigInt(entryQuote.nonce),entryQuote.signature]:[BigInt(selected)]});
       if (identity.current !== chosen) return;
       const prepared = await prepareTransaction({
         from:address, to:config.deployment.vault, chainId:`0x${chain.id.toString(16)}`, data,
@@ -152,9 +153,9 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
     }
   }
 
-  return <div className="trading-workspace" aria-label="Vela portfolio dashboard">
+  return <div id="ai-portfolio" className="trading-workspace" aria-label="Vela portfolio dashboard">
     <div className="trading-heading"><div><p className="stage-eyebrow">YOUR DOGE. ONE AGENT TEAM.</p><h2>Make your <em>next move.</em></h2></div></div>
-    <p className="trading-intro">Choose your amount. Research, signals and risk management come together in one portfolio, with every closed trade recorded on-chain.</p>
+    <p className="trading-intro">Fund your wallet from the faucet and choose an amount. Your DOGE is wrapped and converted to TUSDC for the AI agents. Every closed trade is recorded on-chain; stop to receive DOGE back.</p>
     {serviceError && <p role="status" className="trading-notice">{serviceError}</p>}
     {config && !config.ready && !serviceError && <p className="trading-notice" role="status">{config.reasons?.[0] || "Trading is temporarily paused. Your wallet stays connected."}</p>}
     {!config?.deployment && <p className="trading-notice">Waiting for the deployed vault and backend configuration.</p>}
@@ -168,7 +169,7 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
     {!active && !stopping && !pending && <div className="start-row">
       <label htmlFor="doge-amount">Amount in DOGE<input id="doge-amount" inputMode="decimal" type="number" min="0.0001" step="0.1" value={amount} onChange={e=>{setAmount(e.target.value);setReview(null);}} disabled={busy}/></label>
       <span className="usd-estimate">{price ? `≈ $${usd(Number(amount)*Number(price))}` : "Waiting for a trusted DOGE price"}</span>
-      <button id="start-trading" className="stage-primary" disabled={busy || !onDogeOS || !config?.ready || !!serviceError || !price || !strategies.find(s=>s.id===selected)?.available} onClick={()=>send("start")}>{busy ? "Checking transaction…" : "START EARNING ↗"}</button>
+      <button id="start-trading" className="stage-primary" disabled={busy || !onDogeOS || !config?.ready || !!serviceError || !price || !strategies.find(s=>s.id===selected)?.available} onClick={()=>send("start")}>{busy ? "Checking transaction…" : "START TRADING ↗"}</button>
     </div>}
     <div className="session-status" role="status" aria-live="polite">
       {pending?.action==="start" ? "Converting DOGE → USDC · awaiting confirmed session" :
@@ -193,6 +194,8 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
     {error && <div className="trading-notice" role="alert">{error}{/email wallet/.test(error) && <p><a href="/mydoge.html?wallet=metamask">Connect MetaMask ↗</a> · <a href="https://www.mydoge.com/" target="_blank" rel="noopener noreferrer">Open this site inside MyDoge ↗</a></p>}</div>}
     <details className="trading-footnote"><summary>Network fee allowance</summary><label htmlFor="fee-limit">Maximum fee estimate in DOGE <input id="fee-limit" type="number" min="0.001" step="0.05" value={feeLimit} disabled={busy} onChange={e=>{setFeeLimit(e.target.value);setReview(null);}}/></label><p>Vela checks execution and data/finality fees before requesting your one wallet signature.</p></details>
     {user && <>
+      {snapshot.decision && <section className="dashboard-section" aria-label="Agent activity"><h3>Agent activity</h3>
+        <p>{snapshot.decision.phase} · {snapshot.decision.answer?.reason || snapshot.decision.answer?.summary || "Reviewing current market evidence"}</p></section>}
       <div className="metric-grid">
         <div><small>Current session equity</small><strong>{usd(user.equity)} <span>TUSDC</span></strong></div>
         <div><small>DOGE equivalent</small><strong>{usd(user.dogeEquivalent)} <span>DOGE</span></strong></div>

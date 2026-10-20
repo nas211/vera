@@ -49,16 +49,13 @@ in another terminal, then
 `PYTHONPATH=backend .venv/bin/pytest -q backend/tests`.
 It uses randomly generated, in-memory local keys and no testnet funds.
 
-## Practice mode and safe deployment
+## Wallet-funded showcase and safe deployment
 
-The default app is a practice portfolio. It has its own SQLite ledger and uses
-virtual DOGE converted to a simulated USD balance at the live DOGE price.
-START/STOP make no wallet or blockchain transactions. A 256-bit browser token
-controls only that practice portfolio, not a wallet; clearing browser storage
-loses access. Idle/abandoned sessions stop after 24 hours using fresh prices.
-At most 20 practice portfolios can be active. The shared research pipeline
-allows at most 200 model calls per rolling day, including failed attempts;
-there is no paid inference while all portfolios are stopped.
+The public app uses each visitor's faucet-funded wallet and the deployed V1
+vault. The separate virtual-balance harness is an internal engineering tool,
+disabled by default (`VELA_ENABLE_PRACTICE=false`). It is not the showcase.
+AI research allows at most 200 model calls per rolling day, including failed
+attempts, and performs no paid inference while all portfolios are stopped.
 
 The V1 vault is immutable and paused at the application/operator level. Its
 pool has no direct owner-withdrawal method. V2 is prepared, not deployed:
@@ -86,7 +83,8 @@ when activating a different deployment; old ledger data must remain intact.
 
 Environment names are documented in `backend/.env.example`. Use dedicated Vela
 credentials only. AI trading requires the dedicated model key. Pyth is optional
-for crypto fallback. Practice trading requires no operator key or wallet funds.
+for crypto fallback. The public showcase requires a funded operator and
+explicit `VELA_CHAIN_WRITES=true`, within the configured full-fee limits.
 
 ```sh
 cd /root/Vera
@@ -94,8 +92,8 @@ cd /root/Vera
 PYTHONPATH=backend .venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
 # Terminal 2, hidden model and dedicated operator prompts; chain writes stay off:
 .venv/bin/python tools/configure_model.py worker-service
-# To run practice without any chain signer, securely inject VELA_MODEL_KEY and
-# VELA_MODEL in the environment, then run: PYTHONPATH=backend .venv/bin/python -m vela.worker
+# Internal practice only: VELA_ENABLE_PRACTICE=true enables its isolated API/engine.
+# Never substitute this harness for the public wallet-funded showcase.
 ```
 
 Open `http://127.0.0.1:8787/mydoge.html`. For a pure static preview use
@@ -104,8 +102,8 @@ Open `http://127.0.0.1:8787/mydoge.html`. For a pure static preview use
 site; an empty string uses the same origin. Publish the built `site/dist/`
 through the existing Sites project. Never publish backend runtime files.
 
-Vault accounts remain read-only through HTTP and event-authorized. The independent
-practice endpoints use an `X-Vela-Practice` browser capability: GET `/api/practice`,
+Vault accounts remain read-only through HTTP and event-authorized. Disabled-by-default
+internal practice endpoints use an `X-Vela-Practice` browser capability: GET `/api/practice`,
 POST `/api/practice/start` with `amountDoge`, POST `/api/practice/stop`, and GET
 `/api/practice/leaderboard`. They never sign or queue chain transactions.
 Additional public endpoints expose testnet ledger data:
@@ -133,7 +131,7 @@ Do not dump service environments into logs.
 
 ## Paused vault flow and accounting
 
-The following describes the retained vault flow, not the default practice app.
+This is the public visitor flow; deposits remain paused by operator fee controls.
 START sends native test DOGE in one transaction. VelaVault wraps it into this
 showcase's WDOGE and mints 6-decimal TUSDC held by the vault while crediting a
 user's internal paper balance. This is operator-priced accounting conversion,
@@ -175,9 +173,10 @@ require an API key since August 26, 2026. Supply `VELA_PYTH_API_KEY` to use it.
 Without that key, crypto fallback works and XAU remains unavailable.
 Missing/stale sources block the affected market; divergence above 1% blocks
 new paper entries globally. No fabricated close price is used during outages.
-There are no idle oracle writes. Chain writes default OFF. Only an explicitly
-enabled legacy V1 session queues an update every 30 seconds; V2 uses no recurring
-price writes. Contracts reject quotes older than 120 seconds.
+There are no idle or active-position oracle heartbeats. Chain writes default OFF.
+V1 prepares a fresh price on a visitor START request, and refreshes for pending
+settlement. Ordinary P&L uses live off-chain prices. V2 uses signed entry prices
+and atomic settlement prices. Contracts reject quotes older than 120 seconds.
 
 `VELA_MAX_TX_FEE_DOGE=0.25`, `VELA_DAILY_FEE_BUDGET_DOGE=0.5` and
 `VELA_GAS_RESERVE_DOGE=1` gate full estimated network costs. Receipts include

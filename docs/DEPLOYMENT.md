@@ -5,20 +5,34 @@ actual practice execution, and on-chain execution are separate evidence.
 
 ## Current application
 
-The default `/mydoge.html#ai-portfolio` runs the independent practice portfolio.
-Its balance is virtual, trades use live public prices, and START/STOP use zero
-wallet transactions. Optional MyDoge/email/Google/MetaMask connection remains.
-A browser capability controls only this practice book; it is not wallet ownership.
-The existing dark/gold design, three products and separate `/earn` are retained.
-No repetitive paper-trading banner was added; the app explains virtual balances
-and non-withdrawable simulated returns.
+The user clarified that each visitor must fund their own wallet portfolio with
+faucet DOGE. The personal virtual-balance default was an incorrect product
+change. `/mydoge.html#ai-portfolio` now renders the original wallet-funded
+TradingPanel after MyDoge/email/MetaMask connection. The public practice API and
+worker are disabled by default. The original design, three products and `/earn`
+remain intact. Actual deposits are still paused by operator fee controls.
 
-A genuine model/live-price/browser check passed: research, review and direction
-approved BTC/USD long; the engine opened it and STOP closed it. That one session
-finished at **−0.036068 simulated USD**, including simulated entry/exit fees.
-Reload preserved the session and mobile layout passed. **Zero wallet transactions**
-were used. The engineering session is excluded from leaderboard results.
-See `snapshot/practice-e2e.json`; this is not a performance backtest.
+A V1 cold-start defect was fixed: a visitor's START request now queues one fresh
+conversion price before asking for the deposit signature. Duplicate pending
+requests reuse the same preparation. A request expires after 90 seconds. Paid
+price updates are needed only for entry and settlement; ordinary active AI
+positions use live off-chain prices without paid on-chain heartbeats.
+This intentionally replaces the original recurring-30-second write requirement
+after its observed network cost. Every closed trade still queues TradeLogged.
+
+The earlier real-model practice check remains engineering evidence only:
+research/review/direction approved BTC/USD long, STOP closed it, and that
+session ended at −0.036068 simulated USD including fees. It used zero chain
+transactions and is not evidence of the requested wallet-funded showcase.
+See `snapshot/practice-e2e.json`.
+
+Fresh production-origin authentication probes reached Google sign-in and the
+hosted email verification-code screen. The reported `invalid_delivery` email
+failure was not reproduced by the fresh hosted flow. Client-owned email flow
+creation did fail; the SDK's normal login uses relay-hosted email instead.
+Added explicit reset/retry recovery for `invalid_delivery`, preserving the
+provider's origin checks. No delivered code was read and no login completed.
+Actual email verification and transaction signing remain unverified.
 
 The dedicated OpenAI key is configured only in Vela's runtime environment.
 `gpt-5.6-luna` returned an actual validated model response. No WHY credentials
@@ -31,12 +45,13 @@ expire after five minutes, and never fall back to an unreviewed rule signal.
 Public URL: **https://defivela.xyz**; generated origin:
 https://defivela.uuuiiaaaa.chatgpt.site. Audience stays public as authorized.
 DNS, provider and HTTPS had been verified active. Only this site's files and
-new Vela services are changed. Published version 9 includes both MyDoge and MetaMask entry pages.
-Source: `16f2d3b4551e4ff5d74aef9cd4fb3505d96b2b20`.
-Saved version: `appgprj_6ad757d1f93c8191bc736d87ada530be~appgver_33e8170b4df88191b2ba9685666b6822`.
-Successful deployment: `appgdep_6ad7ab6fa1088191a7e43203d8940adf`.
-The actual custom-domain page returned HTTP 200, START enabled, no horizontal
-overflow and zero JavaScript errors in a fresh mobile Chrome session.
+new Vela services are changed. Published version 10 includes both MyDoge and MetaMask entry pages.
+Source: `795e2a9d305b2fbb59bdd3118c9d611988fab0b3`.
+Saved version: `appgprj_6ad757d1f93c8191bc736d87ada530be~appgver_b3d1b4071b7c8191b9ff43bc136ca9c2`.
+Successful deployment: `appgdep_6ad7b7673b4c8191a2007ee2983858e4`.
+Both published wallet routes returned HTTP 200, showed the wallet-funded flow,
+had no virtual-balance START, no mobile overflow and no JavaScript errors. The
+public START action is gated by wallet connection and operator readiness.
 Sites project: `appgprj_6ad757d1f93c8191bc736d87ada530be`.
 
 ## Fee incident and paused chain execution
@@ -58,8 +73,8 @@ pending transaction, active sessions zero. No new chain transactions were sent
 while implementing these fixes.
 
 Idle writes are removed. Chain writes default OFF, full fee receipts are
-tracked, and per-transaction/rolling-day estimate gates fail closed. Practice
-execution has a separate DB and never creates an operator outbox entry.
+tracked, and per-transaction/rolling-day estimate gates fail closed. The internal
+practice harness has a separate DB and is disabled for public visitors.
 
 VelaVaultV2 is prepared and locally tested, not deployed. Signed START prices
 and settlement prices eliminate recurring on-chain updates. A guarded pool
@@ -106,16 +121,17 @@ The check is excluded from strategy leaderboard returns.
 ## Verification and limitations
 
 - Foundry: **26 passed** (20 V1, 6 V2, including 256 fuzz iterations).
-- Backend: **36 passed**, run in groups: 33 unit/API and 3 local-EVM tests.
+- Backend: **39 passed** in the full suite: 36 unit/API and 3 local-EVM tests.
   Includes no-gas practice isolation, token separation, duplicate start, stale
   close refusal, candle-gap repair, session-bound AI review, fee reservation,
-  V1/V2 round trips and replay/reorganization handling.
+  V1/V2 round trips, cold-start conversion, operator-budget readiness, entry
+  pauses with preserved closes, and replay/reorganization handling.
 - Browser: practice real-model/live-price round trip, full-fee wallet fixtures,
   retained vault flow fixtures, MetaMask fixtures and real MyDoge login modal
   passed. V2 remains a local-only result. See `snapshot/current-verification.json`.
 - Actual owner MyDoge mobile/email transaction approval is still untested.
-  The SDK login screen and mock single-signature tests passed. Practice START
-  does not need transaction signing, so the hosted signing error cannot block it.
+  The SDK login screens and mock single-signature tests passed. The public
+  product requires a real connected wallet and a confirmed deposit.
 - The requested four-digit email code/template is controlled by MyDoge's hosted
   login service, not this frontend; it was not changed or truncated.
 - Pyth requires its own API key. Binance public crypto fallback is working;

@@ -175,12 +175,23 @@ class Chain:
             health(self.db, "operator", status == "confirmed", f"{row['kind']}: {status}")
             return
         if not self.settings.chain_writes:
-            health(self.db, "operator", False, "On-chain transactions paused by Vela fee controls")
+            detail = ("Operator network-fee budget exhausted; deposits are paused" if
+                      fees.spent(self.db) >= int(self.settings.daily_fee_budget * 10**18) else
+                      "Vault operator paused; deposits will resume after on-chain execution is enabled")
+            health(self.db, "operator", False, detail)
             return
         row = self.db.execute("""SELECT * FROM outbox WHERE status='queued'
             ORDER BY CASE kind WHEN 'updatePrice' THEN 0 WHEN 'logTrade' THEN 1 ELSE 2 END,created LIMIT 1""").fetchone()
         if not row:
-            health(self.db, "operator", True, "Outbox empty")
+            try:
+                # Empty outbox is not proof that this operator can service a new
+                # depositor. Retain room for another full allowed transaction.
+                fees.check(self.db, self.settings,
+                    dict(allowance=int(self.settings.max_tx_fee * 10**18)),
+                    self.w3.eth.get_balance(self.account.address))
+                health(self.db, "operator", True, "Operator ready; full network fee controls active")
+            except fees.FeeBlocked as exc:
+                health(self.db, "operator", False, str(exc))
             return
         try:
             call = self.make_call(row)

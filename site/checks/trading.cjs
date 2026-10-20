@@ -45,6 +45,8 @@ const startHash = "0x" + "11".repeat(32), stopHash = "0x" + "22".repeat(32), set
     await page.route("**/api/**",r=>{
       if(failApi)return r.fulfill({status:503,body:"Unavailable"});
       const p=new URL(r.request().url()).pathname;
+      if(p==="/api/start-quote")return r.fulfill({status:202,contentType:"application/json",body:JSON.stringify({id:"a".repeat(32),status:"pending"})});
+      if(p==="/api/start-quote/"+"a".repeat(32))return r.fulfill({contentType:"application/json",body:JSON.stringify({status:"ready",quote:{user:wallet,vault:config.deployment.vault,chainId:config.chainId,strategyId:1,dogeIn:"5000000000000000000",price:"10000000",deadline:String(Math.floor(Date.now()/1000)+120),version:1}})});
       const body=p==="/api/config"?{chain:config,mode:"testnet-paper",deployment:config.deployment,abi,ready}:
         p==="/api/strategies"?[{id:1,name:"Vela AI Agents",agent:"Signals and risk",risk:"Managed",market:"DOGE · BTC · ETH · SOL",available:true,modelReady:false,availabilityReason:"Signal and risk agents running · AI research model not connected"}]:
         p==="/api/prices"?[{symbol:"DOGE/USD",value:".1",safe:true}]:

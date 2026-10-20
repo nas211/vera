@@ -13,9 +13,16 @@ from .practice import Practice
 
 
 def queue_active_price(db, settings, now, last_push):
-    """Legacy vault maintenance only while a real session is active/stopping."""
-    active = db.execute("SELECT 1 FROM users WHERE status IN ('active','stopping')").fetchone()
+    """Refresh conversion prices for STOP; START requests schedule their own.
+
+    Live trading marks come from the feed. An active paper position never needs
+    a paid on-chain heartbeat just to compute P&L.
+    """
+    active = db.execute("SELECT 1 FROM users WHERE status='stopping'").fetchone()
+    pending_start = db.execute("SELECT 1 FROM start_quotes WHERE status='pending' AND created>?", (now-90,)).fetchone()
     if not active:
+        if pending_start:
+            return last_push
         db.execute("UPDATE outbox SET status='cancelled',error='No active session; idle price update cancelled' "
                    "WHERE kind='updatePrice' AND status='queued'")
         return last_push
@@ -34,7 +41,9 @@ def main():
     lock = settings.db_path.with_suffix(".worker.lock").open("a")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     feed, adapter, agents = PriceFeed(db, settings), PaperAdapter(db, settings), Agents(db)
-    practice = Practice(db, settings, agents.model)
+    practice = Practice(db, settings, agents.model) if settings.practice_enabled else None
+    if practice is None:
+        db.execute("DELETE FROM services WHERE name='practice'")
     put(db, "ai_model_configured", bool(agents.model.ready))
     chain = None
     running = True
@@ -55,12 +64,13 @@ def main():
                 last_warmup = now
             # Practice never instantiates Chain or queues transactions. It runs even
             # while the separate vault operator is disabled or its RPC is offline.
-            try:
-                practice.tick()
-                health(db,"practice",True,"Practice engine running; wallet funds are not used")
-            except Exception as exc:
-                health(db,"practice",False,"Practice cycle interrupted; retrying")
-                log(db,"engine","practice_cycle_failed","warning",error=type(exc).__name__)
+            if practice is not None:
+                try:
+                    practice.tick()
+                    health(db,"practice",True,"Internal engineering engine running")
+                except Exception as exc:
+                    health(db,"practice",False,"Practice cycle interrupted; retrying")
+                    log(db,"engine","practice_cycle_failed","warning",error=type(exc).__name__)
             if chain is None and settings.config.get("deployment"):
                 chain = Chain(db, settings, os.getenv("VELA_OPERATOR_PRIVATE_KEY"))
             if chain is None:
@@ -71,16 +81,18 @@ def main():
                 caught_up = chain.sync()
                 last_push = queue_active_price(db, settings, now, last_push)
                 if caught_up:
+                    chain.drain()
                     process_requests(chain, agents.model.ready)
                     # Quotes/events still refresh while writes are disabled. No new
                     # paper entries can create unsettled liabilities during maintenance.
+                    operator = db.execute("SELECT ok,ts FROM services WHERE name='operator'").fetchone()
+                    operator_ready = bool(operator and operator["ok"] and now-operator["ts"]<90)
                     if settings.chain_writes:
-                        adapter.tick(agents)
-                    chain.drain()
+                        adapter.tick(agents, allow_entries=operator_ready)
                     health(db, "engine", settings.chain_writes,
                            "Confirmed chain cursor caught up" if settings.chain_writes else
-                           "Trading paused while network fee controls and vault upgrade are verified")
-                    if settings.chain_writes:
+                           "Deposits paused: the vault operator is not enabled to log trades and return DOGE")
+                    if settings.chain_writes and operator_ready:
                         agents.tick_ai()
                 else:
                     health(db, "engine", False, "Catching up events; new fills paused")
@@ -91,7 +103,8 @@ def main():
             log(db, "worker", "cycle_failed", "warning", error=type(exc).__name__)
         time.sleep(1)
     db.close()
-    practice.close()
+    if practice is not None:
+        practice.close()
     lock.close()
 
 

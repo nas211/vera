@@ -2,10 +2,10 @@
   "verifiedDate": "2026-10-20",
   "contractTests": 26,
   "backendTests": {
-    "unitAndApi": 33,
+    "unitAndApi": 36,
     "localEvm": 3,
-    "total": 36,
-    "runInGroups": true
+    "total": 39,
+    "runInGroups": false
   },
   "practice": {
     "realModel": true,
@@ -22,20 +22,44 @@
     "mockedVaultFlow": true,
     "mockedMetaMask": true,
     "realMyDogeLoginScreen": true,
-    "ownerMobileApproval": false
+    "ownerMobileApproval": false,
+    "realHostedEmailCodeScreen": true,
+    "emailDeliveryVerified": false,
+    "emailLoginCompleted": false,
+    "invalidDeliveryRecoveryMocked": true
   },
   "published": {
     "project": "appgprj_6ad757d1f93c8191bc736d87ada530be",
-    "version": 9,
-    "source": "16f2d3b4551e4ff5d74aef9cd4fb3505d96b2b20",
-    "deployment": "appgdep_6ad7ab6fa1088191a7e43203d8940adf",
-    "url": "https://defivela.xyz"
+    "version": 10,
+    "source": "795e2a9d305b2fbb59bdd3118c9d611988fab0b3",
+    "deployment": "appgdep_6ad7b7673b4c8191a2007ee2983858e4",
+    "url": "https://defivela.xyz",
+    "browserChecks": [
+      {
+        "route": "/mydoge#ai-portfolio",
+        "http": 200,
+        "walletFundedFlow": true,
+        "noVirtualBook": true,
+        "mobileOverflow": false,
+        "errors": []
+      },
+      {
+        "route": "/mydoge?wallet=metamask#ai-portfolio",
+        "http": 200,
+        "walletFundedFlow": true,
+        "noVirtualBook": true,
+        "mobileOverflow": false,
+        "errors": []
+      }
+    ]
   },
   "operator": {
     "chainWrites": false,
     "balanceDoge": "1.960864137251449715",
     "latestNonce": 100,
-    "pendingNonce": 100
+    "pendingNonce": 100,
+    "rolling24hFeesDoge": "30.099493810572471585",
+    "rolling24hBudgetDoge": "0.5"
   },
   "v2Deployed": false,
   "whyChanged": false,
@@ -44,5 +68,8 @@
     "V2 on public DogeOS",
     "actual owner MyDoge mobile/email transaction approval",
     "provider-controlled four-digit email code/template"
-  ]
+  ],
+  "publicPortfolio": "wallet-funded vault; operator paused",
+  "publicPracticeEnabled": false,
+  "newOnchainTransactions": 0
 }

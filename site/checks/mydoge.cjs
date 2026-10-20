@@ -11,6 +11,7 @@ const path = require("node:path");
     const state = window.mockDoge = {
       calls: [], hold: false, resolve: null, switchError: null,
       wallet: {isConnected:false,isConnecting:false,isWalletReady:false,walletStatus:"disabled"},
+      auth: {kind:"anonymous"},
       account: {address:null,chainType:"evm",chainId:6281971,currentWallet:{info:{name:"MyDoge"}},currentProvider:null},
       publish(patch) {
         this.account = {...this.account,...patch};
@@ -51,8 +52,9 @@ const path = require("node:path");
     export const ChainTypeEnum={EVM:"evm"};
     export function WalletConnectProvider({config,children}) {state.config=config;return children;}
     export function useWalletConnect(){
-      return {...useSyncExternalStore(subscribe,()=>state.wallet),openModal,disconnect};
+      return {...useSyncExternalStore(subscribe,()=>state.wallet),openModal,closeModal:()=>{},disconnect};
     }
+    export function useDogeOSAuth(){return {state:useSyncExternalStore(subscribe,()=>state.auth),logout:async()=>{state.auth={kind:"anonymous"};}};}
     export function useAccount(){
       return {...useSyncExternalStore(subscribe,()=>state.account),switchChain};
     }
@@ -137,6 +139,10 @@ const path = require("node:path");
   await page.evaluate(()=>{mockDoge.disconnectError=true;});
   await page.locator("#mydoge-disconnect").click();
   await page.waitForSelector("#mydoge-open");
+  await page.evaluate(()=>{mockDoge.auth={kind:"error",error:{code:"invalid_delivery"}};mockDoge.emit({});});
+  await page.locator("#mydoge-reset-login").waitFor();
+  assert.match(await page.getByRole("alert").innerText(),/rejected this email sign-in/);
+  assert.equal(await page.locator("#practice-start").count(),0);
   assert.equal(await page.locator("#mydoge-balance").count(),0);
   await page.evaluate(()=>{mockDoge.disconnectError=false;});
   await page.locator("#mydoge-open").click();

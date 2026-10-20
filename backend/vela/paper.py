@@ -171,7 +171,7 @@ class PaperAdapter(ExecutionAdapter):
             value += (px - D(p["entry"])) * D(p["qty"]) * sign - D(p["entry_fee_left"]) - up_money(px * D(p["qty"]) * self.settings.fee)
         return money(value)
 
-    def tick(self, agents):
+    def tick(self, agents, allow_entries=True):
         self.reconcile()
         for row in self.db.execute("SELECT * FROM users WHERE status IN ('active','stopping')").fetchall():
             user = dict(row)
@@ -187,7 +187,7 @@ class PaperAdapter(ExecutionAdapter):
                 except ValueError:
                     # Never invent a market fill on a stale/divergent quote.
                     continue
-            if user["status"] == "active" and not self.getPosition(user["address"]):
+            if user["status"] == "active" and allow_entries and not self.getPosition(user["address"]):
                 signal = agents.signal(user)
                 if signal:
                     try:

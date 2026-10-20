@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {chain, networkConfig} from "./network.js";
-import {PracticePanel} from "./practice-panel.jsx";
+import {TradingPanel} from "./trading-panel.jsx";
 import {formatEther} from "viem";
 
 // Direct injected signing is independent of the hosted email-wallet service.
@@ -72,6 +72,10 @@ export function InjectedWallet() {
     <a className="stage-secondary" href="/mydoge.html">Use MyDoge / email login ↗</a>
     <a className="stage-secondary" href={networkConfig.faucetUrl} target="_blank" rel="noopener noreferrer">Get DOGE from the faucet ↗</a>
     <a className="stage-secondary" href="#ai-portfolio">Open AI portfolio ↓</a>
-    <p className="stage-footnote">The practice portfolio uses a virtual balance. No wallet deposit or gas is required.</p>
-  </section><PracticePanel/></>;
+    <p className="stage-footnote">Your faucet DOGE funds your portfolio. One approval to start, one to stop and receive DOGE back.</p>
+  </section>{address ? <TradingPanel address={address} provider={provider} onDogeOS={onDogeOS} onSettled={()=>setRefresh(n=>n+1)}/> :
+    <section id="ai-portfolio" className="trading-workspace"><p className="stage-eyebrow">YOUR DOGE. ONE AGENT TEAM.</p><h2>Faucet to <em>portfolio.</em></h2>
+      <p className="trading-intro">Connect → fund your wallet from the faucet → choose an amount → START TRADING. The vault wraps your DOGE and credits TUSDC for the AI agents. Stop to close your positions and receive DOGE back.</p>
+      <button className="stage-primary" disabled={busy} onClick={connect}>Connect to start ↗</button>
+    </section>}</>;
 }

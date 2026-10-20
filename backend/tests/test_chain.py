@@ -45,15 +45,25 @@ def test_full_local_chain_roundtrip_and_resume(setup_db,version):
     v.functions.fundPool().transact({"from": owner, "value": 100 * 10**18})
     from vela.db import enqueue
     if version==1:
-        enqueue(db, "initial-price", "updatePrice", {})
+        from vela.quotes import process_requests
+        from vela.worker import queue_active_price
+        db.execute("INSERT INTO start_quotes VALUES ('cold-start',?,1,?,?,'pending',NULL,NULL)",
+                   (wallet.lower(),str(10*10**18),time.time()))
+        process_requests(chain,True)
+        # No active user exists yet: the START request must prepare conversion.
+        queue_active_price(db,s,time.time(),0)
+        initial_price=db.execute("SELECT id FROM outbox WHERE kind='updatePrice'").fetchone()[0]
         chain.drain()  # persist signed transaction, before broadcasting
-        row = db.execute("SELECT * FROM outbox WHERE id='initial-price'").fetchone()
+        row = db.execute("SELECT * FROM outbox WHERE id=?",(initial_price,)).fetchone()
         assert row["status"] == "signed"
         expected_hash = row["tx_hash"]
         restarted = Chain(db, s, operator.key)
         drain_until(restarted, lambda: db.execute(
-            "SELECT status FROM outbox WHERE id='initial-price'").fetchone()[0] == "confirmed")
-        assert db.execute("SELECT status,tx_hash FROM outbox WHERE id='initial-price'").fetchone()[:] == ("confirmed", expected_hash)
+            "SELECT status FROM outbox WHERE id=?",(initial_price,)).fetchone()[0] == "confirmed")
+        assert db.execute("SELECT status,tx_hash FROM outbox WHERE id=?",(initial_price,)).fetchone()[:] == ("confirmed", expected_hash)
+        process_requests(restarted,True)
+        assert db.execute("SELECT status FROM start_quotes WHERE id='cold-start'").fetchone()[0]=="ready"
+        assert db.execute("SELECT count(*) FROM outbox WHERE kind='updatePrice'").fetchone()[0]==1
         start = v.functions.startTrading(1).transact({"from": wallet, "value": 10 * 10**18})
     else:
         from vela.quotes import sign_quote

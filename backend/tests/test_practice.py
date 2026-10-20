@@ -48,6 +48,7 @@ def test_practice_start_trade_stop_isolated_from_wallet_and_chain(setup_db):
 
 def test_practice_api_browser_capability_and_no_funding_required(setup_db):
     source,settings,_=setup_db
+    settings.practice_enabled=True  # Explicit engineering mode only.
     p=practice.Practice(source,settings,SimpleNamespace(ready=False))
     try:
         p.tick()
@@ -65,7 +66,7 @@ def test_practice_api_browser_capability_and_no_funding_required(setup_db):
         assert r.status_code==200 and r.json()["user"]["status"]=="stopping"
         p.tick()
         assert client.get("/api/practice",headers=headers).json()["user"]["status"]=="settled"
-        assert client.get("/api/config").json()["defaultPortfolio"]=="practice"
+        assert client.get("/api/config").json()["defaultPortfolio"]=="vault"
         assert p.db.execute("SELECT count(*) FROM outbox").fetchone()[0]==0
     finally:
         p.close()
