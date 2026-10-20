@@ -42,8 +42,9 @@ class OrderlyAdapter(ExecutionAdapter):
 
 
 class PaperAdapter(ExecutionAdapter):
-    def __init__(self, db, settings):
+    def __init__(self, db, settings, on_chain=True):
         self.db, self.settings = db, settings
+        self.on_chain = on_chain
 
     def getPrice(self, symbol):
         return quote(self.db, symbol, self.settings.max_price_age)
@@ -145,7 +146,10 @@ class PaperAdapter(ExecutionAdapter):
                 self.db.execute("""UPDATE positions SET qty=?,entry_fee_left=?,paid_fees=?,
                     realized_gross=?,stop=? WHERE id=?""",
                     (p["qty"], p["entry_fee_left"], p["paid_fees"], p["realized_gross"], p["stop"], position_id))
-            enqueue(self.db, "trade:" + trade_id, "logTrade", {"trade": trade_id})
+            if self.on_chain:
+                enqueue(self.db, "trade:" + trade_id, "logTrade", {"trade": trade_id})
+            else:
+                self.db.execute("UPDATE trades SET chain_status='offchain' WHERE id=?", (trade_id,))
             log(self.db, "engine", "paper_close", trade=trade_id, pnl=str(pnl), reason=reason)
             return t
 
@@ -191,6 +195,11 @@ class PaperAdapter(ExecutionAdapter):
                     except ValueError:
                         pass
             elif user["status"] == "stopping" and not self.getPosition(user["address"]):
+                if not self.on_chain:
+                    current = self.db.execute("SELECT balance FROM users WHERE address=?", (user["address"],)).fetchone()[0]
+                    self.db.execute("UPDATE users SET status='settled',final_pnl=? WHERE address=?",
+                                    (str(D(current)-D(user["initial"])),user["address"]))
+                    continue
                 pending = self.db.execute("SELECT 1 FROM trades WHERE session=? AND chain_status!='confirmed'", (user["session"],)).fetchone()
                 if not pending:
                     pnl_micro = self.db.execute("SELECT coalesce(sum(pnl_micro),0) FROM trades WHERE session=?", (user["session"],)).fetchone()[0]

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {chain, networkConfig} from "./network.js";
-import {TradingPanel} from "./trading-panel.jsx";
+import {PracticePanel} from "./practice-panel.jsx";
 import {formatEther} from "viem";
 
 // Direct injected signing is independent of the hosted email-wallet service.
@@ -71,5 +71,7 @@ export function InjectedWallet() {
     {!provider&&<a className="stage-secondary" href={`https://link.metamask.io/dapp/${location.host}/mydoge.html?wallet=metamask`}>Open MetaMask mobile ↗</a>}
     <a className="stage-secondary" href="/mydoge.html">Use MyDoge / email login ↗</a>
     <a className="stage-secondary" href={networkConfig.faucetUrl} target="_blank" rel="noopener noreferrer">Get DOGE from the faucet ↗</a>
-  </section>{address&&<TradingPanel address={address} provider={provider} onDogeOS={onDogeOS} onSettled={()=>setRefresh(n=>n+1)}/>}</>;
+    <a className="stage-secondary" href="#ai-portfolio">Open AI portfolio ↓</a>
+    <p className="stage-footnote">The practice portfolio uses a virtual balance. No wallet deposit or gas is required.</p>
+  </section><PracticePanel/></>;
 }

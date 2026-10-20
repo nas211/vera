@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { WalletConnectProvider, useWalletConnect, useAccount, ChainTypeEnum } from "@dogeos/dogeos-sdk";
 import "@dogeos/dogeos-sdk/style.css";
 import { chain, networkConfig } from "./network.js";
-import { TradingPanel } from "./trading-panel.jsx";
+import { PracticePanel } from "./practice-panel.jsx";
 import { InjectedWallet } from "./injected-wallet.jsx";
 
 const validAddress = value => typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
@@ -114,6 +114,7 @@ function AccountPanel() {
     <a className="stage-secondary" href="/mydoge.html?wallet=metamask">Use MetaMask <span>↗</span></a>
     <a className="stage-secondary" href="/">Back to Vela <span>↗</span></a>
     <a className="stage-secondary" href={networkConfig.faucetUrl} target="_blank" rel="noopener noreferrer">Get DOGE from the faucet ↗</a>
-    <p className="stage-footnote">START begins your portfolio. STOP closes positions and returns DOGE after settlement.</p>
-  </section>{connected && <TradingPanel address={address} provider={currentProvider} onDogeOS={onDogeOS} embedded={currentWallet?.isEmbeddedWallet===true} onSettled={()=>setRefresh(n=>n+1)}/>}</>;
+    <a className="stage-secondary" href="#ai-portfolio">Open AI portfolio ↓</a>
+    <p className="stage-footnote">The practice portfolio below uses a virtual balance. No wallet deposit or gas is required.</p>
+  </section><PracticePanel/></>;
 }

@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-10-20T17:41:05.815Z",
+  "origin": "http://127.0.0.1:8787",
+  "realModel": true,
+  "livePublicPrices": true,
+  "walletTransactions": 0,
+  "opened": {
+    "symbol": "BTC/USD",
+    "side": "long",
+    "entry": "82853.822451000000"
+  },
+  "closedTrades": 1,
+  "pnl": "-0.036068",
+  "scope": "One engineering verification practice session",
+  "decision": {
+    "at": 1792518049.1362343,
+    "session": "dce3d36b0dc84181b0fc4a5df247c202",
+    "phase": "direction",
+    "answer": {
+      "side": "long",
+      "action": "open",
+      "reason": "BTC/USD satisfies all supplied momentum-continuation conditions: return_1, return_5, and return_20 are positive and range_position is above 0.85. The proposed swing setup uses a 60 bp stop and 100 bp target, meeting the stated risk-reward constraint."
+    }
+  },
+  "errors": [],
+  "stopped": true,
+  "engineeringExcludedFromLeaderboard": true,
+  "model": "gpt-5.6-luna"
+}

@@ -18,10 +18,11 @@ const {keccak256}=require("viem");
       const read=async(method,params=[])=>{
         calls.push(method);
         const values={eth_chainId:"0x5fdaf3",eth_getBalance:"0xde0b6b3a7640000",eth_estimateGas:"0x5208",eth_gasPrice:"0x3b9aca00",eth_getTransactionCount:"0x2"};
+        if(method==="eth_call")return `0x${(10n**16n).toString(16).padStart(64,"0")}`;
         if(method==="eth_sendRawTransaction"){window.signedBytes=params[0];return window.expectedHash;}
         return values[method];
       };
-      const prepared=await transactions.prepareTransaction(tx,[],read);
+      const preparation=await transactions.prepareTransaction(tx,[],read),prepared=preparation.transaction;
       let signCalls=0;
       const provider={request:async args=>{signCalls++;if(args.method!=="eth_signTransaction")throw Error("Wrong signing method");const raw=await signFixture(args.params[0]);window.fixtureRaw=raw;return raw;}};
       // Return the deterministic hash using a browser-exposed helper.
@@ -40,11 +41,18 @@ const {keccak256}=require("viem");
         return null;
       });} catch(e){rejected=/network rejected/.test(e.message);}
       const timeoutHash=await transactions.submitTransaction(provider,prepared,true,()=>{},async()=>{throw new Error("network timeout");});
-      return {signCalls:singleSignCalls,hash,remembered,broadcastSame:window.fixtureRaw===window.signedBytes,wrongRecipientRejected,emptyWalletRejected,rejected,rejectedHashes,timeoutHash};
+      let fullFeeUnavailable=false,dataFeeInsufficient=false;
+      try{await transactions.prepareTransaction(tx,[],async(m,p)=>m==="eth_call"?"0x":read(m,p));}catch(e){fullFeeUnavailable=/full network fee is unavailable/.test(e.message);}
+      try{await transactions.prepareTransaction(tx,[],async(m,p)=>m==="eth_getBalance"?"0x16345785d8a0000":m==="eth_call"?`0x${(10n**18n).toString(16).padStart(64,"0")}`:read(m,p));}catch(e){dataFeeInsufficient=/including data\/finality/.test(e.message);}
+      let feeSpikeRejected=false;
+      try{await transactions.submitTransaction(provider,prepared,true,()=>{},read,1n);}catch(e){feeSpikeRejected=/fee rose/.test(e.message);}
+      return {signCalls:singleSignCalls,hash,remembered,broadcastSame:window.fixtureRaw===window.signedBytes,wrongRecipientRejected,emptyWalletRejected,rejected,rejectedHashes,timeoutHash,
+        fullFeeUnavailable,dataFeeInsufficient,feeSpikeRejected,totalFee:preparation.fees.total.toString()};
     },account.address);
     assert.equal(result.signCalls,1);assert.equal(result.broadcastSame,true);
     assert.deepEqual(result.remembered,[result.hash]);assert(result.wrongRecipientRejected);assert(result.emptyWalletRejected);
     assert(result.rejected);assert.deepEqual(result.rejectedHashes,[result.hash,null]);assert.equal(result.timeoutHash,result.hash);
+    assert(result.fullFeeUnavailable);assert(result.dataFeeInsufficient);assert(result.feeSpikeRejected);assert(BigInt(result.totalFee)>10n**16n);
     console.log("PASS: email-wallet single signature, verified signer/transaction, direct RPC broadcast, mismatched payload rejection, unfunded-wallet explanation.");
   }finally{await b.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

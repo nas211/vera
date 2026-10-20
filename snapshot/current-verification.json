@@ -1,0 +1,48 @@
+{
+  "verifiedDate": "2026-10-20",
+  "contractTests": 26,
+  "backendTests": {
+    "unitAndApi": 33,
+    "localEvm": 3,
+    "total": 36,
+    "runInGroups": true
+  },
+  "practice": {
+    "realModel": true,
+    "livePrices": true,
+    "opened": "BTC/USD long",
+    "closedTrades": 1,
+    "netSimulatedUsd": "-0.036068",
+    "walletTransactions": 0,
+    "leaderboardExcluded": true
+  },
+  "browsers": {
+    "realPracticeRoundtrip": true,
+    "mockedSingleSignatureAndFullFees": true,
+    "mockedVaultFlow": true,
+    "mockedMetaMask": true,
+    "realMyDogeLoginScreen": true,
+    "ownerMobileApproval": false
+  },
+  "published": {
+    "project": "appgprj_6ad757d1f93c8191bc736d87ada530be",
+    "version": 9,
+    "source": "16f2d3b4551e4ff5d74aef9cd4fb3505d96b2b20",
+    "deployment": "appgdep_6ad7ab6fa1088191a7e43203d8940adf",
+    "url": "https://defivela.xyz"
+  },
+  "operator": {
+    "chainWrites": false,
+    "balanceDoge": "1.960864137251449715",
+    "latestNonce": 100,
+    "pendingNonce": 100
+  },
+  "v2Deployed": false,
+  "whyChanged": false,
+  "liveProtectionVerified": false,
+  "untested": [
+    "V2 on public DogeOS",
+    "actual owner MyDoge mobile/email transaction approval",
+    "provider-controlled four-digit email code/template"
+  ]
+}

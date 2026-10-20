@@ -7,6 +7,7 @@ from web3.exceptions import TransactionNotFound, Web3RPCError
 from .settings import ROOT
 from .db import transaction, get, put, log, health
 from .prices import quote, entries_allowed
+from . import fees
 
 
 def hexstr(value):
@@ -25,7 +26,8 @@ class Chain:
         address = Web3.to_checksum_address(deployment["vault"])
         if not self.w3.eth.get_code(address):
             raise ValueError("Vault has no bytecode")
-        self.vault = self.w3.eth.contract(address=address, abi=json.loads((ROOT / "config/VelaVault.abi.json").read_text()))
+        abi_name = "VelaVaultV2.abi.json" if deployment.get("version",1)>=2 else "VelaVault.abi.json"
+        self.vault = self.w3.eth.contract(address=address, abi=json.loads((ROOT / "config" / abi_name).read_text()))
         self.start_block = int(deployment["blockNumber"])
         self.account = self.w3.eth.account.from_key(private_key) if private_key else None
         if self.account and self.vault.functions.operator().call().lower() != self.account.address.lower():
@@ -117,6 +119,11 @@ class Chain:
                 raise ValueError("Positions still open")
             if self.db.execute("SELECT 1 FROM trades WHERE session=? AND chain_status!='confirmed'", (p["session"],)).fetchone():
                 raise ValueError("Trades not yet confirmed")
+            if self.settings.config["deployment"].get("version",1)>=2:
+                price = int(quote(self.db, "DOGE/USD") * 100_000_000)
+                observed = int(self.db.execute("SELECT ts FROM prices WHERE symbol='DOGE/USD'").fetchone()[0])
+                observed = min(observed, self.w3.eth.get_block("latest")["timestamp"])
+                return self.vault.functions.settleAtPrice(Web3.to_checksum_address(p["user"]),int(p["pnl_micro"]),price,observed)
             price = self.vault.functions.dogeUsd().call()
             updated = self.vault.functions.priceUpdatedAt().call()
             if time.time() - updated > 90:
@@ -134,11 +141,23 @@ class Chain:
             try:
                 receipt = self.w3.eth.get_transaction_receipt(row["tx_hash"])
             except TransactionNotFound:
+                if not self.settings.chain_writes:
+                    health(self.db, "operator", False, "On-chain transactions paused; pending receipt monitored")
+                    return
                 try:
+                    tx = json.loads(row["payload"]).get("transaction")
+                    if tx is None:
+                        raise fees.FeeBlocked("Legacy pending transaction requires fee reconciliation")
+                    estimate = fees.estimate(self.w3, tx, bytes.fromhex(row["raw_tx"]))
+                    fees.check(self.db, self.settings, estimate,
+                               self.w3.eth.get_balance(self.account.address), tx.get("value", 0), row["tx_hash"])
+                    fees.reserve(self.db, row["tx_hash"], estimate, row["kind"])
                     sent = self.w3.eth.send_raw_transaction(bytes.fromhex(row["raw_tx"]))
                     if hexstr(sent) != row["tx_hash"]:
                         raise RuntimeError("Broadcast hash mismatch")
                     self.db.execute("UPDATE outbox SET status='sent' WHERE id=?", (row["id"],))
+                except fees.FeeBlocked as exc:
+                    health(self.db, "operator", False, str(exc))
                 except (ValueError, Web3RPCError):
                     # "already known" or "nonce too low" is not proof of success.
                     # Retain signed bytes and await the exact transaction receipt.
@@ -147,12 +166,16 @@ class Chain:
             if self.w3.eth.block_number - receipt["blockNumber"] < self.settings.confirmations:
                 return
             status = "confirmed" if receipt["status"] == 1 else "failed"
+            fees.record(self.db, receipt, self.settings.chain_id, row["kind"])
             self.db.execute("UPDATE outbox SET status=?,error=? WHERE id=?",
                 (status, None if status == "confirmed" else "Transaction reverted; inspect before retry", row["id"]))
             if status == "confirmed" and row["kind"] == "logTrade":
                 self.db.execute("UPDATE trades SET tx_hash=?,chain_status='confirmed' WHERE id=?",
                     (row["tx_hash"], json.loads(row["payload"])["trade"]))
             health(self.db, "operator", status == "confirmed", f"{row['kind']}: {status}")
+            return
+        if not self.settings.chain_writes:
+            health(self.db, "operator", False, "On-chain transactions paused by Vela fee controls")
             return
         row = self.db.execute("""SELECT * FROM outbox WHERE status='queued'
             ORDER BY CASE kind WHEN 'updatePrice' THEN 0 WHEN 'logTrade' THEN 1 ELSE 2 END,created LIMIT 1""").fetchone()
@@ -169,10 +192,18 @@ class Chain:
             signed = self.account.sign_transaction(tx)
             raw = bytes(signed.raw_transaction)
             tx_hash = hexstr(self.w3.keccak(raw))
+            estimate = fees.estimate(self.w3, tx, raw)
+            fees.check(self.db, self.settings, estimate, self.w3.eth.get_balance(self.account.address), tx.get("value", 0))
+            payload = json.loads(row["payload"])
+            payload["transaction"] = dict(tx, data=hexstr(tx["data"]) if isinstance(tx["data"], bytes) else tx["data"])
             # Commit before any broadcast, so restart cannot lose a nonce/hash.
-            self.db.execute("UPDATE outbox SET status='signed',raw_tx=?,tx_hash=? WHERE id=?",
-                            (raw.hex(), tx_hash, row["id"]))
+            with transaction(self.db):
+                fees.reserve(self.db, tx_hash, estimate, row["kind"])
+                self.db.execute("UPDATE outbox SET status='signed',raw_tx=?,tx_hash=?,payload=? WHERE id=?",
+                                (raw.hex(), tx_hash, json.dumps(payload), row["id"]))
             health(self.db, "operator", True, "Signed transaction queued for broadcast")
+        except fees.FeeBlocked as exc:
+            health(self.db, "operator", False, str(exc))
         except Exception as exc:
             # No secret, raw RPC error, or signed bytes in logs/API.
             health(self.db, "operator", False, f"Action waiting: {type(exc).__name__}")

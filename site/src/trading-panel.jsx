@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { encodeFunctionData, parseEther } from "viem";
+import { encodeFunctionData, formatEther, parseEther } from "viem";
 import { networkConfig, chain } from "./network.js";
 import { prepareTransaction, submitTransaction, walletError } from "./transaction.js";
 
@@ -11,6 +11,23 @@ async function get(path) {
   const response = await fetch(`${apiBase}${path}`, {signal:AbortSignal.timeout(10000), cache:"no-store"});
   if (!response.ok) throw new Error("Service unavailable");
   return response.json();
+}
+
+async function requestEntryQuote(address,strategy,amountWei,valid) {
+  const response=await fetch(`${apiBase}/api/start-quote`,{method:"POST",
+    headers:{"Content-Type":"application/json"},body:JSON.stringify({address,strategy,amountWei:amountWei.toString()}),
+    signal:AbortSignal.timeout(10000)});
+  if(!response.ok)throw new Error("A fresh entry quote is unavailable. No transaction submitted.");
+  const request=await response.json();
+  if(!/^[0-9a-f]{32}$/.test(request.id))throw new Error("Invalid quote response");
+  for(let tries=0;tries<30;tries++){
+    if(!valid())throw new Error("Wallet account changed");
+    const result=await get(`/api/start-quote/${request.id}`);
+    if(result.status==="ready")return result.quote;
+    if(result.status!=="pending")throw new Error(result.error||"Entry quote expired; retry.");
+    await new Promise(resolve=>setTimeout(resolve,500));
+  }
+  throw new Error("Entry quote timed out. No transaction submitted.");
 }
 
 export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=false}) {
@@ -25,6 +42,8 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
   const [serviceError, setServiceError] = useState("");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState(null);
+  const [review, setReview] = useState(null);
+  const [feeLimit, setFeeLimit] = useState("0.25");
   const identity = useRef(null);
   const previousStatus = useRef(null);
   const current = `${address.toLowerCase()}:${onDogeOS}:${provider ? "connected" : "none"}`;
@@ -36,7 +55,7 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
   const active = status === "active", stopping = status === "stopping";
 
   useEffect(() => {
-    setSnapshot(null); setError(""); setBusy(false); previousStatus.current = null;
+    setSnapshot(null); setError(""); setBusy(false); setReview(null); previousStatus.current = null;
     try {setPending(JSON.parse(sessionStorage.getItem(storageKey) || "null"));} catch {setPending(null);}
     let cancelled = false, running = false;
     const valid = () => !cancelled && identity.current === token;
@@ -78,7 +97,7 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
     return () => {cancelled = true;clearInterval(timer);};
   }, [token, address, storageKey]);
 
-  async function send(action) {
+  async function send(action, approved=false) {
     if (busy || pending || !onDogeOS || !config?.deployment) return;
     const chosen = identity.current;
     setBusy(true);setError("");
@@ -89,13 +108,29 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
       if (action === "start" && (!config.ready || serviceError)) throw new Error("Wait for the portfolio service to be ready.");
       const value = action === "start" ? parseEther(amount) : 0n;
       if (action === "start" && value <= 0n) throw new Error("Enter a positive DOGE amount.");
-      const data = encodeFunctionData({abi:config.abi, functionName:action==="start" ? "startTrading" : "stopTrading", args:action==="start" ? [BigInt(selected)] : []});
+      let entryQuote=null;
+      if(action==="start" && config.deployment.version>=2){
+        entryQuote=approved && review?.entryQuote && Number(review.entryQuote.deadline)>Date.now()/1000+20 ? review.entryQuote :
+          await requestEntryQuote(address,selected,value,()=>identity.current===chosen);
+        if(entryQuote.user.toLowerCase()!==address.toLowerCase() || entryQuote.vault.toLowerCase()!==config.deployment.vault.toLowerCase() ||
+            Number(entryQuote.chainId)!==chain.id || BigInt(entryQuote.dogeIn)!==value || Number(entryQuote.strategyId)!==selected ||
+            Number(entryQuote.deadline)<=Date.now()/1000)throw new Error("Entry quote does not match your wallet and deposit.");
+      }
+      const data = encodeFunctionData({abi:config.abi,
+        functionName:action==="stop"?"stopTrading":entryQuote?"startTradingWithQuote":"startTrading",
+        args:action==="stop"?[]:entryQuote?[BigInt(selected),BigInt(entryQuote.price),BigInt(entryQuote.issuedAt),BigInt(entryQuote.deadline),BigInt(entryQuote.nonce),entryQuote.signature]:[BigInt(selected)]});
       if (identity.current !== chosen) return;
-      const transaction = await prepareTransaction({
+      const prepared = await prepareTransaction({
         from:address, to:config.deployment.vault, chainId:`0x${chain.id.toString(16)}`, data,
         value:`0x${value.toString(16)}`
       }, config.abi);
+      if(prepared.fees.allowance>parseEther(feeLimit))throw new Error(`Full network fee estimate exceeds your ${feeLimit} DOGE allowance. Nothing submitted. Adjust the allowance only if you want to accept that cost.`);
+      const transaction=prepared.transaction;
       if (identity.current !== chosen) return;
+      if(!approved || !review || review.identity!==chosen || review.action!==action || review.amount!==amount ||
+          transaction.data!==review.transaction.data || prepared.fees.allowance>review.fees.allowance || Date.now()-review.at>60000){
+        setReview({...prepared,action,amount,entryQuote,identity:chosen,at:Date.now()});return;
+      }
       if (BigInt(await provider.request({method:"eth_chainId"})) !== BigInt(chain.id)) throw new Error("Wallet network changed. Reconnect to DogeOS.");
       const remember = hash => {
         if(!hash){sessionStorage.removeItem(storageKey);if(identity.current===chosen)setPending(null);return;}
@@ -103,7 +138,8 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
         sessionStorage.setItem(storageKey,JSON.stringify(entry));
         if(identity.current===chosen)setPending(entry);
       };
-      const hash = await submitTransaction(provider, transaction, embedded, remember);
+      const hash = await submitTransaction(provider, transaction, embedded, remember, undefined, review.fees.allowance);
+      if(identity.current===chosen)setReview(null);
       // Preserve a submitted hash for its original wallet even if the account changed.
       if (typeof hash !== "string" || !/^0x[0-9a-f]{64}$/i.test(hash)) throw new Error("Wallet returned an invalid transaction hash.");
       const entry = {action, hash};
@@ -120,6 +156,7 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
     <div className="trading-heading"><div><p className="stage-eyebrow">YOUR DOGE. ONE AGENT TEAM.</p><h2>Make your <em>next move.</em></h2></div></div>
     <p className="trading-intro">Choose your amount. Research, signals and risk management come together in one portfolio, with every closed trade recorded on-chain.</p>
     {serviceError && <p role="status" className="trading-notice">{serviceError}</p>}
+    {config && !config.ready && !serviceError && <p className="trading-notice" role="status">{config.reasons?.[0] || "Trading is temporarily paused. Your wallet stays connected."}</p>}
     {!config?.deployment && <p className="trading-notice">Waiting for the deployed vault and backend configuration.</p>}
     <div className="strategy-grid" role="radiogroup" aria-label="Choose a strategy">
       {strategies.map(s=><button key={s.id} role="radio" aria-checked={selected===s.id} disabled={!s.available || active || stopping || !!pending || busy}
@@ -129,21 +166,32 @@ export function TradingPanel({address, provider, onDogeOS, onSettled, embedded=f
       </button>)}
     </div>
     {!active && !stopping && !pending && <div className="start-row">
-      <label htmlFor="doge-amount">Amount in DOGE<input id="doge-amount" inputMode="decimal" type="number" min="0.0001" step="0.1" value={amount} onChange={e=>setAmount(e.target.value)} disabled={busy}/></label>
+      <label htmlFor="doge-amount">Amount in DOGE<input id="doge-amount" inputMode="decimal" type="number" min="0.0001" step="0.1" value={amount} onChange={e=>{setAmount(e.target.value);setReview(null);}} disabled={busy}/></label>
       <span className="usd-estimate">{price ? `≈ $${usd(Number(amount)*Number(price))}` : "Waiting for a trusted DOGE price"}</span>
-      <button id="start-trading" className="stage-primary" disabled={busy || !onDogeOS || !config?.ready || !!serviceError || !price || !strategies.find(s=>s.id===selected)?.available} onClick={()=>send("start")}>{busy ? "Confirm in your wallet…" : "START EARNING ↗"}</button>
+      <button id="start-trading" className="stage-primary" disabled={busy || !onDogeOS || !config?.ready || !!serviceError || !price || !strategies.find(s=>s.id===selected)?.available} onClick={()=>send("start")}>{busy ? "Checking transaction…" : "START EARNING ↗"}</button>
     </div>}
     <div className="session-status" role="status" aria-live="polite">
       {pending?.action==="start" ? "Converting DOGE → USDC · awaiting confirmed session" :
        pending?.action==="stop" || stopping ? "Closing positions · operator settlement follows automatically" :
        active ? "Agent active · waiting for valid signals or managing positions" :
-       status==="settled" ? "DOGE returned" : "Ready when you are"}
+       status==="settled" ? "DOGE returned" : config?.ready ? "Ready when you are" : "Trading paused · wallet connected"}
       {pending && <a href={explorer(pending.hash)} target="_blank" rel="noopener noreferrer">View submitted transaction ↗</a>}
       {status==="settled" && user?.settlement_tx && <a id="settlement-link" href={explorer(user.settlement_tx)} target="_blank" rel="noopener noreferrer">{usd(Number(user.doge_out)/1e18)} DOGE · View settlement ↗</a>}
     </div>
     {active && <button id="stop-trading" className="stage-secondary stop-trading" disabled={busy || !!pending || !onDogeOS} onClick={()=>send("stop")}>{busy ? "Confirm stop in your wallet…" : "STOP TRADING"}</button>}
+    {review && !pending && <section className="dashboard-section transaction-review" aria-label="Review transaction">
+      <h3>Review {review.action==="start"?"your deposit":"your stop request"}</h3>
+      <p>Wallet <strong>{short(address)}</strong></p>
+      <dl><div><dt>Deposit</dt><dd>{review.action==="start"?review.amount:"0"} DOGE</dd></div>
+        <div><dt>Estimated full network fee</dt><dd>{Number(formatEther(review.fees.total)).toFixed(6)} DOGE</dd></div>
+        <div><dt>Included data/finality fee</dt><dd>{Number(formatEther(review.fees.data)).toFixed(6)} DOGE</dd></div>
+        <div><dt>Fee allowance with buffer</dt><dd>{Number(formatEther(review.fees.allowance)).toFixed(6)} DOGE</dd></div></dl>
+      <p className="trading-footnote">Network fees are separate from your deposit and trading P&amp;L. This is an estimate; the chain can change its data fee before inclusion.</p>
+      <button id="confirm-transaction" className="stage-primary" disabled={busy} onClick={()=>send(review.action,true)}>{busy?"Confirm in your wallet…":"Confirm in wallet ↗"}</button>
+      <button className="stage-secondary" disabled={busy} onClick={()=>setReview(null)}>Cancel</button>
+    </section>}
     {error && <div className="trading-notice" role="alert">{error}{/email wallet/.test(error) && <p><a href="/mydoge.html?wallet=metamask">Connect MetaMask ↗</a> · <a href="https://www.mydoge.com/" target="_blank" rel="noopener noreferrer">Open this site inside MyDoge ↗</a></p>}</div>}
-    <p className="trading-footnote">One approval to start. One approval to stop. Leave DOGE in your wallet for gas.</p>
+    <details className="trading-footnote"><summary>Network fee allowance</summary><label htmlFor="fee-limit">Maximum fee estimate in DOGE <input id="fee-limit" type="number" min="0.001" step="0.05" value={feeLimit} disabled={busy} onChange={e=>{setFeeLimit(e.target.value);setReview(null);}}/></label><p>Vela checks execution and data/finality fees before requesting your one wallet signature.</p></details>
     {user && <>
       <div className="metric-grid">
         <div><small>Current session equity</small><strong>{usd(user.equity)} <span>TUSDC</span></strong></div>

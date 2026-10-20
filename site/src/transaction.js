@@ -1,5 +1,26 @@
 import { chain, networkConfig } from "./network.js";
-import { decodeErrorResult, formatEther, keccak256, parseTransaction, recoverTransactionAddress } from "viem";
+import { decodeErrorResult, encodeFunctionData, formatEther, keccak256, parseAbi, parseTransaction, recoverTransactionAddress, serializeTransaction } from "viem";
+
+const feeAbi = parseAbi(["function getL1Fee(bytes data) view returns (uint256)"]);
+const feeOracle = "0x5300000000000000000000000000000000000002";
+
+export async function estimateFees(tx, read=rpc, signedRaw=null) {
+  // Nonzero signature placeholders bound the byte cost before asking the wallet.
+  const raw = signedRaw || serializeTransaction({type:"legacy",chainId:chain.id,
+    nonce:Number(BigInt(tx.nonce)),gas:BigInt(tx.gas),gasPrice:BigInt(tx.gasPrice),
+    to:tx.to,value:BigInt(tx.value||"0x0"),data:tx.data},
+    {r:`0x${"7f".repeat(32)}`,s:`0x${"7f".repeat(32)}`,v:BigInt(chain.id*2+36)});
+  const data = encodeFunctionData({abi:feeAbi,functionName:"getL1Fee",args:[raw]});
+  let dataFee;
+  try {
+    const result=await read("eth_call",[{to:networkConfig.feeOracle||feeOracle,data},"latest"]);
+    if(typeof result!=="string" || !/^0x[0-9a-f]{64}$/i.test(result))throw Error("Invalid fee result");
+    dataFee=BigInt(result);
+    if(dataFee<=0n)throw Error("Invalid fee");
+  } catch {throw new Error("The full network fee is unavailable. Nothing was submitted; retry when the fee service recovers.");}
+  const execution=BigInt(tx.gas)*BigInt(tx.gasPrice),total=execution+dataFee;
+  return {execution,data:dataFee,total,allowance:(total*150n+99n)/100n};
+}
 
 export async function rpc(method, params=[]) {
   const response = await fetch(networkConfig.rpcUrls[0], {
@@ -29,12 +50,14 @@ export async function prepareTransaction(tx, abi, read=rpc) {
   }
   const gas = estimate * 12n / 10n;
   const gasPrice = BigInt(await read("eth_gasPrice"));
-  if (balance < value + gas * gasPrice) throw new Error("Leave more DOGE in your wallet for gas, or reduce the amount.");
   const nonce = await read("eth_getTransactionCount",[tx.from,"pending"]);
-  return {...tx,type:"0x0",nonce,gas:`0x${gas.toString(16)}`,gasPrice:`0x${gasPrice.toString(16)}`};
+  const transaction={...tx,type:"0x0",nonce,gas:`0x${gas.toString(16)}`,gasPrice:`0x${gasPrice.toString(16)}`};
+  const fees=await estimateFees(transaction,read);
+  if (balance < value + fees.allowance) throw new Error(`This transfer needs about ${formatEther(fees.total)} DOGE in network fees, including data/finality fees. Reduce the amount or add DOGE; leave ${formatEther(fees.allowance)} DOGE for fee changes.`);
+  return {transaction,fees,balance};
 }
 
-export async function submitTransaction(provider, tx, embedded, onSigned, read=rpc) {
+export async function submitTransaction(provider, tx, embedded, onSigned, read=rpc, approvedAllowance=null) {
   if (!embedded) return provider.request({method:"eth_sendTransaction",params:[tx]});
   // The email wallet signs once; broadcast directly to the official chain RPC.
   // Its hosted send-transaction wrapper can fail after signing.
@@ -48,6 +71,12 @@ export async function submitTransaction(provider, tx, embedded, onSigned, read=r
     throw new Error("The signed transaction does not match your request. Nothing was broadcast by Vela.");
   }
   const hash=keccak256(raw);
+  if(approvedAllowance!==null){
+    const fresh=await estimateFees(tx,read,raw);
+    if(fresh.total>approvedAllowance)throw new Error("The network fee rose above your reviewed allowance. Nothing was broadcast by Vela. Review again.");
+    const balance=BigInt(await read("eth_getBalance",[tx.from,"pending"]));
+    if(balance<BigInt(tx.value)+fresh.allowance)throw new Error("The wallet balance changed. Nothing was broadcast by Vela. Review again.");
+  }
   onSigned?.(hash); // Retain identity/hash before a potentially ambiguous network response.
   try {
     const result=await read("eth_sendRawTransaction",[raw]);

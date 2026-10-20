@@ -39,7 +39,7 @@ const startHash = "0x" + "11".repeat(32), stopHash = "0x" + "22".repeat(32), set
     await page.route("**/backend-config.js",r=>r.fulfill({contentType:"application/javascript",body:'window.VELA_BACKEND_URL="";'}));
     await page.route("**/assets/mydoge.js",r=>r.fulfill({contentType:"application/javascript",body:output.outputFiles[0].text}));
     await page.route("https://rpc.testnet.dogeos.com/**",r=>{
-      const q=r.request().postDataJSON();const result={eth_chainId:"0x5fdaf3",eth_getBalance:"0x8ac7230489e80000",eth_estimateGas:"0x3d090",eth_gasPrice:"0x3b9aca00",eth_getTransactionCount:"0x0"}[q.method];
+      const q=r.request().postDataJSON();const result=q.method==="eth_call"?`0x${(10n**16n).toString(16).padStart(64,"0")}`:{eth_chainId:"0x5fdaf3",eth_getBalance:"0x8ac7230489e80000",eth_estimateGas:"0x3d090",eth_gasPrice:"0x3b9aca00",eth_getTransactionCount:"0x0"}[q.method];
       return r.fulfill({contentType:"application/json",body:JSON.stringify({jsonrpc:"2.0",id:q.id,result})});
     });
     await page.route("**/api/**",r=>{
@@ -61,10 +61,12 @@ const startHash = "0x" + "11".repeat(32), stopHash = "0x" + "22".repeat(32), set
     assert.equal(await page.evaluate(()=>testWallet.calls.filter(c=>c.method==="eth_sendTransaction").length),0);
     await page.evaluate(()=>{testWallet.chain="0x5fdaf3";testWallet.reject=true;});
     await page.locator("#start-trading").click();
+    await page.locator("#confirm-transaction").click();
     await page.getByRole("alert").filter({hasText:"Cancelled"}).waitFor();
     await page.evaluate(()=>{testWallet.reject=false;testWallet.calls=[];});
     await page.locator("#doge-amount").fill("5");
     await page.locator("#start-trading").click();
+    await page.locator("#confirm-transaction").click();
     await page.getByText("Converting DOGE → USDC",{exact:false}).waitFor();
     const sent = await page.evaluate(()=>testWallet.calls.filter(c=>c.method==="eth_sendTransaction"));
     assert.equal(sent.length,1);assert.equal(sent[0].params[0].chainId,"0x5fdaf3");
@@ -81,6 +83,7 @@ const startHash = "0x" + "11".repeat(32), stopHash = "0x" + "22".repeat(32), set
     assert.equal(await page.locator("#stop-trading").isEnabled(),true);
     failApi=false;
     await page.locator("#stop-trading").click();
+    await page.locator("#confirm-transaction").click();
     await page.getByText("Closing positions",{exact:false}).waitFor();
     const stopped=await page.evaluate(()=>testWallet.calls.filter(c=>c.method==="eth_sendTransaction"));
     assert.equal(stopped.length,1);assert.equal(stopped[0].params[0].value,"0x0");

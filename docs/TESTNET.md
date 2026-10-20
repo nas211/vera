@@ -49,42 +49,53 @@ in another terminal, then
 `PYTHONPATH=backend .venv/bin/pytest -q backend/tests`.
 It uses randomly generated, in-memory local keys and no testnet funds.
 
-## Deploy and fund
+## Practice mode and safe deployment
 
-The existing deployment above is usable. The Python deploy command refuses to
-redeploy while `deployment` is present in the canonical config.
-For an intentional new test deployment, remove that field in a separate checkout,
-fund a disposable EVM signer using the official faucet, and run:
+The default app is a practice portfolio. It has its own SQLite ledger and uses
+virtual DOGE converted to a simulated USD balance at the live DOGE price.
+START/STOP make no wallet or blockchain transactions. A 256-bit browser token
+controls only that practice portfolio, not a wallet; clearing browser storage
+loses access. Idle/abandoned sessions stop after 24 hours using fresh prices.
+At most 20 practice portfolios can be active. The shared research pipeline
+allows at most 200 model calls per rolling day, including failed attempts;
+there is no paid inference while all portfolios are stopped.
+
+The V1 vault is immutable and paused at the application/operator level. Its
+pool has no direct owner-withdrawal method. V2 is prepared, not deployed:
+wallet-bound EIP-712 START quotes and atomic settlement remove periodic on-chain
+price updates. V2 also permits owner pool withdrawal only while paused and
+with zero outstanding sessions. This does not unlock the old V1 pool.
+
+The deployment helper defaults to a read-only estimate and zero pool funding:
 
 ```sh
-cd /root/Vera
-export VELA_EXPECTED_OPERATOR=YOUR_PUBLIC_EVM_ADDRESS
-.venv/bin/python tools/with_operator.py deploy --pool-doge 10
+PYTHONPATH=backend .venv/bin/python -m vela.deploy
 ```
 
-The helper prompts without echo and injects the key into the process environment.
-Never put a private key in a shell argument, frontend, Git, or chat. The current
-test key was disclosed in chat; it is disposable and unsuitable for real assets.
-The deployment checks chain 6281971, runs Foundry tests, writes actual deployed
-addresses/ABI, and calls `fundPool()` with the specified faucet DOGE. The pool
-funding is wrapped immediately. Anyone can add further test DOGE through
-`fundPool()`; plain native transfers are rejected.
-
-`contracts/script/Deploy.s.sol` is also available for Foundry users with
-`VELA_OPERATOR_PRIVATE_KEY` already securely injected. It deploys contracts
-only; the Python command additionally records config and funds the pool.
+It includes execution plus DogeOS data/finality fees from the official oracle
+`0x5300000000000000000000000000000000000002`. The observed V2 deployment estimate
+was 36.451851792369962275 DOGE, versus 1.960864137251449715 DOGE in the operator
+wallet. No V2 deployment was submitted. Estimates change with network conditions.
+For a separately funded deployment, the guarded helper requires `--execute`
+and `--max-total-fee-doge` explicitly. It writes candidate addresses under
+`.runtime/`, never silently replaces the active configuration. Use a fresh DB
+when activating a different deployment; old ledger data must remain intact.
+`contracts/script/Deploy.s.sol` now allows local chain 31337 only.
 
 ## Run backend and frontend
 
 Environment names are documented in `backend/.env.example`. Use dedicated Vela
-credentials only. Model and Pyth keys are optional; the operator key is required.
+credentials only. AI trading requires the dedicated model key. Pyth is optional
+for crypto fallback. Practice trading requires no operator key or wallet funds.
 
 ```sh
 cd /root/Vera
 # Terminal 1, API and built frontend; no signer needed:
 PYTHONPATH=backend .venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
-# Terminal 2, prompts for the disposable operator key:
-.venv/bin/python tools/with_operator.py worker
+# Terminal 2, hidden model and dedicated operator prompts; chain writes stay off:
+.venv/bin/python tools/configure_model.py worker-service
+# To run practice without any chain signer, securely inject VELA_MODEL_KEY and
+# VELA_MODEL in the environment, then run: PYTHONPATH=backend .venv/bin/python -m vela.worker
 ```
 
 Open `http://127.0.0.1:8787/mydoge.html`. For a pure static preview use
@@ -93,9 +104,11 @@ Open `http://127.0.0.1:8787/mydoge.html`. For a pure static preview use
 site; an empty string uses the same origin. Publish the built `site/dist/`
 through the existing Sites project. Never publish backend runtime files.
 
-The API is read-only. Session authorization is the confirmed vault event from
-the connected user's wallet, not an unauthenticated HTTP mutation. Public
-endpoints expose only testnet ledger data:
+Vault accounts remain read-only through HTTP and event-authorized. The independent
+practice endpoints use an `X-Vela-Practice` browser capability: GET `/api/practice`,
+POST `/api/practice/start` with `amountDoge`, POST `/api/practice/stop`, and GET
+`/api/practice/leaderboard`. They never sign or queue chain transactions.
+Additional public endpoints expose testnet ledger data:
 `/health`, `/health/prices`, `/health/engine`, `/health/events`,
 `/health/operator`, `/health/agents`, `/api/config`, `/api/prices`,
 `/api/strategies`, `/api/users/{address}`, `/api/leaderboard`,
@@ -118,8 +131,9 @@ unattended operation across host reboots. Logs: `journalctl -u
 vela-testnet-worker`, `vela-testnet-api`, or `vela-testnet-tunnel`.
 Do not dump service environments into logs.
 
-## Execution and accounting
+## Paused vault flow and accounting
 
+The following describes the retained vault flow, not the default practice app.
 START sends native test DOGE in one transaction. VelaVault wraps it into this
 showcase's WDOGE and mints 6-decimal TUSDC held by the vault while crediting a
 user's internal paper balance. This is operator-priced accounting conversion,
@@ -128,8 +142,9 @@ not a DEX swap or real USDC. Each user can have one active session/position.
 The single Vela AI Agents portfolio reuses both existing reversion/pullback
 signal families across the four crypto markets. Its discovery pipeline reuses
 the bounded research/review/direction model and validated rule DSL.
-Without `VELA_MODEL` and `VELA_MODEL_KEY`, signal and risk agents operate and the
-UI explicitly reports that the research model is disconnected. Once configured,
+Without `VELA_MODEL` and `VELA_MODEL_KEY`, no new agent entry is permitted.
+The dedicated key and `gpt-5.6-luna` were verified with an actual model response.
+The research policy is specific to Vela and makes no inherited backtest claims. Once configured,
 model review is mandatory; an absent or expired approval cannot fall back to
 a rule-only entry. The app never reuses WHY's model credentials.
 Agents wait for valid fresh candle evidence.
@@ -160,9 +175,15 @@ require an API key since August 26, 2026. Supply `VELA_PYTH_API_KEY` to use it.
 Without that key, crypto fallback works and XAU remains unavailable.
 Missing/stale sources block the affected market; divergence above 1% blocks
 new paper entries globally. No fabricated close price is used during outages.
-The worker queues DOGE oracle updates every 30 seconds when users are active,
-60 seconds when idle; confirmation and RPC delays can extend submission time.
-Contracts reject an oracle older than 120 seconds.
+There are no idle oracle writes. Chain writes default OFF. Only an explicitly
+enabled legacy V1 session queues an update every 30 seconds; V2 uses no recurring
+price writes. Contracts reject quotes older than 120 seconds.
+
+`VELA_MAX_TX_FEE_DOGE=0.25`, `VELA_DAILY_FEE_BUDGET_DOGE=0.5` and
+`VELA_GAS_RESERVE_DOGE=1` gate full estimated network costs. Receipts include
+`l1Fee`; pending reservations survive restart. These are preflight estimate
+gates, not protocol-enforced limits against fee changes before inclusion.
+The retained wallet flow shows deposit and estimated total fees before signing.
 
 STOP is one user transaction. The worker observes it, closes all positions,
 confirms each `TradeLogged`, and settles with the exact sum of logged P&L.
@@ -182,6 +203,13 @@ successful settlement. Preserve/back up the DB before any manual recovery.
 The operator remains trusted for prices and paper P&L; this is not audited.
 
 ## Verification
+
+`snapshot/practice-e2e.json` records the actual model/live-price practice test:
+BTC long opened, STOP closed it, net P&L −0.036068 simulated USD, zero wallet
+transactions. This engineering session is excluded from the leaderboard.
+`node checks/practice.cjs` repeats the real API/model/browser check and consumes
+bounded model API usage. It does not fabricate an entry if the model abstains.
+
 
 `snapshot/testnet-e2e.json` records the actual public testnet round trip,
 transaction hashes, P&L, and amount returned. Run the explicit engineering

@@ -119,7 +119,10 @@ class PriceFeed:
     def bootstrap_candles(self):
         """Only completed public candles; no fabricated warmup or gap filling."""
         for symbol, market in BINANCE.items():
-            if self.db.execute("SELECT count(*) FROM candles WHERE symbol=?", (symbol,)).fetchone()[0] >= 250:
+            boundary = int(time.time()//300)*300
+            count = self.db.execute("SELECT count(*) FROM candles WHERE symbol=? AND ts>=? AND ts<?",
+                                    (symbol,boundary-300*250,boundary)).fetchone()[0]
+            if count == 250:
                 continue
             try:
                 r = self.client.get(BINANCE_URL + "/api/v3/klines",

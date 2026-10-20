@@ -8,6 +8,24 @@ from .prices import PriceFeed
 from .paper import PaperAdapter
 from .agents import Agents
 from .chain import Chain
+from .quotes import process_requests
+from .practice import Practice
+
+
+def queue_active_price(db, settings, now, last_push):
+    """Legacy vault maintenance only while a real session is active/stopping."""
+    active = db.execute("SELECT 1 FROM users WHERE status IN ('active','stopping')").fetchone()
+    if not active:
+        db.execute("UPDATE outbox SET status='cancelled',error='No active session; idle price update cancelled' "
+                   "WHERE kind='updatePrice' AND status='queued'")
+        return last_push
+    if not settings.chain_writes or settings.config.get("deployment", {}).get("version", 1) >= 2:
+        return last_push
+    if now - last_push < 30:
+        return last_push
+    if not db.execute("SELECT 1 FROM outbox WHERE kind='updatePrice' AND status IN ('queued','signed','sent')").fetchone():
+        enqueue(db, "price:" + str(int(now)), "updatePrice", {})
+    return now
 
 
 def main():
@@ -16,6 +34,7 @@ def main():
     lock = settings.db_path.with_suffix(".worker.lock").open("a")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     feed, adapter, agents = PriceFeed(db, settings), PaperAdapter(db, settings), Agents(db)
+    practice = Practice(db, settings, agents.model)
     put(db, "ai_model_configured", bool(agents.model.ready))
     chain = None
     running = True
@@ -34,6 +53,14 @@ def main():
             if now - last_warmup >= 300:
                 feed.bootstrap_candles()
                 last_warmup = now
+            # Practice never instantiates Chain or queues transactions. It runs even
+            # while the separate vault operator is disabled or its RPC is offline.
+            try:
+                practice.tick()
+                health(db,"practice",True,"Practice engine running; wallet funds are not used")
+            except Exception as exc:
+                health(db,"practice",False,"Practice cycle interrupted; retrying")
+                log(db,"engine","practice_cycle_failed","warning",error=type(exc).__name__)
             if chain is None and settings.config.get("deployment"):
                 chain = Chain(db, settings, os.getenv("VELA_OPERATOR_PRIVATE_KEY"))
             if chain is None:
@@ -42,27 +69,29 @@ def main():
                 health(db, "operator", False, "Contracts not deployed")
             else:
                 caught_up = chain.sync()
-                # Also prime price while idle so the very first start can succeed.
-                active = db.execute("SELECT 1 FROM users WHERE status IN ('active','stopping')").fetchone()
-                if now - last_push >= (30 if active else 60):
-                    pending = db.execute("SELECT 1 FROM outbox WHERE kind='updatePrice' AND status IN ('queued','signed','sent')").fetchone()
-                    if not pending:
-                        enqueue(db, "price:" + str(int(now)), "updatePrice", {})
-                    last_push = now
+                last_push = queue_active_price(db, settings, now, last_push)
                 if caught_up:
-                    adapter.tick(agents)
+                    process_requests(chain, agents.model.ready)
+                    # Quotes/events still refresh while writes are disabled. No new
+                    # paper entries can create unsettled liabilities during maintenance.
+                    if settings.chain_writes:
+                        adapter.tick(agents)
                     chain.drain()
-                    health(db, "engine", True, "Paper only; confirmed chain cursor caught up")
-                    agents.tick_ai()
+                    health(db, "engine", settings.chain_writes,
+                           "Confirmed chain cursor caught up" if settings.chain_writes else
+                           "Trading paused while network fee controls and vault upgrade are verified")
+                    if settings.chain_writes:
+                        agents.tick_ai()
                 else:
                     health(db, "engine", False, "Catching up events; new fills paused")
-                health(db, "agents", True, "Unified research model configured" if agents.model.ready else "Unified signal/risk agents active; AI research requires VELA_MODEL and VELA_MODEL_KEY")
+                health(db, "agents", agents.model.ready, "Research model configured" if agents.model.ready else "AI research is not connected; configure dedicated Vela model credentials")
         except Exception as exc:
             health(db, "engine", False, "Cycle failed; entries paused")
             health(db, "events", False, type(exc).__name__)
             log(db, "worker", "cycle_failed", "warning", error=type(exc).__name__)
         time.sleep(1)
     db.close()
+    practice.close()
     lock.close()
 
 

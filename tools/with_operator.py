@@ -27,7 +27,8 @@ if action == "worker-service":
     options = ["--setenv=" + name for name in (
         "VELA_MODEL", "VELA_MODEL_KEY", "VELA_MODEL_ENDPOINT", "VELA_PYTH_API_KEY",
         "VELA_DB_PATH", "VELA_RPC_URL", "VELA_CONFIRMATIONS", "VELA_MAX_LEVERAGE",
-        "VELA_SIZE_FRACTION", "VELA_SLIPPAGE", "VELA_LOSS_BUDGET") if name in os.environ]
+        "VELA_SIZE_FRACTION", "VELA_SLIPPAGE", "VELA_LOSS_BUDGET", "VELA_CHAIN_WRITES",
+        "VELA_MAX_TX_FEE_DOGE", "VELA_DAILY_FEE_BUDGET_DOGE", "VELA_GAS_RESERVE_DOGE") if name in os.environ]
     subprocess.run(["systemd-run", "--unit=vela-testnet-worker", "--collect",
         "--property=WorkingDirectory=" + str(root), "--property=Restart=on-failure",
         "--property=RestartSec=5", "--property=NoNewPrivileges=yes",

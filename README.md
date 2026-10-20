@@ -3,10 +3,12 @@
 Independent WHY source snapshot, extended with the Vela DogeOS Chikyū
 **testnet + paper-only** showcase.
 
-The dedicated Vela vault is deployed, funded with faucet DOGE, and verified
-through a testnet start → paper trade/log → stop → native-DOGE settlement.
-The new backend runs only paper execution. No real exchange orders, WHY
-services, forex/MT5, or live stop protection are changed.
+The default website now runs an independent **practice portfolio** with a
+virtual balance, genuine AI research/review/direction, live public prices,
+persisted positions, P&L and STOP. No wallet deposit, signature or gas is needed.
+The separate blockchain vault flow is paused after a network-fee incident.
+V2 contracts are prepared and locally tested, not deployed.
+No real exchange orders, WHY services, forex/MT5 or live protection are changed.
 
 ## Run the showcase
 
@@ -21,15 +23,16 @@ cd contracts && npm ci && forge test
 cd ../site && npm ci && npm run build
 cd ..
 PYTHONPATH=backend .venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
-# In a separate terminal; securely prompts for the disposable testnet key:
-.venv/bin/python tools/with_operator.py worker
+# Securely verify the dedicated model key and restart only the Vela worker:
+.venv/bin/python tools/configure_model.py worker-service
 ```
 
-Open `/mydoge.html` on the website. Connect MyDoge, choose an available strategy
-and test-DOGE amount, then START and STOP each request one transaction approval.
-Login/network switching may require separate confirmations. Actual mobile
-approval remains untested; direct testnet signing and mock browser flows passed.
-TUSDC represents operator-priced test accounting, not real USDC or a DEX swap.
+Open `/mydoge.html#ai-portfolio`. Choose a virtual DOGE amount and press
+START AI TRADING; STOP closes at fresh market prices and saves results.
+Practice access is saved in this browser; it is not ownership of a wallet.
+The original wallet connection remains available separately. Actual mobile
+approval of the paused vault flow remains untested. TUSDC is test accounting,
+not real USDC or a DEX swap.
 
 Canonical addresses and network sources: [`config/dogeos-testnet.json`](config/dogeos-testnet.json).
 Actual verification hashes and payout: [`snapshot/testnet-e2e.json`](snapshot/testnet-e2e.json).
@@ -119,8 +122,10 @@ client ID. Its connection screen opens as a top-level page for the native
 MyDoge mobile bridge.
 
 The landing-page ticket, yield calculator, bonuses and agent animation remain
-illustrative. `/mydoge.html` uses the deployed testnet vault and read-only
-paper-ledger API. Confirmed on-chain wallet events authorize a session.
+illustrative. `/mydoge.html` defaults to the separate practice ledger.
+An unguessable browser capability controls only that simulated portfolio;
+it cannot access a wallet, create chain transactions or modify the vault ledger.
+The older vault flow remains event-authorized and paused.
 The backend reuses pure WY signals, the bounded discovery AI pipeline, and the
 fee-inclusive stop module. OrderlyAdapter is an unusable stub; live execution
 is not implemented.

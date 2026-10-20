@@ -10,10 +10,14 @@ from .chain import Chain
 from .paper import PaperAdapter
 from .prices import PriceFeed, quote
 from .agents import Agents
+from . import fees
+from .quotes import sign_quote
 
 
 def main():
     settings = Settings.from_env()
+    if not settings.chain_writes:
+        raise RuntimeError("On-chain verification paused; configure an explicit full-fee budget before enabling writes")
     if settings.chain_id != 6281971:
         raise RuntimeError("This verification is for DogeOS testnet only")
     db = connect(settings.db_path)
@@ -31,6 +35,7 @@ def main():
     report = dict(chainId=6281971, wallet=wallet, vault=chain.vault.address,
         signal="Explicit engineering smoke signal, not AI or backtest evidence",
         mydogeApprovalTested=False, transactions={})
+    version=settings.config["deployment"].get("version",1)
 
     def pump_until(predicate, timeout=150):
         deadline = time.time() + timeout
@@ -40,7 +45,7 @@ def main():
             if now - last_feed > 5:
                 feed.poll();last_feed = now
             caught_up = chain.sync()
-            if now - last_price > 30:
+            if version<2 and now - last_price > 30:
                 if not db.execute("SELECT 1 FROM outbox WHERE kind='updatePrice' AND status IN ('queued','signed','sent')").fetchone():
                     enqueue(db, "smoke-price:" + str(time.time_ns()), "updatePrice", {})
                 last_price = now
@@ -57,16 +62,28 @@ def main():
             "gasPrice":chain.w3.eth.gas_price, "value":value})
         tx["gas"] = int(tx["gas"] * 1.2)
         signed = chain.account.sign_transaction(tx)
+        fee_quote=fees.estimate(chain.w3,tx,signed.raw_transaction)
+        fees.check(db,settings,fee_quote,chain.w3.eth.get_balance(wallet),value)
+        fees.reserve(db,Web3.to_hex(signed.hash),fee_quote,"engineering_smoke")
         h = chain.w3.eth.send_raw_transaction(signed.raw_transaction)
         r = chain.w3.eth.wait_for_transaction_receipt(h, timeout=120)
+        fees.record(db,r,6281971,"engineering_smoke")
         if r["status"] != 1:
             raise RuntimeError("Smoke transaction reverted")
         return Web3.to_hex(h)
 
     feed.poll()
-    pump_until(lambda: chain.vault.functions.dogeUsd().call() > 0 and
-               not db.execute("SELECT 1 FROM outbox WHERE status IN ('signed','sent')").fetchone())
-    report["transactions"]["start"] = direct(chain.vault.functions.startTrading(1), 5 * 10**18)
+    if version>=2:
+        issued=min(int(time.time()),chain.w3.eth.get_block("latest")["timestamp"])
+        q=sign_quote(chain.account,6281971,chain.vault.address,wallet,1,5*10**18,
+            int(quote(db,"DOGE/USD")*10**8),issued,session[5]+1)
+        call=chain.vault.functions.startTradingWithQuote(1,int(q["price"]),int(q["issuedAt"]),
+                int(q["deadline"]),int(q["nonce"]),q["signature"])
+    else:
+        pump_until(lambda: chain.vault.functions.dogeUsd().call() > 0 and
+                   not db.execute("SELECT 1 FROM outbox WHERE status IN ('signed','sent')").fetchone())
+        call=chain.vault.functions.startTrading(1)
+    report["transactions"]["start"] = direct(call, 5 * 10**18)
     pump_until(lambda: bool(db.execute("SELECT 1 FROM users WHERE address=? AND status='active'",
                                        (wallet.lower(),)).fetchone()))
     p = adapter.open(wallet, dict(symbol="DOGE/USD", side="long", stop_bps="100", target_bps="150",

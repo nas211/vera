@@ -45,6 +45,12 @@ def connect(path):
       level TEXT, message TEXT, detail TEXT);
     CREATE TABLE IF NOT EXISTS services(name TEXT PRIMARY KEY, ts REAL,
       ok INTEGER NOT NULL, detail TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS network_fees(tx_hash TEXT PRIMARY KEY,
+      reserved_wei TEXT NOT NULL, actual_wei TEXT, created REAL NOT NULL,
+      confirmed REAL, kind TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS start_quotes(id TEXT PRIMARY KEY, user TEXT NOT NULL,
+      strategy INTEGER NOT NULL, value_wei TEXT NOT NULL, created REAL NOT NULL,
+      status TEXT NOT NULL, result TEXT, error TEXT);
     CREATE INDEX IF NOT EXISTS trades_user ON trades(user,closed);
     CREATE INDEX IF NOT EXISTS equity_user ON equity(user,ts);
     """)

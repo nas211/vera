@@ -191,7 +191,7 @@ def test_ai_availability_comes_from_worker_not_api_credentials(setup_db):
     db, s, _ = setup_db
     with TestClient(create_app(s)) as client:
         assert len(client.get("/api/strategies").json()) == 1
-        assert client.get("/api/strategies").json()[0]["available"]
+        assert not client.get("/api/strategies").json()[0]["available"]
         assert not client.get("/api/strategies").json()[0]["modelReady"]
         put(db, "ai_model_configured", True)
         assert client.get("/api/strategies").json()[0]["modelReady"]
@@ -206,10 +206,12 @@ def test_unified_portfolio_accepts_both_existing_signal_families(setup_db, monke
     monkeypatch.setattr(agents, "bars_for", lambda db, symbol, now: [[now, 1, 1, 1, 1]] if symbol == "ETH/USD" else [])
     monkeypatch.setattr(agents.signals, "wy_eval", lambda bars: dict(
         fired=("short", family), atr=10, close=3000, bar_ms=123))
-    result = Agents(db, SimpleNamespace(ready=False)).signal(user)
+    agents = Agents(db, SimpleNamespace(ready=False))
+    result = agents.signal_candidates(time.time())[0]
     assert result["symbol"] == "ETH/USD"
     assert result["side"] == "short"
     assert family in result["signal_id"]
+    assert agents.signal(user) is None
     db.execute("UPDATE prices SET safe=0,reason='stale' WHERE symbol='ETH/USD'")
     assert Agents(db, SimpleNamespace(ready=False)).signal(user) is None
 

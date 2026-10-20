@@ -15,6 +15,8 @@
   "faucetUrl": "https://faucet.testnet.dogeos.com/",
   "testnet": true,
   "priceDecimals": 8,
+  "feeOracle": "0x5300000000000000000000000000000000000002",
+  "feeDocs": "https://docs.dogeos.com/en/developers/transaction-fees-on-dogeos",
   "tokenDecimals": 6,
   "deployment": {
     "vault": "0x595e36cDD915db23b563b26fAe575B7Ff6066d3f",
