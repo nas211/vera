@@ -26,3 +26,10 @@
 **/config.json
 **/live_risk.json
 .DS_Store
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+.tools/
+.runtime/
+*.sqlite3-*
+site/checks/artifacts/

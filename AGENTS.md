@@ -27,7 +27,10 @@ are documentation, not Vera deployment instructions. Preserve that boundary.
 Use isolated mock tests; do not start trading, contact live account endpoints or
 reuse production account/model credentials while validating this copy.
 
-The separate Vela frontend includes MetaMask and official MyDoge SDK connections
-for DogeOS Chikyū Testnet. Backend wallet authentication, trading execution,
-DOGE reward settlement, bonuses and an APY product are future work. Do not
-represent a wallet connection or simulated UI as a deployed financial product.
+The owner authorized Vela's dedicated DogeOS Chikyū TESTNET + PAPER ONLY vault,
+backend, frontend, and new Vela service units. This authorization does not extend
+to the inherited WHY deployments. Reuse only pure signal, model and risk modules;
+never reuse WHY credentials or live account endpoints. The only permitted
+non-loopback chain is 6281971. TUSDC is test accounting, not real USDC or a DEX
+swap. Distinguish mocked browser checks, direct testnet signing and actual
+MyDoge mobile approval. Bonuses, yield and real trading remain unimplemented.

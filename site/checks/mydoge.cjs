@@ -84,12 +84,16 @@ const path = require("node:path");
   const errors=[], external=[];
   page.on("pageerror",error=>errors.push(error.message));
   await page.route("**/assets/mydoge.js",route=>route.fulfill({contentType:"application/javascript",body:output.outputFiles[0].text}));
+  await page.route("**/backend-config.js",route=>route.fulfill({contentType:"application/javascript",body:'window.VELA_BACKEND_URL="";'}));
+  // Wallet-only suite: the separate trading suite covers the backend contract.
+  await page.route("**/api/**",route=>route.fulfill({status:503,body:"Offline wallet fixture"}));
   await page.route(/https:\/\/(?!fonts\.googleapis\.com|fonts\.gstatic\.com)/, route => {external.push(route.request().url());return route.abort();});
   const origin=process.env.PREVIEW_URL || "http://127.0.0.1:8769";
   await page.goto(`${origin}/mydoge.html`,{waitUntil:"networkidle"});
   await page.waitForSelector("#mydoge-open");
   assert.deepEqual(await page.evaluate(()=>mockDoge.calls),[]);
   assert.equal(await page.evaluate(()=>mockDoge.config.clientId),"mock-public-client-id");
+  assert.deepEqual(await page.evaluate(()=>mockDoge.config.login),{basicLogins:["email","externalWallets"],socialLogins:[{type:"google"}]});
   assert.deepEqual(await page.evaluate(()=>Object.keys(mockDoge.config.chains)),["evm"]);
   assert.equal(await page.evaluate(()=>mockDoge.config.chains.evm[0].id),6281971);
   await page.evaluate(()=>{mockDoge.connectError=true;});

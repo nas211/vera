@@ -1,0 +1,19 @@
+[Unit]
+Description=Vela isolated testnet price feed, paper engine and event operator
+After=network-online.target
+
+[Service]
+WorkingDirectory=/root/Vera
+Environment=PYTHONPATH=/root/Vera/backend
+# Start through tools/with_operator.py worker-service to pass the key in process
+# environment only. No key is stored in this unit or an EnvironmentFile.
+ExecStart=/root/Vera/.venv/bin/python -m vela.worker
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/root/Vera/.runtime
+
+[Install]
+WantedBy=multi-user.target

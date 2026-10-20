@@ -2,6 +2,19 @@ import { build } from "esbuild";
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 await rm("dist/assets", { recursive: true, force: true });
 await mkdir("dist/assets", { recursive: true });
+// Canonical repo configuration is copied into the standalone Sites source.
+let network;
+try {
+  network = JSON.parse(await readFile("../config/dogeos-testnet.json", "utf8"));
+  await writeFile("src/chain-config.json", JSON.stringify(network, null, 2) + "\n");
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+  network = JSON.parse(await readFile("src/chain-config.json", "utf8"));
+}
+await writeFile("dist/network-config.js", `window.VELA_NETWORK = Object.freeze(${JSON.stringify({
+  chainId:`0x${network.chainId.toString(16)}`, chainName:network.chainName,
+  nativeCurrency:network.nativeCurrency, rpcUrls:network.rpcUrls, blockExplorerUrls:network.blockExplorerUrls
+})});\n`);
 await build({
   entryPoints: ["src/mydoge-entry.jsx"],
   outdir: "dist/assets",

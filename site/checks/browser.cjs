@@ -26,6 +26,14 @@ fs.mkdirSync(artifacts, { recursive: true });
   await page.screenshot({ path: path.join(artifacts, "vela-desktop.png"), fullPage: true });
   assert.match(await page.title(), /Vela/);
   assert.equal(await page.locator("body").innerText().then((text) => /WHY Trading/.test(text)), false);
+  assert.equal(await page.locator(".product-launchpad").count(),0);
+  assert.equal(await page.locator(".feature-tab").count(),3);
+  assert(await page.locator(".hero-actions").getByRole("link",{name:"Start earning"}).isVisible());
+  assert(!/paper trading/i.test(await page.locator("body").innerText()));
+  assert.equal(await page.locator('#nav-links a[href="/earn"]').count(),1);
+  await page.locator('[data-tab="earn"]').click();
+  assert.equal(await page.locator("#panel-earn").isVisible(),true);
+  await page.locator('[data-tab="trade"]').click();
 
   await page.locator('[data-range="1W"]').click();
   assert.match(await page.locator("#market-chart").getAttribute("aria-label"), /1W/);
@@ -49,26 +57,19 @@ fs.mkdirSync(artifacts, { recursive: true });
     }
   }
   await page.locator('[data-tab="earn"]').click();
-  await page.locator("#earn-deposit").fill("10000");
-  await page.locator("#earn-rate").fill("10");
-  await page.locator("#earn-months").selectOption("12");
-  assert.equal(await page.locator("#earn-output").textContent(), "1,000");
-  await page.locator("#earn-rate").fill("0");
-  assert.equal(await page.locator("#earn-output").textContent(), "0");
-  await page.locator("#earn-rate").fill("31");
-  assert.equal(await page.locator("#earn-output").textContent(), "—");
-  await page.locator("#earn-rate").fill("8");
+  assert.equal(await page.locator('#panel-earn a[href="/earn"]').count(),1);
   await page.locator('[data-agent="2"]').click();
   assert.match(await page.locator("#agent-step").textContent(), /DIRECTION/);
   await page.locator("#sequence-toggle").click();
   await page.waitForTimeout(2800);
-  assert.match(await page.locator("#agent-step").textContent(), /PAPER/);
+  assert.match(await page.locator("#agent-step").textContent(), /SIMULATION/);
   await page.locator("#sequence-toggle").click();
-  await page.locator('[data-tab="bonuses"]').click();
-  assert.equal(await page.locator("#mission-count").textContent(), "3");
-  assert.equal(await page.locator("#progress-percent").textContent(), "100%");
-  await page.locator('[data-mission="trade"]').click();
-  assert.equal(await page.locator("#panel-trade").isVisible(), true);
+  await page.locator('[data-tab="lending"]').click();
+  assert.equal(await page.locator("#panel-lending").isVisible(),true);
+  assert.match(await page.locator("#panel-lending").innerText(),/COMING SOON/);
+  assert.equal(await page.locator("#panel-lending button:disabled").count(),2);
+  await page.locator('[data-tab="earn"]').click();
+  assert.match(await page.locator("#panel-earn").innerText(),/STAKING · IN DEVELOPMENT/);
   await page.locator(".faq-list details").first().locator("summary").click();
   assert.equal(await page.locator(".faq-list details").first().getAttribute("open"), "");
   await page.locator("#preview-info").click();
@@ -81,7 +82,7 @@ fs.mkdirSync(artifacts, { recursive: true });
     await page.goto(origin, { waitUntil: "networkidle" });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     assert.equal(overflow, false, `Horizontal overflow at ${width}px`);
-    for (const name of ["trade", "earn", "bonuses"]) {
+    for (const name of ["trade", "earn", "lending"]) {
       await page.locator(`[data-tab="${name}"]`).click();
       assert.equal(await page.locator(`#panel-${name}`).isVisible(), true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1), false, `${name} panel overflow at ${width}px`);
@@ -91,7 +92,7 @@ fs.mkdirSync(artifacts, { recursive: true });
   await page.goto(origin, { waitUntil: "networkidle" });
   await page.locator(".menu-toggle").click();
   assert.equal(await page.locator(".menu-toggle").getAttribute("aria-expanded"), "true");
-  await page.locator('#nav-links a[href="#dogeos"]').click();
+  await page.locator('#nav-links a[href="#lending"]').click();
   assert.equal(await page.locator(".menu-toggle").getAttribute("aria-expanded"), "false");
   await page.evaluate(() => {
     document.querySelectorAll(".reveal").forEach((el) => el.classList.add("visible"));
@@ -106,7 +107,7 @@ fs.mkdirSync(artifacts, { recursive: true });
   assert.deepEqual(forbiddenRequests, []);
   console.log(JSON.stringify({
     result: "passed",
-    checked: ["6 responsive widths", "3 feature tabs", "chart ranges/reset", "long/short fee-inclusive $2 preview stops at 3 sizes each", "yield scenario math and invalid values", "agent flow play/pause", "preview mission tracking", "FAQ", "dialogs and Escape", "mobile menu", "reduced motion", "zero production trading requests", "zero JavaScript errors"]
+    checked: ["6 responsive widths", "3 feature tabs", "chart ranges/reset", "long/short fee-inclusive $2 preview stops at 3 sizes each", "dedicated Staking links", "agent flow play/pause", "Staking development status and disabled lending actions", "FAQ", "dialogs and Escape", "mobile menu", "reduced motion", "zero production trading requests", "zero JavaScript errors"]
   }, null, 2));
   await browser.close();
 })().catch((error) => { console.error(error); process.exit(1); });

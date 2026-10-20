@@ -1,0 +1,18 @@
+{
+  "chainId": 6281971,
+  "wallet": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+  "vault": "0x595e36cDD915db23b563b26fAe575B7Ff6066d3f",
+  "signal": "Explicit engineering smoke signal, not AI or backtest evidence",
+  "mydogeApprovalTested": false,
+  "transactions": {
+    "start": "0x9561c60e4ff4bddfae7785a9ee9e8ba1c985ad475edb2fd8a89e274dc0a572fc",
+    "tradeLog": "0xa16d71cdb4fdc23dc623eea0b0e3c6c28d0586d75b02b7422a1d4090f837f2c2",
+    "stop": "0x8ad2d8d22b61ef7f1f11daf8e27780c9d8bc8e71bd272d6f3994f2cae49fe7c7",
+    "settlement": "0x127360776176ddeee207b852c28ae9251c7b36bdd7f7f026c777cddfe86ad22c"
+  },
+  "pnlUsdc": "-0.000244",
+  "dogeReturned": "4.9913579478239213",
+  "settlementConfirmed": true,
+  "tradeLogged": true,
+  "verifiedAt": 1792509815.6985168
+}

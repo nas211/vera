@@ -1,0 +1,14 @@
+[Unit]
+Description=Vela testnet showcase temporary HTTPS API tunnel
+After=network-online.target
+
+[Service]
+WorkingDirectory=/root/Vera
+ExecStart=/root/Vera/.tools/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8787 --protocol http2 --edge-ip-version 4
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

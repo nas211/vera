@@ -3,11 +3,9 @@
   const $ = (q) => document.querySelector(q);
   const $$ = (q) => [...document.querySelectorAll(q)];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const completed = new Set();
   let side = "long";
   let selectedAgent = 0;
   let sequenceTimer = null;
-  let toastTimer = null;
   const price = 0.18432;
   const feeRate = 0.0004;
   const tick = 0.00001;
@@ -43,8 +41,8 @@
 
   const featureText = {
     trade: ["YOU SET THE DIRECTION.", "Intelligence behind<br>every decision.", "Explore a trading flow that brings market research, strategy review, and risk controls into one clear view.", "Simulated trades. MetaMask connection available."],
-    earn: ["A SCENARIO. NOT A PROMISE.", "See the possibilities.<br>Set your assumptions.", "What might an earning experience look like? Explore hypothetical DOGE rewards with a balance, an assumed yield, and a little time.", "DOGE earning products are still in development."],
-    bonuses: ["A LITTLE EXTRA CURIOSITY.", "Good things start<br>with exploration.", "Get to know Vela through three preview missions. Discover the trading flow, explore a rewards scenario, and meet the agents.", "Demo milestones only. No rewards are claimable."]
+    earn: ["STAKING / REWARDS & APY", "More potential.<br>One place to stake.", "Explore staking rewards with a DOGE balance, an assumed APY and a time horizon. ZK privacy is planned as an additional layer, not a separate product.", "Staking is in development. Current transactions remain public."],
+    lending: ["SUPPLY. BORROW. COMING SOON.", "Your assets.<br>More possibilities.", "Supply liquidity to a pool or borrow against collateral. Lending is a separate product planned for Vela, with its own risk controls and market terms.", "Coming soon. No deposits or borrowing are open."]
   };
   function selectTab(name, focus = false) {
     $$(".feature-tab").forEach((button) => {
@@ -69,6 +67,17 @@
       if (index !== undefined) { event.preventDefault(); selectTab(tabs[index].dataset.tab, true); }
     });
   });
+  function openProductHash() {
+    const name = location.hash.slice(1);
+    const target = {"staking":"earn", "private-yield":"earn", "earn":"earn", "apy":"earn", "rewards":"earn", "lending":"lending", "bonuses":"lending"}[name];
+    if (target) {
+      selectTab(target);
+      $("#experience").scrollIntoView({behavior:reducedMotion ? "auto" : "smooth"});
+
+    }
+  }
+  window.addEventListener("hashchange", openProductHash);
+  openProductHash();
 
   function drawChart(range) {
     const ranges = { "1H": [3.7, 0.3, "10:00", "10:30", "11:00"], "1D": [2.3, 1.8, "00:00", "12:00", "23:59"], "1W": [4.9, 3.4, "MON", "THU", "SUN"], "1M": [1.5, 6.2, "DAY 1", "DAY 15", "DAY 30"] };
@@ -102,24 +111,6 @@
     });
   }));
 
-  function toast(text) {
-    clearTimeout(toastTimer);
-    $("#toast").textContent = text;
-    $("#toast").classList.add("visible");
-    toastTimer = setTimeout(() => $("#toast").classList.remove("visible"), 3200);
-  }
-  function markMission(name) {
-    completed.add(name);
-    const percent = Math.round(completed.size / 3 * 100);
-    $("#mission-count").textContent = completed.size;
-    $("#progress-percent").textContent = `${percent}%`;
-    $("#progress-ring").style.background = `conic-gradient(var(--gold) ${percent}%, #343a2f ${percent}%)`;
-    $$(".mission").forEach((button) => {
-      const done = completed.has(button.dataset.mission);
-      button.classList.toggle("done", done);
-      button.querySelector(".mission-status").textContent = done ? "Explored ✓" : "Explore ↗";
-    });
-  }
   $("#trade-form").addEventListener("submit", (event) => {
     event.preventDefault();
     const amount = Number($("#trade-amount").value);
@@ -140,50 +131,20 @@
       row.append(key, val); return row;
     }));
     $("#trade-dialog").showModal();
-    markMission("trade");
   });
-  function updateEarn(mark = true) {
-    const deposit = Number($("#earn-deposit").value);
-    const rate = Number($("#earn-rate").value);
-    const months = Number($("#earn-months").value);
-    $("#earn-deposit-label").textContent = deposit.toLocaleString("en-US");
-    $("#earn-month-label").textContent = months;
-    if (!Number.isFinite(rate) || rate < 0 || rate > 30 || $("#earn-rate").value === "") {
-      $("#earn-output").textContent = "—";
-      return;
-    }
-    const reward = deposit * (Math.pow(1 + rate / 100, months / 12) - 1);
-    $("#earn-output").textContent = reward.toLocaleString("en-US", { maximumFractionDigits: 0 });
-    if (mark) markMission("earn");
-  }
-  ["#earn-deposit", "#earn-rate", "#earn-months"].forEach((selector) => $(selector).addEventListener("input", () => updateEarn()));
-  updateEarn(false);
-  $$(".mission").forEach((button) => button.addEventListener("click", () => {
-    const name = button.dataset.mission;
-    if (name === "agents") {
-      $("#intelligence").scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth" });
-      selectAgent(0);
-      return;
-    }
-    selectTab(name, true);
-    if (name === "trade") $("#trade-amount").focus({ preventScroll: true });
-    if (name === "earn") { $("#earn-rate").focus({ preventScroll: true }); toast("Change an assumption to explore your scenario."); }
-  }));
-
   const agents = [
     ["RESEARCH", "Look for the possibilities.", "Explore market context and propose testable ideas. Every idea starts as a hypothesis."],
     ["CRITIC", "Give every idea a worthy challenge.", "Question assumptions, look for weaknesses, and ask what the evidence may be missing."],
     ["DIRECTION", "Make sense of the wider picture.", "Interpret market context and offer a direction for further evaluation, without bypassing risk controls."],
-    ["PAPER", "Let the idea meet a simulation.", "Evaluate strategies with simulated positions before considering any real execution path."],
-    ["PROMOTION", "Let evidence earn the next step.", "Review paper results and qualification criteria. A promising hypothesis alone is not approval to trade."],
+    ["SIMULATION", "Let the idea meet a simulation.", "Evaluate strategies with simulated positions before considering any real execution path."],
+    ["PROMOTION", "Let evidence earn the next step.", "Review simulation results and qualification criteria. A promising hypothesis alone is not approval to trade."],
     ["FEEDBACK", "Close the loop. Open a new question.", "Review outcomes and share observations with the other roles to improve the next research cycle."]
   ];
-  function selectAgent(index, mark = true) {
+  function selectAgent(index) {
     selectedAgent = index;
     $$(".agent-card").forEach((card, i) => { card.classList.toggle("active", i === index); card.setAttribute("aria-pressed", String(i === index)); });
     $("#agent-step").textContent = `0${index + 1} / ${agents[index][0]}`;
     $("#agent-detail-title").textContent = agents[index][1]; $("#agent-detail-copy").textContent = agents[index][2];
-    if (mark) markMission("agents");
   }
   $$(".agent-card").forEach((card) => card.addEventListener("click", () => selectAgent(Number(card.dataset.agent))));
   $("#sequence-toggle").addEventListener("click", () => {

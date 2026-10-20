@@ -1,0 +1,17 @@
+[Unit]
+Description=Vela testnet paper dashboard API
+After=network-online.target
+
+[Service]
+WorkingDirectory=/root/Vera
+Environment=PYTHONPATH=/root/Vera/backend
+ExecStart=/root/Vera/.venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/root/Vera/.runtime
+
+[Install]
+WantedBy=multi-user.target

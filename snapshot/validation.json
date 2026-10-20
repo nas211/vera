@@ -110,5 +110,107 @@
       ],
       "mismatch_explanation": "AGENTS.md contains the intentional Vera copy and wallet boundaries added after initial capture"
     }
+  },
+  "history_note": "Earlier blocks describe earlier captures; latest testnet verification below supersedes deployment and browser status.",
+  "testnet_showcase_verification": {
+    "checked_at": "2026-10-20T16:38:43.246362+00:00",
+    "chain_id": 6281971,
+    "foundry_tests": 20,
+    "fuzz_runs": 256,
+    "backend_unit_tests": 24,
+    "backend_integration_tests": 2,
+    "copied_execution_tests": 41,
+    "browser_suites": [
+      "landing",
+      "metamask",
+      "mydoge",
+      "trading",
+      "transaction-signing",
+      "injected-wallet",
+      "staking-page"
+    ],
+    "real_sdk_login_screen": "passed on actual domain; email/Google/wallet options, X removed; no wallet approval",
+    "actual_mobile_wallet_approval": false,
+    "testnet_roundtrip": {
+      "chainId": 6281971,
+      "wallet": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+      "vault": "0x595e36cDD915db23b563b26fAe575B7Ff6066d3f",
+      "signal": "Explicit engineering smoke signal, not AI or backtest evidence",
+      "mydogeApprovalTested": false,
+      "transactions": {
+        "start": "0x9561c60e4ff4bddfae7785a9ee9e8ba1c985ad475edb2fd8a89e274dc0a572fc",
+        "tradeLog": "0xa16d71cdb4fdc23dc623eea0b0e3c6c28d0586d75b02b7422a1d4090f837f2c2",
+        "stop": "0x8ad2d8d22b61ef7f1f11daf8e27780c9d8bc8e71bd272d6f3994f2cae49fe7c7",
+        "settlement": "0x127360776176ddeee207b852c28ae9251c7b36bdd7f7f026c777cddfe86ad22c"
+      },
+      "pnlUsdc": "-0.000244",
+      "dogeReturned": "4.9913579478239213",
+      "settlementConfirmed": true,
+      "tradeLogged": true,
+      "verifiedAt": 1792509815.6985168
+    },
+    "website": {
+      "url": "https://defivela.xyz",
+      "access": "public; explicitly authorized by owner",
+      "source_commit": "7d57ea3d8032a57a38fa4ccfe7fd90080f8df4fc",
+      "deployment_id": "appgdep_6ad798bd6af8819189fbec0b03e54658",
+      "status": "succeeded",
+      "custom_domain_status": "active",
+      "tls": "active",
+      "actual_domain_browser": {
+        "checked_at": "2026-10-20T16:29:07.869Z",
+        "homepage_status": 200,
+        "mydoge_page_status": 200,
+        "products": [
+          "AI Trading",
+          "Lending & Borrowing SOON",
+          "Staking"
+        ],
+        "backend_ready": true,
+        "strategies": [
+          "Vela AI Agents"
+        ],
+        "model_ready": false,
+        "official_modal_opened": true,
+        "x_login_removed": true,
+        "javascript_errors": 0,
+        "actual_wallet_approval": false
+      },
+      "version_id": "appgprj_6ad757d1f93c8191bc736d87ada530be~appgver_671473117f7881919c298780a90f7293",
+      "earn_page": {
+        "checked_at": "2026-10-20T16:38:15.407Z",
+        "url": "https://defivela.xyz/earn",
+        "http_status": 200,
+        "hero_links_to_earn": true,
+        "calculator_checked": true,
+        "responsive_widths": [
+          320,
+          390,
+          1440
+        ],
+        "javascript_errors": 0
+      }
+    },
+    "services": [
+      "vela-testnet-api",
+      "vela-testnet-worker",
+      "vela-testnet-tunnel"
+    ],
+    "limitations": [
+      "Actual MyDoge mobile/email transaction approval after revised signing path untested",
+      "Unified portfolio signal/risk agents run; research model needs dedicated credentials",
+      "Pyth now requires key; Binance crypto fallback only, XAU unavailable",
+      "Quick Tunnel was restored with IPv4; transient hosting still requires permanent ops configuration",
+      "Lending/borrowing, staking contracts and ZK privacy are not implemented",
+      "No independent contract audit; SDK dependency advisories remain"
+    ],
+    "why_or_forex_modified": false,
+    "live_exchange_protection_reverified": false,
+    "secret_scan": {
+      "staged_files": 672,
+      "pattern_findings": 0,
+      "supplied_operator_key_present": false,
+      "scope": "staged source; exact disclosed key checked without echo"
+    }
   }
 }

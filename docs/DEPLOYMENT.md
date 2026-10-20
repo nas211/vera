@@ -1,122 +1,133 @@
-# Vela deployment status
+# Vela deployment and verification
 
-Updated on 2026-10-20. Prepared source, tests, website publication, and live
-trading protection are separate verification scopes.
+Updated October 20, 2026. Code, tests, deployed testnet behavior and actual
+mobile-wallet approval are distinct verification scopes.
 
-## Website
+## Website and domain
 
-The independent Vela static website was successfully published with owner-private
-access at:
+The updated site is published at **https://defivela.xyz** and
+https://defivela.uuuiiaaaa.chatgpt.site. The owner explicitly authorized public
+access after the private site blocked ordinary browser access. Domain status,
+provider status and HTTPS certificate are all `active`. The owner changed
+Spaceship DNS; no unrelated DNS records were changed by this agent.
 
-https://defivela.uuuiiaaaa.chatgpt.site
+Sites project: `appgprj_6ad757d1f93c8191bc736d87ada530be`.
+Published source: `7d57ea3d8032a57a38fa4ccfe7fd90080f8df4fc`.
+Version: `appgprj_6ad757d1f93c8191bc736d87ada530be~appgver_671473117f7881919c298780a90f7293`.
+Successful deployment: `appgdep_6ad798bd6af8819189fbec0b03e54658`.
+`site/` contains source, generated static assets, dependency locks and checks.
 
-The source is in `site/`. The deployed Sites source commit is
-`5fd4011d130424075542b606750cf6eb2935de56`.
-Its tracked source and static build output are copied into this repository
-without nested Git metadata or installed dependencies. The hosting project is
-recorded in `site/.openai/hosting.json`. Wallet deployment succeeded with ID
-`appgdep_6ad770ce7c9c81919ed0c795fbafe8aa`.
-The resumed check confirmed that deployment is `succeeded` and site access
-contains only the owner, with no groups or external visitors. No new website
-deployment was made during repository finalization.
+A fresh Chrome session fetched both the homepage and `/mydoge.html` from
+`defivela.xyz` with HTTP 200. The hosted page reached the backend with HTTP 200
+and `ready=true`, with no JavaScript errors. The official MyDoge login modal
+also opened on the actual domain.
 
-MetaMask and MyDoge Wallet connections support DogeOS Chikyū Testnet, including
-account/network changes, testnet balance, network switching and disconnect.
-MyDoge uses official SDK 4.0.4 and the owner's public Sandbox client ID.
-The chooser opens MyDoge at top-level `/mydoge.html` for its native mobile bridge.
+The homepage keeps the original dark-and-gold design and hero. Its three product
+labels are AI Trading, Lending & Borrowing, and Staking. Lending & Borrowing is
+Coming soon. Staking opens a dedicated `/earn` page with the illustrative APY/rewards calculator; staking
+contracts and ZK privacy are not implemented. Current vault transactions are
+public. The opening four-box row and visible paper-trading labels were removed;
+the main action says Start earning and opens `/earn`. `/mydoge.html` is the actual
+TESTNET + PAPER ONLY dashboard. It connects through official SDK 4.0.4 with email, Google and wallet login (X removed), checks
+DogeOS Chikyū, displays test-DOGE balance/faucet, and requests one START or STOP
+transaction. Backend ledger events drive active/stopping/settled states.
 
-Automated browser suites passed with mock wallet providers and SDK hooks.
-The real MyDoge SDK opened its connection modal without JavaScript errors using
-local assets at the registered site origin and real MyDoge services. No real
-wallet sign-in/approval was performed. The owner must still verify the native
-MyDoge mobile and MetaMask extension flows. Dependency advisories and build
-instructions are documented in `site/README.md`.
+## Deployed contracts and confirmed transactions
 
-All trading, yield, bonus and agent displays are previews. No execution protocol
-is connected; selecting one remains a separate decision.
+| Contract | Address |
+| --- | --- |
+| VelaVault | `0x595e36cDD915db23b563b26fAe575B7Ff6066d3f` |
+| WDOGE | `0xc4d9A03B101a5d11894c9DE9Da49A5d9F88845C5` |
+| TUSDC | `0xAC9cED37e9F23f3effDf09B505b2F7809416e1E0` |
 
-## Custom domain: pending DNS
+All are on chain **6281971**, verified through the official RPC. The pool was
+prefunded with **10 faucet DOGE**. Operator/owner is the dedicated test signer
+`0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB`.
 
-`defivela.xyz` has been registered with the site host. Refreshing verification
-at 2026-10-20 14:30:55 UTC returned `pending`, provider status `pending`, and SSL
-`pending_validation`, with no provider error. The domain is not yet verified or
-confirmed to route to the site. DNS records were not changed.
+| Operation | Explorer receipt |
+| --- | --- |
+| Deploy | [0x475f…b907](https://dogeos-testnet.l2scan.co/tx/0x475f5d09f55b0c5f1f265eff8ee6dd7d4217df0d4e628886f09a04bd31e7b907) |
+| Fund pool | [0xa237…486f](https://dogeos-testnet.l2scan.co/tx/0xa2371ba05946df1d1ae1aef6b2f5cfdfdd2650f323852d8e65d7a057d355486f) |
+| START | [0x9561…72fc](https://dogeos-testnet.l2scan.co/tx/0x9561c60e4ff4bddfae7785a9ee9e8ba1c985ad475edb2fd8a89e274dc0a572fc) |
+| TradeLogged | [0xa16d…f2c2](https://dogeos-testnet.l2scan.co/tx/0xa16d71cdb4fdc23dc623eea0b0e3c6c28d0586d75b02b7422a1d4090f837f2c2) |
+| STOP | [0x8ad2…e7c7](https://dogeos-testnet.l2scan.co/tx/0x8ad2d8d22b61ef7f1f11daf8e27780c9d8bc8e71bd272d6f3994f2cae49fe7c7) |
+| Settlement | [0x1273…d22c](https://dogeos-testnet.l2scan.co/tx/0x127360776176ddeee207b852c28ae9251c7b36bdd7f7f026c777cddfe86ad22c) |
 
-Configure these records at the authoritative DNS provider:
+The verification session deposited **5 test DOGE**, opened and closed one paper
+DOGE position using live prices, logged it on-chain, requested STOP, and received
+**4.9913579478239213 test DOGE**. That session's net trading P&L was
+**−0.000244 TUSDC**, including entry/exit fees. The DOGE amount also reflects the
+changed conversion price; user gas is separate. Contract session returned to
+Idle and the trade ID is recorded on-chain. Full hashes are also in
+`snapshot/testnet-e2e.json`.
 
-| Type | Name | Value |
-| --- | --- | --- |
-| A | `@` | `162.159.143.30` |
-| A | `@` | `172.66.3.26` |
-| TXT | `_openai-site-verification` | `openai-site-verification=IBp1NHk68Ftv7ScrIaTikFTC93FeLcle-JUj-LxmIsU` |
-| TXT | `_cf-custom-hostname` | `ac59adc5-830b-4e17-8216-8d71271e411f` |
+This was an explicitly labeled engineering signal signed directly by the test
+account, not evidence of an AI-generated trade or real MyDoge mobile approval.
+The check is excluded from strategy leaderboard returns.
 
-For providers requiring absolute record names, append `.defivela.xyz` to each
-TXT name. These are public DNS validation values, not credentials. Preserve
-unrelated DNS records. The two A records are for the apex domain; the returned
-subdomain CNAME target is `custom-domains.chatgpt.site.`.
+## Tests and running services
 
-After DNS is configured, refresh domain verification for project
-`appgprj_6ad757d1f93c8191bc736d87ada530be` and custom domain
-`appgdom_6ad75f3f36a081918c9897f8f8da62af`. Domain attachment does not change the
-site's private audience.
+- Foundry: **20 tests passed**, including 256 fuzz iterations, permissions,
+  stale prices, pause/exit behavior, double start, pool caps, other-user reserves,
+  withdrawal failure, reentrancy and mint/burn restrictions.
+- Backend: **24 unit tests plus 2 local-chain integration tests passed**.
+  Coverage includes both stop directions, fees, partial exits, stricter limits,
+  persisted-position reconciliation, price gates, no live adapter, event replay,
+  signed outbox recovery, settlement, reorganization halt and secret-header scope.
+- Copied execution core: **41 offline tests passed** again. Mock venues only,
+  no network, writes confined to a temporary directory.
+- Browser: landing, MetaMask, MyDoge, email-signing, injected-wallet and paper-dashboard suites passed, including
+  responsive layouts, network/account changes, cancellation, single START/STOP,
+  pending reload, outage exit and settlement links. Providers are mocked.
+- Real MyDoge service check: official login modal opened with no JavaScript
+  errors. Actual mobile login/signing remains untested.
 
-## GitHub
+Only NEW `vela-testnet-api`, `vela-testnet-worker` and `vela-testnet-tunnel`
+units were started. API, prices, event listener, operator and paper engine report
+healthy. SQLite and signed transaction outbox stay in ignored `.runtime/`.
+Operator key is process environment only; it is never in frontend or Git.
+The key was disclosed in chat and is suitable only for this disposable testnet.
 
-Private repository: https://github.com/nas211/vera
+## Remaining limitations
 
-The GitHub connection now has push access. This repository contains the isolated
-trading/agent source snapshot and the full Vela website source, dependency lock,
-static build, wallet tests and hosting manifest. Original runtime secrets,
-account state and installed dependencies are excluded.
+- Actual MyDoge mobile/email approval on DogeOS must still be tested by its owner.
+  The owner reported the hosted send error after email login. The new path asks
+  for one signature, verifies its payload and broadcasts directly to the chain
+  RPC. Local signing fixtures pass; that does not prove real email approval.
+- The unified AI Agents portfolio includes existing signal and risk code.
+  Its research model needs dedicated `VELA_MODEL` and `VELA_MODEL_KEY`.
+  The UI reports the disconnected model. Once configured, review cannot be
+  bypassed by falling back to a rule entry.
+- Pyth's August 26, 2026 upgrade requires an API key; the requested no-key API
+  now rejects price-update requests. Binance crypto fallback is working. XAU
+  stays unavailable without a fresh Pyth source. Configure `VELA_PYTH_API_KEY`.
+- The current public API uses a Cloudflare Quick Tunnel. Its address can change
+  on tunnel restart. New transient services and operator environment need
+  reinitialization after a host reboot. Permanent hosting/secret injection
+  remains an ops task; see `docs/TESTNET.md`.
+- TUSDC is operator-priced paper accounting, not real USDC or a DEX trade.
+  Settlement trusts the operator and is capped by available test pool funds.
+- Contracts and SDK are not independently audited. The pinned frontend dependency
+  tree reports 52 advisories (9 low, 21 moderate, 22 high); see `site/README.md`.
+- The interface has no real-money execution, real yield, rewards or bonuses.
 
-The resumed check found only the bootstrap README on `main` at
-`ca3d7cbcf80cc76ed67c221cc28bf5d95206df0f`; previously uploaded component
-objects were available but were not yet referenced by the complete branch.
+## GitHub and isolation
 
-The upload is assembled through GitHub's Git Data API. Its final tree must
-match the local committed tree before `main` is updated, and the branch must
-then be read back and checked recursively for identical paths, modes, and blob
-hashes. The GitHub commit message records the local source commit and tree.
-Git Data API commit metadata can differ from local metadata; matching tree
-hashes, rather than matching commit IDs, establish identical source.
-A fresh clone can build the wallet with `cd site && npm ci && npm run build`.
-GitHub stores the code; hosting runs the website separately. The copied trading
-services have not been started or deployed.
+Private source repository: https://github.com/nas211/vera. The complete local
+committed tree is uploaded via the Git Data API; unchanged copied components
+are preserved. Remote and local commit IDs can differ because commit metadata
+is generated separately. Matching root-tree hashes and recursive file paths,
+modes and object hashes verify identical source. The upload verification record
+is retained under ignored `.git/vera-upload/verification.json` after completion.
 
-## Trading system and live protection
+No WHY, forex/MT5, live exchange accounts, original services, source, orders or
+stop protection were modified in this implementation. No live protection was
+reverified. The earlier shadow-service failure is historical evidence only:
+its prior journal reported `candle_schema_or_history` / `shadow_market_errors`;
+this task did not investigate or repair it.
 
-The copied trading/agent system remains undeployed. No WHY services, source,
-accounts, orders, domains, environment files or live stops were modified.
-
-The original read-only comparison covered 571 source files and 35 service units,
-31 active. A later check at 13:46:38 UTC still found no production source hash
-changes, but observed `why-discovery-bulk-shadow.service` change from `inactive`
-to `failed`. Both observations had MainPID 0 and NRestarts 0. The only local
-snapshot-manifest mismatch was `AGENTS.md`, which had been extended with Vera's
-copy and wallet boundaries; the manifest describes the earlier capture.
-The earlier "no service process changes" result must not be treated as current.
-
-During this resume, `systemctl` could not connect to the system bus because of
-the sandbox. Read-only journal access did work. At 16:25:43 Europe/Berlin
-(14:25:43 UTC), the job reported `ValueError:candle_schema_or_history` for
-`AAVEUSDT-PERP`, `ARBUSDT-PERP`, `GOOGLUSDT-PERP`, `UNIUSDT-PERP`, and
-`XAUUSDT-PERP`, then raised `RuntimeError:shadow_market_errors` and exited 1.
-The copied source validates at least 250 completed candles, six numeric columns,
-and finite values; the journal does not distinguish which of these conditions
-failed. It reported `live_enabled: false` for this simulation job. No market
-endpoints were queried, no services were changed, and no repair was deployed.
-This diagnoses the immediate failure path, not the upstream data cause.
-
-The copied execution core passed all 41 offline regression tests again during
-this resume, with zero failures, errors, or skips. Network calls and subprocesses
-were blocked, and writes were confined to a temporary directory. Website and
-wallet browser results above are the prior checks; they were not rerun for this
-documentation and upload work. Real mobile wallet approval remains untested.
-
-Vera trading execution remains disabled and undeployed pending the protocol
-decision. The maximum $2 fee-inclusive per-position stop trigger budget applies
-to every account, including JP and future accounts, while preserving stricter
-limits. It does not guarantee realized losses against slippage or funding.
-No live venue was queried, so current exchange stop protection was neither
-changed nor independently reverified.
+Every paper position retains the universal **$2 fee-inclusive maximum stop
+trigger loss budget**, preserving stricter limits. Slippage and gaps can exceed
+that trigger budget. Today's performance and cumulative performance are not
+mixed: dashboard statistics are current-session; leaderboard is all-time closed
+strategy trades with counts and win rate from that same set.

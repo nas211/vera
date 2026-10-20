@@ -12,7 +12,7 @@ function Pending() {
     <p>One familiar wallet. A new world of possibilities.</p>
     <div className="stage-notice" role="status">
       <span className="stage-dot" /> MyDoge connection is awaiting activation
-      <small>We’re preparing Vela’s connection to MyDoge. In the meantime, you can explore the preview or use MetaMask on DogeOS testnet.</small>
+      <small>We’re preparing Vela’s connection to MyDoge. In the meantime, you can explore the preview or use MetaMask on DogeOS.</small>
     </div>
     <a className="stage-primary" href="/?wallet=metamask">Connect with MetaMask <span>↗</span></a>
     <a className="stage-secondary" href="/">Back to Vela <span>↗</span></a>

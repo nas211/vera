@@ -1,12 +1,39 @@
 # Vera
 
-Independent source snapshot of the WHY trading system, prepared for future
-integration into Doge OS and its app/wallet.
+Independent WHY source snapshot, extended with the Vela DogeOS Chikyū
+**testnet + paper-only** showcase.
 
-**This repository is a development copy. It is not deployed or connected to a
-trading account.** The original WHY services remain separate. Copying this
-repository does not start agents, move funds, change exchange orders, or update
-live stop protection.
+The dedicated Vela vault is deployed, funded with faucet DOGE, and verified
+through a testnet start → paper trade/log → stop → native-DOGE settlement.
+The new backend runs only paper execution. No real exchange orders, WHY
+services, forex/MT5, or live stop protection are changed.
+
+## Run the showcase
+
+See the complete [testnet runbook](docs/TESTNET.md) for contract deployment,
+faucet funding, environment configuration, new service units and recovery.
+
+```sh
+cd /root/Vera
+python3 -m venv .venv
+.venv/bin/pip install -r backend/requirements.lock
+cd contracts && npm ci && forge test
+cd ../site && npm ci && npm run build
+cd ..
+PYTHONPATH=backend .venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
+# In a separate terminal; securely prompts for the disposable testnet key:
+.venv/bin/python tools/with_operator.py worker
+```
+
+Open `/mydoge.html` on the website. Connect MyDoge, choose an available strategy
+and test-DOGE amount, then START and STOP each request one transaction approval.
+Login/network switching may require separate confirmations. Actual mobile
+approval remains untested; direct testnet signing and mock browser flows passed.
+TUSDC represents operator-priced test accounting, not real USDC or a DEX swap.
+
+Canonical addresses and network sources: [`config/dogeos-testnet.json`](config/dogeos-testnet.json).
+Actual verification hashes and payout: [`snapshot/testnet-e2e.json`](snapshot/testnet-e2e.json).
+Publication, DNS and remaining limitations: [deployment status](docs/DEPLOYMENT.md).
 
 ## Included
 
@@ -81,26 +108,30 @@ core's existing implementation is copied in
 are retained for reference; their presence does not authorize live trading or
 establish compliance for a new Vera execution path.
 
-## Vela website for DogeOS
+## Vela website and paper agents
 
 The independent [Vela website](site/README.md) targets `defivela.xyz`. It includes
-a responsive interactive product preview with MetaMask and MyDoge Wallet
+a responsive landing-page preview plus the MyDoge paper dashboard, with MetaMask and MyDoge Wallet
 integration for DogeOS Chikyū Testnet: user-approved connection and network
 switching, account display, native testnet DOGE balances, explorer links and
 disconnect. MyDoge uses the official DogeOS SDK and the owner's public Sandbox
 client ID. Its connection screen opens as a top-level page for the native
 MyDoge mobile bridge.
 
-The website's trade ticket, yield calculator, bonuses and agent activity are
-illustrative. Vela does not request trading signatures, token approvals or
-transactions. The SDK manages its own wallet login and consent. Website and
-mock-wallet browser checks passed independently of the 41 copied execution
-tests. The real SDK connection modal also opened without JavaScript errors;
-approval inside a real MyDoge mobile app or MetaMask extension was not exercised.
-See [deployment and verification status](docs/DEPLOYMENT.md).
+The landing-page ticket, yield calculator, bonuses and agent animation remain
+illustrative. `/mydoge.html` uses the deployed testnet vault and read-only
+paper-ledger API. Confirmed on-chain wallet events authorize a session.
+The backend reuses pure WY signals, the bounded discovery AI pipeline, and the
+fee-inclusive stop module. OrderlyAdapter is an unusable stub; live execution
+is not implemented.
 
-Backend wallet authentication, DOGE deposits/withdrawals, reward settlement,
-bonuses, and an APY product remain future integration work.
+The app exposes one **Vela AI Agents** portfolio. Existing reversion/pullback
+signals and risk controls are internal inputs. The research/review/direction
+model needs separate `VELA_MODEL` and `VELA_MODEL_KEY` settings; its disconnected
+state is shown in the app. When configured, model review is required and cannot
+be bypassed by a rule fallback. Pyth now requires `VELA_PYTH_API_KEY`; Binance fallback
+supports the four crypto markets meanwhile, and XAU stays unavailable.
+Lending & Borrowing, staking contracts and the requested ZK privacy layer remain future work. The Staking calculator uses assumed APY.
 Existing referral rewards are historical WHY mechanisms, not DOGE rewards.
 No APY or returns are promised by this repository.
 

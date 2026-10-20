@@ -113,7 +113,7 @@ fs.mkdirSync(artifacts, { recursive: true });
   const added = await page.evaluate(() => mock.calls.find(c => c.method === "wallet_addEthereumChain").params[0]);
   assert.deepEqual(added, {
     chainId: "0x5fdaf3", chainName: "DogeOS Chikyū Testnet",
-    nativeCurrency: { name: "Dogecoin", symbol: "DOGE", decimals: 18 },
+    nativeCurrency: { name: "DOGE", symbol: "DOGE", decimals: 18 },
     rpcUrls: ["https://rpc.testnet.dogeos.com/"],
     blockExplorerUrls: ["https://dogeos-testnet.l2scan.co"]
   });

@@ -1,0 +1,36 @@
+{
+  "chainId": 6281971,
+  "chainName": "DogeOS Chikyū Testnet",
+  "nativeCurrency": {
+    "name": "DOGE",
+    "symbol": "DOGE",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://rpc.testnet.dogeos.com/"
+  ],
+  "blockExplorerUrls": [
+    "https://dogeos-testnet.l2scan.co"
+  ],
+  "faucetUrl": "https://faucet.testnet.dogeos.com/",
+  "testnet": true,
+  "priceDecimals": 8,
+  "tokenDecimals": 6,
+  "deployment": {
+    "vault": "0x595e36cDD915db23b563b26fAe575B7Ff6066d3f",
+    "wdoge": "0xc4d9A03B101a5d11894c9DE9Da49A5d9F88845C5",
+    "tusdc": "0xAC9cED37e9F23f3effDf09B505b2F7809416e1E0",
+    "operator": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+    "owner": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+    "blockNumber": 8751392,
+    "deploymentTx": "0x475f5d09f55b0c5f1f265eff8ee6dd7d4217df0d4e628886f09a04bd31e7b907",
+    "poolFundingTx": "0xa2371ba05946df1d1ae1aef6b2f5cfdfdd2650f323852d8e65d7a057d355486f",
+    "poolDoge": "10"
+  },
+  "sources": [
+    "https://docs.dogeos.com/en/developers/developer-quickstart",
+    "https://docs.dogeos.com/en/sdk/guides",
+    "https://docs.dogeos.com/en/developers/native-doge-erc20"
+  ],
+  "verifiedOn": "2026-10-20"
+}

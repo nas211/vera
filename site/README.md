@@ -20,13 +20,19 @@ no requests to the original WHY system.
 - Interactive trade previews, hypothetical yield scenarios, preview missions,
   and an illustrative six-role agent workflow.
 
-The wallet connection reads public account information. Vela does not authenticate
-a backend trading session or request token approvals, transfers or trading
-signatures. DogeOS manages its own wallet login and consent flow.
-Trading and rewards are simulated. There are no deployed trading contracts,
-deposits, withdrawals, live model agents, payable bonuses or real APY product
-attached to this frontend. The copied execution and agent code lives in the
-parent Vera repository.
+The wallet connection reads public account information. `/mydoge.html` also
+provides the deployed testnet paper dashboard: strategy selection, test-DOGE
+amount, one-transaction START, live balances/positions/equity, on-chain trade
+links, leaderboard and one-transaction STOP followed by operator settlement.
+The vault's confirmed events authorize sessions; the API has no write routes.
+DogeOS manages wallet login and consent. TUSDC is a test accounting token,
+not real USDC or a DEX swap. Rewards and yield remain illustrative.
+
+Backend/deployment instructions and actual testnet receipts are in the parent
+repository's `docs/TESTNET.md` and `snapshot/testnet-e2e.json`.
+`src/chain-config.json` is generated from the parent's canonical network config,
+with a local fallback for this standalone Sites source. `dist/backend-config.js`
+sets the HTTPS API origin; the operator key is never shipped to the browser.
 
 ## Network
 
@@ -63,7 +69,7 @@ were registered in the Sandbox environment:
 - `https://defivela.uuuiiaaaa.chatgpt.site`
 - `https://defivela.xyz`
 
-The custom domain still requires DNS activation. A Sandbox registration and a
+A Sandbox registration and a
 testnet blockchain are distinct settings: the SDK uses DogeOS's production login
 services even for testnet apps. This integration configures only Chikyū's EVM
 network. The official SDK chooses the native wallet inside MyDoge; we do not
@@ -96,6 +102,7 @@ node --check dist/wallet.js
 node checks/browser.cjs
 node checks/wallet.cjs
 node checks/mydoge.cjs
+node checks/trading.cjs
 ```
 
 `PREVIEW_URL` can override the local server URL. `CHECK_ARTIFACTS_DIR` can override
@@ -119,6 +126,13 @@ A connection from a real MyDoge mobile app or MetaMask extension still needs
 owner verification. Run `node checks/sdk-smoke.cjs` to repeat this separate
 service-dependent check.
 
+The trading browser suite additionally checks wrong-network rejection,
+cancellation, exactly one START/STOP transaction, pending-state reload,
+stopping through a service outage, confirmed settlement and mobile layout.
+It uses mocked API/provider fixtures. The actual DogeOS transaction round trip
+was checked separately with the disposable signer; actual mobile approval
+remains untested.
+
 The dependency install reported 52 advisories (9 low, 21 moderate, 22 high)
 on 2026-10-20. A `protobufjs` override pins 7.6.6 and removes the reported
 critical advisory. Remaining SDK/transitive advisories require review before
@@ -133,11 +147,40 @@ imports. Required browser peers are explicitly pinned in `package.json`.
 
 `.openai/hosting.json` retains this site's hosting identity and declares `dist`
 as the deployment output. Publish only this static directory. The initial
-audience is owner-private. Domain activation requires the DNS records returned
-by the hosting provider. Neither site publication nor a wallet connection
+audience was owner-private; the owner subsequently authorized public access.
+The custom domain `https://defivela.xyz` has active DNS verification and HTTPS.
+Neither site publication nor a wallet connection
 deploys the copied trading services or changes any live stop protection.
 
-The $2 fee-inclusive stop calculation in the trade ticket is an illustrative
-preview. Real DogeOS execution needs an independently configured and tested
-adapter. Stop triggers do not guarantee realized losses against slippage,
-market gaps or funding charges.
+The landing-page stop calculation remains illustrative. The separate paper
+backend enforces the $2 fee-inclusive per-position stop trigger budget, including
+partial exits and restart reconciliation. Stop triggers do not guarantee
+realized losses against slippage, market gaps or funding charges.
+
+## Product and wallet update
+
+The dark-and-gold design is retained, including the original hero. There are
+three product labels: **AI Trading**, **Lending & Borrowing**, and **Staking**.
+Lending & Borrowing is marked Coming soon with disabled supply/borrow actions.
+Staking opens its own page at `/earn` (static source `dist/earn.html`).
+The hero Start earning button and Staking navigation go there. It contains the
+APY/rewards calculator; deposits are not implemented. The homepage retains a
+product teaser. `node checks/earn.cjs` checks that page and its calculator.
+The requested ZK privacy layer remains a planned feature, not an enabled shield:
+current vault transactions are public. There are no separate Earn/Bonus/APY
+products or four-box opening row. The main CTA says Start earning. Visible
+paper-trading labels were removed at the owner's request; execution is unchanged.
+
+Official SDK login configuration includes email, external wallets and Google.
+X is explicitly excluded through `login.socialLogins`, not hidden with CSS.
+
+The trading app shows one Vela AI Agents portfolio. Rule signal families are
+internal inputs; model connectivity is reported separately. Email wallets sign
+once with `eth_signTransaction`, then Vela verifies the signed payload and sends
+it directly to the official RPC. Native MyDoge and MetaMask use their normal
+send flow. Preflight checks the connected address's balance, gas and vault state.
+
+Additional checks: `node checks/transaction.cjs` verifies an ephemeral signed
+transaction, sender/payload matching, direct broadcast, rejected requests and
+ambiguous timeouts. `node checks/injected.cjs` checks the explicit MetaMask
+alternative. These use local fixtures, not real mobile/email approval.

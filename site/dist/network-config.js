@@ -1,0 +1,1 @@
+window.VELA_NETWORK = Object.freeze({"chainId":"0x5fdaf3","chainName":"DogeOS Chikyū Testnet","nativeCurrency":{"name":"DOGE","symbol":"DOGE","decimals":18},"rpcUrls":["https://rpc.testnet.dogeos.com/"],"blockExplorerUrls":["https://dogeos-testnet.l2scan.co"]});

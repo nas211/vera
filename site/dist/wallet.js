@@ -4,13 +4,8 @@
   // https://docs.dogeos.com/en/developers/developer-quickstart
   // DOGE has 18 native decimals on DogeOS, unlike Dogecoin L1's 8:
   // https://docs.dogeos.com/en/developers/native-doge-erc20
-  const NETWORK = Object.freeze({
-    chainId: "0x5fdaf3",
-    chainName: "DogeOS Chikyū Testnet",
-    nativeCurrency: { name: "Dogecoin", symbol: "DOGE", decimals: 18 },
-    rpcUrls: ["https://rpc.testnet.dogeos.com/"],
-    blockExplorerUrls: ["https://dogeos-testnet.l2scan.co"]
-  });
+  const NETWORK = window.VELA_NETWORK;
+  if (!NETWORK || NETWORK.chainId !== "0x5fdaf3") throw new Error("DogeOS testnet configuration missing");
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const discovered = new Map();
@@ -60,7 +55,7 @@
     $(".app-wallet-status").textContent = connected ? `${shorten(account)} · WALLET ↗` : "CONNECT WALLET ↗";
     $("#wallet-address").textContent = connected ? shorten(account) : "";
     $("#wallet-address").title = account || "";
-    $("#wallet-network").textContent = onDogeOS ? "DogeOS Chikyū · Testnet" : chain ? `Different network · ${BigInt(chain).toString()}` : "Checking…";
+    $("#wallet-network").textContent = onDogeOS ? "DogeOS Chikyū" : chain ? `Different network · ${BigInt(chain).toString()}` : "Checking…";
     $("#wallet-switch").hidden = !connected || onDogeOS;
     $("#wallet-refresh").hidden = !connected || !onDogeOS;
     $("#wallet-explorer").hidden = !connected || !onDogeOS;
@@ -98,12 +93,12 @@
       if (currentEpoch !== epoch || request !== refreshId || currentAccount !== account) return;
       if (!observed) throw new Error("Invalid chain");
       chain = observed; render();
-      if (chain !== NETWORK.chainId) { message("Connected. Switch to DogeOS Chikyū Testnet to view your testnet DOGE."); return; }
+      if (chain !== NETWORK.chainId) { message("Connected. Switch to DogeOS Chikyū to view your DOGE."); return; }
       $("#wallet-balance").textContent = "Loading…";
       const balance = await currentProvider.request({ method: "eth_getBalance", params: [currentAccount, "latest"] });
       if (currentEpoch !== epoch || request !== refreshId || currentAccount !== account || chain !== observed) return;
       $("#wallet-balance").textContent = formatDoge(balance);
-      message("Connected to DogeOS testnet. Trading and rewards remain in preview.");
+      message("Connected to DogeOS. Your wallet is ready.");
     } catch {
       if (currentEpoch !== epoch || request !== refreshId) return;
       $("#wallet-balance").textContent = "Unavailable";
@@ -154,7 +149,7 @@
   $("#wallet-switch").addEventListener("click", async () => {
     if (busy || !provider || !account) return;
     busy = true; const currentProvider = provider; const operation = epoch; render();
-    message("Approve the DogeOS testnet network change in MetaMask.");
+    message("Approve the DogeOS network change in MetaMask.");
     try {
       try {
         await currentProvider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: NETWORK.chainId }] });
