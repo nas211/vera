@@ -1,0 +1,30 @@
+{
+  "_comment": "WHY Loculus PAPER engine. Signals come ONLY from /opt/why-yellow-markshadow (Yellow mark-candle shadow). Bybit is used for PUBLIC market data only. Nothing here can place an order.",
+  "paper_mode": true,
+  "start_balance_usd": 1000.0,
+  "sizing": {
+    "_comment": "Production Yellow book runs a fixed $2000 clip on $25000 equity (8.0% of starting equity) at 10x. The demo keeps the SAME ratio on the $1000 demo balance: fixed $80 notional per position, max 8 open (production WY_MAX_OPEN). Qty is rounded DOWN to the Bybit qtyStep; if that yields 0 the Bybit minOrderQty is used and the real resulting notional is recorded on the trade.",
+    "clip_fraction_of_start_balance": 0.08,
+    "leverage": 10.0
+  },
+  "bybit_costs": {
+    "_comment": "Same assumptions as the WHY Bybit research configuration (/etc/systemd/system/why-bybit.service WB_TAKER_BPS/WB_MAKER_BPS/WB_SPREAD_BPS): Bybit linear VIP0 taker 5.5 bps, maker 2.0 bps, 2.0 bps slippage on every TAKER fill beyond the touch. Entries fill at the live executable side (long=ask, short=bid) + slippage, taker fee. TARGET exits are modelled as a resting limit at the target (fill AT the target when the executable side reaches it, maker fee, no slippage). STOP / TIMEOUT exits fill at the executable side (long=bid, short=ask) + slippage, taker fee.",
+    "taker_bps": 5.5,
+    "maker_bps": 2.0,
+    "slippage_bps": 2.0
+  },
+  "signals": {
+    "source": "yellow_mark_shadow",
+    "journal": "/opt/why-yellow-markshadow/state/journal.jsonl",
+    "mark_candles_dir": "/opt/why-yellow-markshadow/state/mark_candles",
+    "prod_strategy_file": "/opt/why-yellow/yellow_paper.py",
+    "max_signal_age_s": 120,
+    "_comment": "A signal older than max_signal_age_s at the time it is first seen (e.g. produced while this service was down) is recorded as SKIPPED/stale and never executed at a later price."
+  },
+  "bybit_public": {
+    "ws_url": "wss://stream.bybit.com/v5/public/linear",
+    "rest_base": "https://api.bybit.com",
+    "stale_after_s": 30
+  },
+  "http_port": 8106
+}

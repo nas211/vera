@@ -1,0 +1,15 @@
+[Unit]
+Description=WHY x Bybit - ONE-TIME deferred live-risk transition (read-only exchange GETs until the 3 armed lots have closed; then swaps live_risk.json once and restarts why-bybit; exits when done)
+After=network-online.target why-bybit.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-bybit
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-bybit/tools/deferred_transition.py run
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

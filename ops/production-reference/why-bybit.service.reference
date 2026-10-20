@@ -1,0 +1,21 @@
+[Unit]
+Description=WHY x Bybit — the WHY Yellow strategy book cloned onto Bybit linear perps (PAPER, public data only, NO ORDERS, no keys) + /p web on loopback :8103
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-bybit
+Environment=# omitted: configure a separate Vera environment
+# Paper mode is the default and the only mode enabled. Live requires WB_MODE=live + BYBIT_ARMED=1 + keys in secrets/ — none exist.
+Environment=# omitted: configure a separate Vera environment
+# Bybit linear VIP0 schedule (NOT Yellow's negotiated VIP5 1.5/0.0 bps). Change here if the account has a fee tier.
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-bybit/bybit_paper.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

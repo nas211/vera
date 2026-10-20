@@ -1,0 +1,9 @@
+[Unit]
+Description=WHY broad research screen (simulation only)
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:07:00
+Persistent=true
+RandomizedDelaySec=3
+Unit=why-discovery-bulk-screen.service
+[Install]
+WantedBy=timers.target

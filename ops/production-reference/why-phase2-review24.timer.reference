@@ -1,0 +1,11 @@
+[Unit]
+Description=Review WHY Phase 2 after the 24h snapshot is written
+
+[Timer]
+OnCalendar=2026-10-13 14:34:00 UTC
+AccuracySec=1s
+Persistent=true
+Unit=why-phase2-review24.service
+
+[Install]
+WantedBy=timers.target

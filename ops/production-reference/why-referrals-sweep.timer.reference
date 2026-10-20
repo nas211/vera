@@ -1,0 +1,11 @@
+[Unit]
+Description=Re-check queued WHY task claims every 10 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+AccuracySec=1min
+Unit=why-referrals-sweep.service
+
+[Install]
+WantedBy=timers.target

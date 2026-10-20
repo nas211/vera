@@ -1,0 +1,24 @@
+[Unit]
+Description=WHY Predict DEMO market generator (staging) — synthetic Forge events, source=DEMO, writes ONLY state/why_predict/demo_forge_events.jsonl, NO ORDERS
+After=network-online.target why-predict-staging.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/alpha/v2-trade-graduation-v2
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+# 4 concurrent streams: a market every ~2-3 min per stream, lock after ~100s, resolves 2-5 min later
+ExecStart=/opt/alpha/v2-trade-graduation-v2/why_predict/.venv/bin/python -m why_predict.demo --events 0 --parallel 4 --stagger 35 --open-delay 100 --close-delay 210 --jitter 0.4
+Restart=always
+RestartSec=10
+MemoryMax=150M
+Nice=10
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=/opt/alpha/v2-trade-graduation-v2/state/why_predict
+ReadOnlyPaths=/opt/alpha/v2-trade
+
+[Install]
+WantedBy=multi-user.target

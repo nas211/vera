@@ -1,0 +1,17 @@
+# Publishes /opt/why-yellow/webui/data/paper.json from the Yellow book's own
+# state (journal.jsonl + snapshot.json), read-only, no orders, no keys.
+# Feeds whytradingbot.com/trades — see yellow_webui_snapshot.py header.
+[Unit]
+Description=Yellow book -> /trades web UI data publisher (loopback file, no orders, no keys)
+After=network-online.target why-yellow.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-yellow/yellow_webui_snapshot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

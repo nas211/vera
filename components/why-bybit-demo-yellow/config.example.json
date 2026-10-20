@@ -1,0 +1,23 @@
+{
+  "_comment": "WHY x Yellow strategy -> Bybit DEMO Trading. Signals come ONLY from the Yellow mark-candle shadow (/opt/why-yellow-markshadow) which runs the UNCHANGED production strategy on completed 5m Yellow mark candles. Orders go ONLY to https://api-demo.bybit.com (guard.py fails closed on any other host).",
+  "host": "https://api-demo.bybit.com",
+  "secrets_file": "secrets/demo_api_key.json",
+  "signals": {
+    "source": "yellow_mark_shadow",
+    "journal": "/opt/why-yellow-markshadow/state/journal.jsonl",
+    "mark_candles_dir": "/opt/why-yellow-markshadow/state/mark_candles",
+    "health_url": "http://127.0.0.1:8105/health",
+    "max_signal_age_s": 120
+  },
+  "sizing": {
+    "_comment": "Production Yellow book: fixed WY_CLIP_USD=2000 notional per position at 10x, WY_MAX_OPEN=8. Same fixed clip here so demo P&L is 1:1 comparable with the Yellow shadow book. qty = floor(clip / bybit mark / qtyStep) * qtyStep; below minOrderQty -> signal skipped.",
+    "clip_usd": 2000.0,
+    "leverage_expected": 10
+  },
+  "exits": {
+    "_comment": "TP/SL are exchange-side on Bybit demo (tpslMode Full, MarkPrice trigger, market fill), set from the actual demo fill price with the sleeve's tp_pct/sl_pct (WY_RV_TP/SL, WY_PB_TP/SL read from the production strategy, never hardcoded here). TIMEOUT = production WY_TIMEOUT_BARS x 5m from entry, closed with a reduce-only market order.",
+    "trigger_by": "MarkPrice"
+  },
+  "poll_s": 15,
+  "http_port": 8107
+}

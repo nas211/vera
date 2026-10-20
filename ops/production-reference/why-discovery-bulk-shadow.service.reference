@@ -1,0 +1,23 @@
+[Unit]
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+User=whydiscovery
+Group=whydiscovery
+WorkingDirectory=/opt/why-discovery
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+UMask=0077
+Nice=15
+CPUQuota=150%
+MemoryMax=1500M
+TimeoutStartSec=30min
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/why-discovery
+InaccessiblePaths=-/opt/why-yellow/secrets -/etc/why-discovery -/etc/why-shadow-lab
+ExecStart=/opt/migration-python314/bin/python -m discovery.bulk_shadow 

@@ -1,0 +1,26 @@
+[Unit]
+Description=WHY website human-support chat relay to Nad's Telegram
+After=network-online.target
+Wants=network-online.target
+# The existing Gosoma bot has one update consumer at a time.
+Conflicts=soma-bot.service
+
+[Service]
+Type=simple
+DynamicUser=yes
+WorkingDirectory=/opt/why-website/services/human-support
+ExecStart=/usr/bin/python3 /opt/why-website/services/human-support/bridge.py
+EnvironmentFile=/etc/why-human-support/env
+Environment=# omitted: configure a separate Vera environment
+Restart=on-failure
+RestartSec=5
+StateDirectory=why-human-support
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

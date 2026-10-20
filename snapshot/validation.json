@@ -1,0 +1,114 @@
+{
+  "checked_at": "2026-10-20T11:49:53.684902+00:00",
+  "source_snapshot": {
+    "components": 18,
+    "copied_files": 571,
+    "application_trading_logic_changed": false
+  },
+  "syntax": {
+    "counts": {
+      "python": 326,
+      "json": 24
+    },
+    "errors": []
+  },
+  "offline_execution_tests": {
+    "command": "python3 tools/check_execution.py",
+    "python": "3.12.3",
+    "ran": 41,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "real_orders_placed": 0,
+    "network_blocked": true,
+    "subprocesses_blocked": true,
+    "writes_confined_to_temporary_directory": true
+  },
+  "credential_checks": {
+    "excluded_secret_files": true,
+    "private_key_token_jwt_patterns_detected": 0,
+    "generic_literal_matches_reviewed": "Test credentials, placeholder local database URLs, alphabets, routes and UI strings; no production credentials identified.",
+    "limitation": "Pattern and source review, not proof that no possible sensitive string exists."
+  },
+  "not_run": [
+    "Inherited WHY website suite (separate Vela mock browser and real-SDK login-screen checks passed previously)",
+    "Full customer/database suite",
+    "Remote model-provider calls",
+    "Live venue calls"
+  ],
+  "deployment": "Copied trading system undeployed; separate Vela website privately published; original WHY services not modified",
+  "live_protection": "Not changed or reverified by this copy; no live exchange queries made",
+  "isolation_verification": {
+    "source_files_compared": 571,
+    "production_source_changes": [],
+    "copy_hash_mismatches": [],
+    "services_observed": 35,
+    "active_services": 31,
+    "service_process_changes": {},
+    "scope": "Initial capture only; superseded for service status by resume_verification and docs/DEPLOYMENT.md"
+  },
+  "resume_verification": {
+    "checked_at": "2026-10-20T14:33:52.911402+00:00",
+    "source_baseline_commit": "2079256",
+    "changes": "Verification documentation and GitHub source upload only; no trading or wallet implementation changes",
+    "offline_execution_tests": {
+      "command": "python3 tools/check_execution.py",
+      "ran": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "network_blocked": true,
+      "subprocesses_blocked": true,
+      "writes_confined_to_temporary_directory": true,
+      "real_orders_placed": 0
+    },
+    "vela_browser_tests": {
+      "status": "Previously passed per handoff and site/README.md; not rerun in this resume",
+      "real_sdk": "Login screen previously checked; actual MyDoge mobile and MetaMask extension approval still untested"
+    },
+    "website_deployment": {
+      "status": "succeeded",
+      "deployment_id": "appgdep_6ad770ce7c9c81919ed0c795fbafe8aa",
+      "owner_only": true,
+      "new_deployment_in_this_resume": false
+    },
+    "custom_domain": {
+      "hostname": "defivela.xyz",
+      "refreshed_at": "2026-10-20T14:30:55.007289+00:00",
+      "status": "pending",
+      "provider_status": "pending",
+      "ssl_status": "pending_validation",
+      "dns_modified": false,
+      "independent_dns_lookup": "Unavailable: current sandbox could not resolve dns.google; provider status was refreshed successfully"
+    },
+    "shadow_service": {
+      "unit": "why-discovery-bulk-shadow.service",
+      "prior_observation": "inactive -> failed at 2026-10-20T13:46:38Z",
+      "systemctl": "Read blocked: Failed to connect to bus: Operation not permitted",
+      "journal_observation_at": "2026-10-20T14:25:43Z",
+      "exit_status": 1,
+      "exception": "RuntimeError:shadow_market_errors",
+      "market_error": "ValueError:candle_schema_or_history",
+      "affected_markets": [
+        "AAVEUSDT-PERP",
+        "ARBUSDT-PERP",
+        "GOOGLUSDT-PERP",
+        "UNIUSDT-PERP",
+        "XAUUSDT-PERP"
+      ],
+      "upstream_cause": "Not determined: validator combines schema, minimum history and finite-value checks",
+      "service_changes": false
+    },
+    "trading_execution": "Disabled and undeployed pending protocol decision",
+    "live_protection": "No live exchange calls; live stops not changed or reverified",
+    "source_comparison": {
+      "files": 571,
+      "production_source_hash_changes": [],
+      "unreadable_sources": [],
+      "local_manifest_mismatches": [
+        "AGENTS.md"
+      ],
+      "mismatch_explanation": "AGENTS.md contains the intentional Vera copy and wallet boundaries added after initial capture"
+    }
+  }
+}

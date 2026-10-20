@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+:root {
+  --obsidian: #0A0B0F;
+  --carbon: #111016;
+  --carbon-2: #0C0B11;
+  --steel: #262430;
+  --steel-soft: #191722;
+  --platinum: #F0EDF2;
+  --ash: #8A8595;
+  --ash-dim: #5A5566;
+  --ember1: #C2381A;
+  --ember2: #F0852A;
+  --gold: #F3C76A;
+  --whitehot: #FFF4D6;
+  --gold-dim: #8C6F39;
+  --green: #3DE3A0;
+  --red: #F0776F;
+  --maxw: 1180px;
+  --molten: linear-gradient(100deg, #C2381A, #F0852A 38%, #F3C76A 72%, #FFE6AE);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--obsidian);
+  color: var(--platinum);
+  font-family: var(--font-body, "Inter"), sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--ember2); color: #1a0d05; }
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+.eyebrow {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.molten-text {
+  background: var(--molten);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.btn {
+  font-family: var(--font-mono, "JetBrains Mono"), monospace;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 11px 19px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: .02em;
+  color: #1a0d05;
+  background: var(--molten);
+  transition: filter .2s, transform .1s;
+  display: inline-block;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+
+.btn-ghost {
+  background: transparent !important;
+  color: var(--gold) !important;
+  border: 1px solid var(--gold-dim) !important;
+}
+.btn-ghost:hover { background: rgba(243,199,106,.08) !important; filter: none; }
+
+a:focus-visible, .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+.mk { display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:5px 16px; font-family:var(--font-mono,"JetBrains Mono"),monospace; font-size:12px; color:var(--ash); }
+.mk-sym { color:var(--platinum); font-weight:500; }
+.mk-st { font-size:10px; letter-spacing:.08em; }
+.mk-mint { color:var(--green); }
+.mk-cut { color:var(--red); }
+.mk-right { display:flex; gap:10px; }
+.mk-pos { color:var(--gold); }
+.mk-ms { color:var(--ash-dim); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes beat { 0%,100%{opacity:1} 50%{opacity:.35} }
+@keyframes hintpulse { 0%,100%{opacity:.35} 50%{opacity:.9} }
+
+@media(prefers-reduced-motion:reduce){
+  .tunnel-sec{height:100vh!important}
+}
+@media(max-width:780px){
+  .truths-grid{grid-template-columns:1fr!important}
+}
+@keyframes hintpulse { 0%,100%{opacity:.35} 50%{opacity:.9} }
+@keyframes mintscroll { 0%{transform:translateY(0)} 100%{transform:translateY(-50%)} }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; opacity: 1; transform: none; }
+}
+
+/* ══ Responsive layout ═════════════════════════════════════════════════════ */
+
+/* Nav links hide on tablet/mobile — class added in Nav.tsx, rule originally in Hero.tsx */
+@media (max-width: 860px) {
+  .nav-links a:not(.btn):not(.nav-account) { display: none !important; }
+  .nav-links { gap: 16px !important; }
+  .nav-links .btn { white-space: nowrap; }
+}
+@media (max-width: 400px) {
+  .nav-links { gap: 12px !important; }
+  .nav-links .btn { padding: 8px 12px !important; font-size: 12px !important; }
+}
+
+/* HoldY — heading 2-col → 1-col */
+@media (max-width: 860px) {
+  .holdy-head-grid { grid-template-columns: 1fr !important; gap: 20px !important; margin-bottom: 36px !important; }
+  .holdy-feed-grid { grid-template-columns: 1fr 220px !important; }
+}
+/* HoldY — feeds stack on small screens, hide second column */
+@media (max-width: 600px) {
+  .holdy-feed-grid { grid-template-columns: 1fr !important; }
+  .holdy-col-b     { display: none !important; }
+  .holdy-scroll-feed { height: 280px !important; }
+}
+
+/* TalkToWhy — phone scales to fit on small viewports */
+@media (max-width: 860px) {
+  .talkwhy-phone { transform: none !important; }
+}
+@media (max-width: 430px) {
+  .talkwhy-phone {
+    width: calc(100vw - 56px) !important;
+    height: calc((100vw - 56px) * 1.9565) !important;
+  }
+}
+
+/* Forge text panel on very narrow screens */
+@media (max-width: 540px) {
+  #forge > div > div:last-child { height: 55vh !important; }
+}
+
+/* Footer — stack to column on small screens */
+@media (max-width: 360px) {
+  nav > .wrap { padding-left: 16px; padding-right: 16px; }
+  .nav-brand { gap: 8px !important; }
+  .nav-brand span { font-size: 13px !important; }
+  .nav-account { font-size: 12px !important; }
+  .nav-links { gap: 10px !important; }
+  .nav-links > .btn { font-size: 11px !important; padding: 9px 10px !important; }
+}
+@media (max-width: 500px) {
+  .footer-top { flex-direction: column !important; align-items: flex-start !important; }
+  .footer-nav { flex-wrap: wrap !important; padding-left: 0 !important; }
+  .footer-nav a { padding-left: 0 !important; padding-right: 14px !important; }
+  .footer-bot { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
+}
+
+/* Signed-in dashboard app (/profile): the app owns the screen. Help desk opens from Account. */
+html[data-why-app] [data-site-chrome],html[data-why-app] [data-help-launcher]{display:none!important}
+html[data-why-app] main.pf{max-width:none!important;padding:0!important;min-height:0!important}
+html[data-why-app] body{background:var(--obsidian)}

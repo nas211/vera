@@ -1,0 +1,24 @@
+[Unit]
+Description=Yellow public-data maker micro-scalping PAPER ONLY
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow-micro-paper
+ExecStart=/usr/bin/python3 /opt/why-yellow-micro-paper/profit_capture.py
+Restart=on-failure
+RestartSec=5
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/why-yellow-micro-paper/state /opt/why-yellow/webui/data
+InaccessiblePaths=/opt/why-yellow/secrets
+PrivateTmp=true
+MemoryMax=256M
+CPUQuota=30%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,72 @@
+{
+  "mode": "PAPER_ONLY",
+  "hypotheses_only": true,
+  "forward_seconds": 604800,
+  "minimum_closed_parents_for_review": 200,
+  "coins": [
+    "BTCUSDT-PERP",
+    "ETHUSDT-PERP",
+    "SOLUSDT-PERP",
+    "LINKUSDT-PERP",
+    "HYPEUSDT-PERP",
+    "XRPUSDT-PERP",
+    "DOGEUSDT-PERP",
+    "BNBUSDT-PERP"
+  ],
+  "starting_equity": 1000,
+  "entry_notional": 100,
+  "max_exposure": 300,
+  "session_loss": 3,
+  "maker_fee": 0,
+  "taker_fee": 0.00015,
+  "trend_seconds": 30,
+  "momentum_bps": 2,
+  "pressure": 0.35,
+  "max_spread_bps": 3,
+  "max_book_age": 1,
+  "cooldown_seconds": 120,
+  "stop_bps": 5,
+  "target_bps": 10,
+  "max_hold_seconds": 120,
+  "entry_ttl": 5,
+  "slippage_limit_bps": 30,
+  "timer_seconds": 0.1,
+  "scenarios": {
+    "paper_250ms_reference": {
+      "order_delay": 0.25,
+      "cancel_delay": 0.25,
+      "queue_multiplier": 1,
+      "depth_fraction": 1,
+      "extra_slippage_bps": 0,
+      "outage_every": 0,
+      "outage_seconds": 0
+    },
+    "slow_1s": {
+      "order_delay": 1,
+      "cancel_delay": 1,
+      "queue_multiplier": 1.5,
+      "depth_fraction": 0.75,
+      "extra_slippage_bps": 0.5,
+      "outage_every": 0,
+      "outage_seconds": 0
+    },
+    "slow_3s": {
+      "order_delay": 3,
+      "cancel_delay": 3,
+      "queue_multiplier": 2,
+      "depth_fraction": 0.5,
+      "extra_slippage_bps": 1,
+      "outage_every": 0,
+      "outage_seconds": 0
+    },
+    "slow_7s_disconnect": {
+      "order_delay": 7,
+      "cancel_delay": 7,
+      "queue_multiplier": 2,
+      "depth_fraction": 0.5,
+      "extra_slippage_bps": 2,
+      "outage_every": 300,
+      "outage_seconds": 10
+    }
+  }
+}

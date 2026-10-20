@@ -1,0 +1,8 @@
+Bundled license information:
+
+@noble/curves/esm/abstract/modular.js:
+@noble/curves/esm/abstract/curve.js:
+@noble/curves/esm/abstract/weierstrass.js:
+@noble/curves/esm/_shortw_utils.js:
+@noble/curves/esm/secp256k1.js:
+  /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */

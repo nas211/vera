@@ -1,0 +1,25 @@
+[Unit]
+Description=WHY Intelligence (staging) — read-only reputation/edge analytics over the WHY Predict DB, loopback only
+After=network-online.target why-predict-staging.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/alpha/v2-trade-graduation-v2
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/opt/alpha/v2-trade-graduation-v2/why_predict/.venv/bin/uvicorn why_predict.intelligence:app --host 127.0.0.1 --port 8101 --workers 1 --log-level info
+Restart=on-failure
+RestartSec=5
+MemoryMax=300M
+CPUWeight=30
+Nice=10
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=/opt/alpha/v2-trade-graduation-v2/state/why_predict
+ReadOnlyPaths=/opt/alpha/v2-trade-graduation-v2/state/alpha_strategy_probation /opt/alpha/v2-trade
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=WHY x Yellow MARK-CANDLE SHADOW — isolated mark recorder + shadow paper book (public data only, NO ORDERS, no keys) on loopback :8105
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow-markshadow
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-yellow-markshadow/markshadow.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/why-yellow-markshadow/state
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+[Unit]
+Description=Four isolated Yellow public-feed PAPER exit comparisons
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow-micro-experiments
+ExecStart=/usr/bin/python3 /opt/why-yellow-micro-experiments/experiments.py
+Restart=on-failure
+RestartSec=10
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/why-yellow-micro-experiments/state /opt/why-yellow/webui/data
+InaccessiblePaths=/opt/why-yellow/secrets
+PrivateTmp=true
+MemoryMax=384M
+CPUQuota=50%
+[Install]
+WantedBy=multi-user.target

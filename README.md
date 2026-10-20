@@ -84,14 +84,20 @@ establish compliance for a new Vera execution path.
 ## Vela website for DogeOS
 
 The independent [Vela website](site/README.md) targets `defivela.xyz`. It includes
-a responsive interactive product preview and MetaMask integration for DogeOS
-Chikyū Testnet: user-approved connection and network switching, account display,
-native testnet DOGE balances, explorer links and disconnect.
+a responsive interactive product preview with MetaMask and MyDoge Wallet
+integration for DogeOS Chikyū Testnet: user-approved connection and network
+switching, account display, native testnet DOGE balances, explorer links and
+disconnect. MyDoge uses the official DogeOS SDK and the owner's public Sandbox
+client ID. Its connection screen opens as a top-level page for the native
+MyDoge mobile bridge.
 
 The website's trade ticket, yield calculator, bonuses and agent activity are
-illustrative. The wallet does not request signatures, token approvals or
-transactions. Website and mock-wallet browser checks passed independently of
-the 41 copied execution tests.
+illustrative. Vela does not request trading signatures, token approvals or
+transactions. The SDK manages its own wallet login and consent. Website and
+mock-wallet browser checks passed independently of the 41 copied execution
+tests. The real SDK connection modal also opened without JavaScript errors;
+approval inside a real MyDoge mobile app or MetaMask extension was not exercised.
+See [deployment and verification status](docs/DEPLOYMENT.md).
 
 Backend wallet authentication, DOGE deposits/withdrawals, reward settlement,
 bonuses, and an APY product remain future integration work.

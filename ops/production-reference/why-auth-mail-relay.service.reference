@@ -1,0 +1,25 @@
+[Unit]
+Description=WHY signup confirmation email fallback
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-auth-mail-relay
+EnvironmentFile=/opt/why-yellow/secrets/customer.env
+EnvironmentFile=/opt/why-yellow/secrets/affiliate.env
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/opt/migration-python314/bin/python /opt/why-auth-mail-relay/relay.py
+Restart=on-failure
+RestartSec=15
+StateDirectory=why-auth-mail-relay
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/why-auth-mail-relay
+
+[Install]
+WantedBy=multi-user.target

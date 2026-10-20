@@ -1,0 +1,40 @@
+[Unit]
+Description=WHY model-driven shadow AI agents (wait safely until separate model configured)
+After=network.target why-shadow-lab.service
+
+[Service]
+Type=simple
+User=whyshadowlab
+Group=whyshadowlab
+WorkingDirectory=/opt/why-shadow-lab
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+EnvironmentFile=-/etc/why-shadow-lab/model.env
+ExecStart=/usr/bin/python3 /opt/why-shadow-lab/agents.py
+Restart=on-failure
+RestartSec=30
+Nice=15
+CPUQuota=10%
+MemoryMax=256M
+TasksMax=16
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectProc=invisible
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+TemporaryFileSystem=/opt:ro /etc:ro
+BindReadOnlyPaths=/opt/why-shadow-lab
+BindReadOnlyPaths=/etc/ld.so.cache /etc/ld.so.conf /etc/ld.so.conf.d /etc/nsswitch.conf /etc/passwd /etc/group /etc/resolv.conf /etc/hosts /etc/ssl/certs
+BindPaths=/opt/why-shadow-lab/state
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

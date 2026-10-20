@@ -1,0 +1,18 @@
+[Unit]
+Description=WHY x Yellow — strategy book on the Yellow Pro perp universe (public data only, NO ORDERS, no keys) + /yellow web on loopback :8102
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow
+Environment=# omitted: configure a separate Vera environment
+# VIP5 negotiated rates (owner-confirmed 09-17, corrected from a prior VIP6 mislabel): perp maker 0%, perp taker 0.015%.
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-yellow/yellow_paper.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

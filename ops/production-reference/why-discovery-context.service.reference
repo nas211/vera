@@ -1,0 +1,33 @@
+[Unit]
+Description=WHY paper research public news and calendar context
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=whydiscovery
+Group=whydiscovery
+WorkingDirectory=/opt/why-discovery
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/opt/migration-python314/bin/python -m discovery.context_feed --state /var/lib/why-discovery
+Restart=on-failure
+RestartSec=10
+UMask=0077
+StateDirectory=why-discovery
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/why-discovery
+InaccessiblePaths=-/opt/why-yellow/secrets -/etc/why-shadow-lab -/etc/why-discovery
+
+[Install]
+WantedBy=multi-user.target

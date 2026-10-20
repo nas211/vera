@@ -1,0 +1,66 @@
+{
+  "mode": "SHADOW_ONLY",
+  "bar_ms": 300000,
+  "source_dir": "/opt/why-yellow-markshadow/state",
+  "research": {
+    "cycle_seconds": 60,
+    "permutations_per_cycle": 2000000,
+    "shortlist": 24,
+    "max_registry": 120,
+    "train_fraction": 0.6,
+    "validation_fraction": 0.2
+  },
+  "paper": {
+    "equity0": 25000.0,
+    "notional_usd": 200.0,
+    "max_open": 8,
+    "max_per_family": 2,
+    "poll_seconds": 5,
+    "taker_bps": 5.5,
+    "spread_bps": 2.0,
+    "funding_reserve_bps_per_8h": 3.0,
+    "max_quote_age_seconds": 15,
+    "max_daily_loss_usd": 100.0,
+    "max_strategy_loss_usd": 35.0
+  },
+  "promotion": {
+    "minimum_days": 14,
+    "minimum_trades": 100,
+    "minimum_profit_factor": 1.2,
+    "minimum_expectancy_t": 2.0,
+    "maximum_abs_correlation": 0.75,
+    "max_active": 6,
+    "maximum_drawdown_usd": 50.0
+  },
+  "direction": {
+    "minimum_confidence": 0.45,
+    "refresh_seconds": 60
+  },
+  "ai": {
+    "required": true,
+    "provider": "openai",
+    "model": "gpt-6-luna",
+    "endpoint": "https://api.openai.com/v1/responses",
+    "reasoning_effort": "medium",
+    "cycle_seconds": 60,
+    "max_rounds_per_turn": 4,
+    "max_actions_per_turn": 8,
+    "max_output_tokens": 4096,
+    "timeout_seconds": 45,
+    "max_requests_per_day": 900,
+    "max_tokens_per_day": 1000000,
+    "max_requests_per_minute": 28,
+    "max_tokens_per_minute": 30000,
+    "max_context_bytes": 6000,
+    "authorization_seconds": 180,
+    "roles": [
+      "research",
+      "critic",
+      "direction",
+      "paper",
+      "promotion",
+      "feedback"
+    ]
+  },
+  "dashboard_port": 8110
+}

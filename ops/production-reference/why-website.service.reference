@@ -1,0 +1,19 @@
+[Unit]
+Description=WHY marketing website (Next.js, loopback :3001)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-website
+EnvironmentFile=/etc/why-website/env
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3001 -H 127.0.0.1
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+MemoryMax=600M
+CPUQuota=100%
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

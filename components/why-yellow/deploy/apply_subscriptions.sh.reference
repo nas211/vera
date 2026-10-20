@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Applies the why_subscriptions migration (additive) to the customer platform's Supabase project
+# and prints whether the table now exists. Owner runs:  bash /opt/why-yellow/deploy/apply_subscriptions.sh
+set -euo pipefail
+cd /opt/why-yellow
+URL="$(grep '^SUPABASE_DB_URL=' secrets/customer.env | cut -d= -f2-)"
+psql "$URL" -v ON_ERROR_STOP=1 -q -f supabase/migrations/20260930200000_why_subscriptions.sql
+psql "$URL" -Atc "select 'why_subscriptions: '||coalesce(to_regclass('public.why_subscriptions')::text,'MISSING')"

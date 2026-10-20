@@ -1,0 +1,39 @@
+[Unit]
+Description=WHY shadow numerical screening TOOL (not an AI agent)
+
+[Service]
+Type=simple
+User=whyshadowlab
+Group=whyshadowlab
+WorkingDirectory=/opt/why-shadow-lab
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-shadow-lab/lab.py research
+Restart=on-failure
+RestartSec=10
+Nice=15
+CPUQuota=45%
+MemoryMax=384M
+TasksMax=16
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectProc=invisible
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+TemporaryFileSystem=/opt:ro /etc:ro
+BindReadOnlyPaths=/opt/why-shadow-lab /opt/why-yellow-markshadow/state
+BindReadOnlyPaths=/etc/ld.so.cache /etc/ld.so.conf /etc/ld.so.conf.d /etc/nsswitch.conf /etc/passwd /etc/group
+BindPaths=/opt/why-shadow-lab/state
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

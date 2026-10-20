@@ -1,0 +1,30 @@
+[Unit]
+Description=WHY Predict <- PAPER book bridge (read-only follower of alpha-paper-tp25; emits forge events, NO ORDERS)
+After=network-online.target
+Wants=alpha-paper-tp25.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/alpha/v2-trade-graduation-v2
+Environment=# omitted: configure a separate Vera environment
+# Poll cadence. The book rewrites shadow_state.json once per scan cycle, so this
+# only bounds how fast we notice a write, not how fresh the write itself is.
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/opt/alpha/v2-trade-graduation-v2/why_predict/.venv/bin/python \
+    /opt/alpha/v2-trade-graduation-v2/why_predict/paper_bridge.py
+Restart=on-failure
+RestartSec=10
+MemoryMax=200M
+CPUWeight=20
+Nice=10
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+# The ONLY writable path: its own event file + cursor. The paper book itself is
+# mounted read-only, so a bug here cannot touch a book that is being published.
+ReadWritePaths=/opt/alpha/v2-trade-graduation-v2/state/why_predict/paper
+ReadOnlyPaths=/opt/alpha/v2-trade/state/paper_tp25 /opt/alpha/v2-trade-graduation-v2/forge_events.py
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,79 @@
+{
+  "_frozen_at": "2026-09-19T15:33:31Z",
+  "_note": "FROZEN policy/config for the forward shadow experiment. Do not edit after first candidate.",
+  "markets": [
+    "BTCUSDT-PERP",
+    "ETHUSDT-PERP",
+    "SOLUSDT-PERP",
+    "XRPUSDT-PERP",
+    "DOGEUSDT-PERP",
+    "BNBUSDT-PERP",
+    "LINKUSDT-PERP",
+    "SUIUSDT-PERP",
+    "TAOUSDT-PERP",
+    "HYPEUSDT-PERP"
+  ],
+  "wy": {
+    "rv_tp_pct": 0.3,
+    "rv_sl_pct": 1.6,
+    "rv_rsi_lo": 30.0,
+    "rv_rsi_hi": 70.0,
+    "pb_tp_pct": 0.8,
+    "pb_sl_pct": 2.0,
+    "pb_depth_atr": 2.0,
+    "timeout_bars": 144,
+    "warmup_bars": 250,
+    "source": "/opt/why-bybit/bybit_paper.py CFG defaults; running why-bybit process has no WB_* strategy overrides (only WB_MODE/TAKER/MAKER/SPREAD/HTTP_PORT)"
+  },
+  "fees": {
+    "taker_bps": 5.5,
+    "maker_bps": 2.0,
+    "spread_bps": 2.0,
+    "source": "why-bybit.service env + state-live/fees.json ('GET /v5/account/fee-rate', vip 'No VIP'); maker on TARGET, taker otherwise; spread_bps slippage each side"
+  },
+  "sizing": {
+    "bankroll_usd": 194.0,
+    "margin_per_trade_usd": 20.0,
+    "leverage": 10,
+    "clip_usd": 200.0,
+    "max_open": 8,
+    "max_total_notional_usd": 1600.0,
+    "compounding": false,
+    "source": "/opt/why-bybit/transition/plan.json .overrides (the deferred-transition TARGET config), copied ONCE at build time",
+    "plan_json_sha256": "948a82a9aabf5460f68c1fceee6d146fa7eeb9b4f86f7926f9263d98425e7394",
+    "live_config_at_freeze": {
+      "allocation_usd": 96.66,
+      "margin_per_trade_usd": 30.0,
+      "leverage": 10,
+      "clip_usd": 300.0,
+      "max_open": 3,
+      "max_total_notional_usd": 900.0
+    },
+    "transition_status_at_freeze": "DRAIN (not yet applied) \u2014 shadow uses the post-transition target config regardless",
+    "kill_switches": "NOT simulated (bankroll-level kills only matter to the live account); drawdown is measured in metrics"
+  },
+  "qwen": {
+    "base_url": "https://api.groq.com/openai/v1",
+    "model": "qwen/qwen3.8-27b",
+    "key_env": "GROQ_API_KEY",
+    "reasoning_effort": "none",
+    "max_tokens": 450,
+    "http_timeout_sec": 45,
+    "decision_deadline_sec": 90,
+    "user_agent": "why-bybit-qwen-shadow/1.0",
+    "existing_agent_model": "qwen/qwen3.6-27b (HTTP 404 model_not_found on Groq since <= 2026-09-18; qwen3.8-27b is the only Qwen model the account lists)",
+    "token_budget_per_day": 100000
+  },
+  "policy": {
+    "name": "WY + QWEN AGREEMENT FILTER (frozen)",
+    "rules": [
+      "WY candidate -> Qwen blind read (LONG/SHORT/NO_TRADE)",
+      "Qwen == WY direction -> shadow APPROVE (Book B enters)",
+      "Qwen NO_TRADE -> shadow VETO",
+      "Qwen opposite direction -> shadow VETO (never reversed in Book B); opposite recommendation logged and simulated as counterfactual Q",
+      "any Qwen error/timeout/malformed/late -> no approval (fail closed, shadow only)"
+    ],
+    "no_confidence_threshold": true,
+    "no_tuning": "policy frozen; raw Qwen output always recorded"
+  }
+}

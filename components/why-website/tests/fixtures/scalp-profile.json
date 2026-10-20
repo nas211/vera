@@ -1,0 +1,49 @@
+{
+  "id": "scalp",
+  "name": "AI Agents \u2014 Scalp",
+  "version": 6,
+  "entry_margin_usd": null,
+  "leverage": 10,
+  "entry_notional_usd": null,
+  "strategy_entry_slots": 100,
+  "max_open_positions": 100,
+  "target_pct": 0.1,
+  "quote_refresh_seconds": 35,
+  "warmup_seconds": 30,
+  "passive_exit_after_seconds": 120,
+  "adverse_exit_pct": 0.05,
+  "exit_refresh_seconds": 5,
+  "levels_per_side": 5,
+  "fee_tier": "VIP5",
+  "maker_fee_pct": 0,
+  "taker_fee_pct": 0.015,
+  "active_markets": [
+    "LINKUSDT-PERP",
+    "HYPEUSDT-PERP",
+    "SOLUSDT-PERP",
+    "XRPUSDT-PERP",
+    "DOGEUSDT-PERP",
+    "BTCUSDT-PERP",
+    "ETHUSDT-PERP",
+    "BNBUSDT-PERP"
+  ],
+  "exit_only_markets": [
+    "SUIUSDT-PERP",
+    "TAOUSDT-PERP"
+  ],
+  "daily_trade_target": null,
+  "frequency_mode": "signal_driven",
+  "activation_blocked_reason": null,
+  "gross_notional_cap_usd": 10000,
+  "per_market_notional_cap_usd": 1000,
+  "per_side_notional_cap_usd": 500,
+  "sizing_mode": "exchange_minimum",
+  "minimum_entries": [
+    {
+      "market": "BTCUSDT-PERP",
+      "margin_usd": 8.3,
+      "notional_usd": 83
+    }
+  ],
+  "waiting_for_market": "BTCUSDT-PERP"
+}

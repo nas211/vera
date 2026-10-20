@@ -1,0 +1,44 @@
+[Unit]
+Description=WHY external strategy shadow %i (simulated funds, no IP network, no credentials)
+After=why-github-market.service
+Wants=why-github-market.service
+
+[Service]
+User=whygithubshadow
+Group=whygithubshadow
+WorkingDirectory=/opt/why-github-shadow
+ExecStart=/opt/why-github-shadow/venv/bin/python -B /opt/why-github-shadow/run_shadow.py %i
+Restart=on-failure
+RestartSec=30
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectHome=yes
+ProtectSystem=strict
+ProtectProc=invisible
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+TemporaryFileSystem=/opt:ro /etc:ro /run:ro /var:ro
+BindReadOnlyPaths=/opt/why-github-shadow /run/why-github-market
+BindReadOnlyPaths=/etc/ld.so.cache /etc/ld.so.conf /etc/ld.so.conf.d /etc/nsswitch.conf /etc/passwd /etc/group
+BindPaths=/opt/why-github-shadow/state/%i
+MemoryMax=700M
+CPUQuota=10%
+TasksMax=64
+Nice=15
+UMask=0022
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

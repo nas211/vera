@@ -1,0 +1,14 @@
+{
+  "_status": "ACTIVE LIVE CONFIG (owner-authorized 2026-09-19, applied by the one-time deferred transition): $194 bankroll (= funded USDT), 10x, $20 fixed margin/trade, $200 target notional, max 8 open ($160 max margin committed; the ~$34 left over is free collateral headroom, NOT a 9th position), non-compounding. Only read when WB_MODE=live.",
+  "allocation_usd": 194.0,
+  "compounding": false,
+  "leverage": 10,
+  "margin_per_trade_usd": 20.0,
+  "clip_usd": 200.0,
+  "max_open": 8,
+  "max_total_notional_usd": 1600.0,
+  "per_trade_max_loss_usd": 5.0,
+  "daily_loss_kill_usd": 194.0,
+  "max_drawdown_kill_usd": 194.0,
+  "notes": "clip_usd = margin_per_trade_usd x leverage = $200. max_open=8 x $20 = $160 max margin committed; max_total_notional = max_open x clip = $1600. Qty is rounded DOWN to the venue qtyStep so a position never exceeds ~$200. Sizing is fixed and NON-compounding: bankroll basis = allocation_usd; profits never grow the clip. Loss kills are set to the full $194 bankroll. per_trade_max_loss_usd only gates a min-lot bump (dormant: no symbol needs a bump at $200). The previous live_risk.json is kept as live_risk.json.pre-194x8-*.bak."
+}

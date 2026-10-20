@@ -1,0 +1,25 @@
+[Unit]
+Description=WHY Partners portal (read-only paper-book dashboard, loopback :8099)
+After=network.target
+# Deliberately NO Requires/Wants/Before/After on any alpha* unit: trading must
+# never depend on this service, and this service must never gate trading.
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-partners
+EnvironmentFile=/etc/why-partners/env
+ExecStart=/usr/bin/python3 -u /opt/why-partners/server.py
+Restart=on-failure
+RestartSec=3
+# Read-only view of the box: it may write ONLY its own state dir.
+ProtectSystem=strict
+ReadWritePaths=/var/lib/why-partners
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true
+MemoryMax=300M
+CPUQuota=50%
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

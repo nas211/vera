@@ -1,0 +1,51 @@
+[Unit]
+Description=WHY x Bybit QWEN SHADOW book - forward SHADOW experiment (public Bybit data + Qwen via Groq; NO ORDERS, NO exchange keys; fully independent of why-bybit)
+After=network-online.target
+Wants=network-online.target
+# Deliberately NO Requires= / BindsTo= / PartOf= / After= / OnFailure= on why-bybit*, why-bybit-transition or any other unit.
+# Start/stop/restart/failure of this unit cannot reach the live bot; the live bot does not need this unit.
+
+[Service]
+Type=simple
+User=whyshadow
+Group=whyshadow
+WorkingDirectory=/opt/why-bybit-shadow
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+# Contains ONLY GROQ_API_KEY (root:root 0600, read by systemd, never by the service user).
+EnvironmentFile=/etc/why-bybit-shadow/groq.env
+ExecStart=/usr/bin/python3 /opt/why-bybit-shadow/shadow.py run
+Restart=always
+RestartSec=10
+SyslogIdentifier=why-bybit-qwen-shadow
+# --- sandbox: the process cannot even SEE the live/yellow trees, let alone write them ---
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectProc=invisible
+ProcSubset=pid
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+TemporaryFileSystem=/opt:ro
+BindReadOnlyPaths=/opt/why-bybit-shadow
+BindPaths=/opt/why-bybit-shadow/state
+InaccessiblePaths=/etc/why-bybit-shadow
+SystemCallFilter=@system-service
+MemoryMax=512M
+CPUQuota=40%
+TasksMax=64
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

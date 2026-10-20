@@ -1,0 +1,22 @@
+[Unit]
+Description=WHY Bybit paper -> Bybit LIVE executor at affordable lot size (paper OPEN events; orders only when ARMED) on loopback :8108
+After=network-online.target why-yellow-markshadow.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-bybit-live-yellow
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/usr/bin/python3 /opt/why-bybit-live-yellow/engine.py
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/why-bybit-live-yellow/state /opt/why-bybit-live-yellow/logs
+ReadOnlyPaths=/opt/why-bybit /opt/why-yellow-markshadow /opt/why-yellow/yellow_paper.py
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,30 @@
+import { build } from "esbuild";
+import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
+await rm("dist/assets", { recursive: true, force: true });
+await mkdir("dist/assets", { recursive: true });
+await build({
+  entryPoints: ["src/mydoge-entry.jsx"],
+  outdir: "dist/assets",
+  entryNames: "mydoge",
+  chunkNames: "wallet-[name]-[hash]",
+  assetNames: "wallet-[name]-[hash]",
+  bundle: true,
+  format: "esm",
+  splitting: true,
+  platform: "browser",
+  alias: { "wagmi/connectors": "./src/injected-connector.js" },
+  target: ["es2022"],
+  jsx: "automatic",
+  minify: true,
+  legalComments: "linked",
+  define: { "process.env.NODE_ENV": '"production"' },
+  loader: { ".svg": "dataurl", ".png": "dataurl", ".woff": "file", ".woff2": "file" },
+  logLevel: "info",
+  logLimit: 12
+});
+// SDK CSS is needed only on the MyDoge screen, never on the marketing page.
+const page = await readFile("dist/mydoge.html", "utf8");
+await writeFile("dist/mydoge.html", page.replace(
+  /(?:  <link rel="stylesheet" href="\/assets\/mydoge.css">\n)?  <link rel="stylesheet" href="\/mydoge.css">/,
+  '  <link rel="stylesheet" href="/assets/mydoge.css">\n  <link rel="stylesheet" href="/mydoge.css">'
+));

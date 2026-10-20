@@ -1,0 +1,97 @@
+{
+ "status": "APPLIED",
+ "armed_ts": 1789821135.2203808,
+ "drain": {
+  "ts": 1789827491.6459806,
+  "first_closed": [
+   "XRPUSDT"
+  ],
+  "evidence": {
+   "XRPUSDT": [
+    {
+     "closedPnl": "-6.47031609",
+     "entry": "1.4214",
+     "exit": "1.4505",
+     "qty": "210.9",
+     "updated": "1789827485733"
+    }
+   ]
+  },
+  "flag_owned": true,
+  "preexisting_flag": false,
+  "strays": []
+ },
+ "apply": {
+  "ts": 1789872324.7016943,
+  "old_sha": "71834fe7b4776b1e",
+  "new_sha": "d5bfe2b0ecae1b08",
+  "backup": "/opt/why-bybit/live_risk.json.pre-194x8-20260920-024524.bak",
+  "closed_evidence": {
+   "BNBUSDT": [
+    {
+     "closedPnl": "0.05623741",
+     "entry": "764",
+     "exit": "762.8",
+     "qty": "0.13",
+     "updated": "1789839901666"
+    }
+   ],
+   "BTCUSDT": [
+    {
+     "closedPnl": "1.82781194",
+     "entry": "81183.7",
+     "exit": "80534.2",
+     "qty": "0.003",
+     "updated": "1789872289875"
+    }
+   ],
+   "XRPUSDT": [
+    {
+     "closedPnl": "-6.47031609",
+     "entry": "1.4214",
+     "exit": "1.4505",
+     "qty": "210.9",
+     "updated": "1789827485733"
+    }
+   ]
+  },
+  "pre": {
+   "positions": {},
+   "orders": []
+  },
+  "verification": {
+   "config_seen": {
+    "mode": "live",
+    "bankroll": 194.0,
+    "equity0": 194.0,
+    "clip": 200.0,
+    "lev": 10.0,
+    "max_open": 8,
+    "max_total": 1600.0,
+    "margin": 20.0,
+    "compounding": false,
+    "daily_kill": 194.0,
+    "dd_kill": 194.0,
+    "feed": "10/10",
+    "ws": true
+   },
+   "armed_live": true,
+   "startup_reconcile_clean": true,
+   "traceback_in_log": false,
+   "pre_existing_positions_changed": [],
+   "duplicate_orders": [],
+   "orphan_orders": [],
+   "post": {
+    "positions": {},
+    "orders": []
+   }
+  },
+  "block_release": "removed",
+  "post_observation": {
+   "unhalted": true,
+   "evaluations_resumed": true,
+   "bars_evaluated": 2289
+  }
+ },
+ "applied_ts": 1789872343.3379216
+}

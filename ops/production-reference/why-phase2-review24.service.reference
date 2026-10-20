@@ -1,0 +1,15 @@
+[Unit]
+Description=WHY Phase 2 read-only 24h exit review (never deploys)
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/why-phase2-20261012/review24
+ExecStart=/usr/bin/python3 /root/why-phase2-20261012/review24/review.py --scheduled
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=120
+NoNewPrivileges=true
+PrivateNetwork=true
+ProtectSystem=strict
+ReadWritePaths=/root/why-phase2-20261012/review24

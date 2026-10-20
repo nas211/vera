@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHY Protocol · Alpha V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* WHY Protocol accents on a bright warm ground; the dark identity lives in
+     the header band + ticker tape */
+  --paper:#f7f4ee; --card:#ffffff; --line:#e5dfd2; --soft:#f2eee5;
+  --ink:#1d1b24; --ash:#5f5a6b; --ash-dim:#8b8698;
+  --gold:#a07d28; --gold-fill:#f3c76a; --gold-dim:#8c6f39;
+  --green:#0da878; --red:#d94f45;
+  --band:#17161f; --band-line:#3a3648; --band-text:#f5f3f7; --band-ash:#a8a2b5;
+  --molten:linear-gradient(100deg,#c2381a,#f0852a 38%,#f3c76a 72%,#ffe6ae);
+  --molten-ink:linear-gradient(100deg,#c2381a,#f0852a 52%,#b98a20);
+  --shadow:0 1px 2px rgba(35,25,5,.05),0 10px 28px rgba(35,25,5,.07);
+  --font-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--paper)}
+body{
+  font-family:var(--font-body);color:var(--ink);background:var(--paper);
+  min-height:100vh;line-height:1.55;
+  background-image:radial-gradient(1100px 520px at 75% -8%,rgba(243,199,106,.18),transparent),
+                   radial-gradient(900px 420px at 5% 108%,rgba(240,133,42,.10),transparent);
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header{background:var(--band);border-bottom:1px solid var(--band-line);padding:16px 0}
+.brand{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:.02em}
+.brand .why{background:var(--molten);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .sub{color:var(--band-ash);font-weight:500;font-size:13px;display:block;letter-spacing:.14em;text-transform:uppercase}
+.hright{display:flex;align-items:center;gap:10px}
+.clock{font-family:var(--font-mono);font-size:12px;color:var(--band-ash);font-variant-numeric:tabular-nums}
+.live{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--band-ash);
+  border:1px solid var(--band-line);border-radius:999px;padding:6px 14px;background:rgba(38,35,49,.72)}
+.dot{width:8px;height:8px;border-radius:50%;background:#3de3a0;box-shadow:0 0 8px #3de3a0;animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* ---- exchange ticker tape (stays dark: the WHY identity moment) ---- */
+.tape{border-bottom:1px solid var(--line);background:var(--band);overflow:hidden}
+.tape-inner{display:flex;gap:0;white-space:nowrap;width:max-content;animation:tapescroll 45s linear infinite}
+.tape:hover .tape-inner{animation-play-state:paused}
+@keyframes tapescroll{to{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:baseline;gap:8px;padding:9px 22px;font-family:var(--font-mono);font-size:13px;
+  border-right:1px solid var(--band-line);font-variant-numeric:tabular-nums}
+.ti .s{color:var(--band-ash);font-weight:600}
+.ti .p{color:var(--band-text);font-weight:600;transition:color .25s}
+.ti .c{font-size:11px}
+.up{color:#3de3a0!important}.down{color:#f0776f!important}
+
+.hero{padding:40px 0 8px}
+.hero h1{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1.08;text-wrap:balance}
+.hero h1 em{font-style:normal;background:var(--molten-ink);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--ash);max-width:640px;margin-top:12px;font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:26px 0 8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.stat .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ash-dim);font-weight:600}
+.stat .v{font-family:var(--font-mono);font-size:22px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat .n{font-size:11px;color:var(--ash-dim);margin-top:2px}
+.pos{color:var(--green)} .neg{color:var(--red)} .gold{color:var(--gold)}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;padding:26px 0 60px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--soft)}
+.panel-h h2{font-family:var(--font-display);font-size:17px;font-weight:700}
+.panel-h .clock{color:var(--ash-dim)}
+.toggle{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:12px}
+/* MUST come after .toggle: the `hidden` ATTRIBUTE only sets display:none via
+   the UA stylesheet, and any author rule with a display value beats it. The
+   toggle stayed visible on 2026-08-14 for exactly this reason. */
+.toggle[hidden]{display:none}
+.toggle button{background:none;border:0;color:var(--ash);padding:6px 14px;cursor:pointer;font-family:var(--font-body);font-weight:600}
+.toggle button.on{background:rgba(13,168,120,.10);color:var(--green)}
+.toggle button:focus-visible{outline:2px solid var(--gold-fill)}
+.feed{max-height:640px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.msg{background:#fcfbf7;border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:12px 16px;
+  display:flex;align-items:center;gap:14px;animation:in .3s ease}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+.msg.win{border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(13,168,120,.06),#fcfbf7 45%)}
+.msg.loss{border-left:3px solid var(--line);opacity:.85}
+.msg.fresh{animation:flash 1.8s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--green),0 0 26px rgba(13,168,120,.35)}100%{box-shadow:none}}
+.msg .emoji{font-size:22px}
+.msg .body{flex:1;min-width:0}
+.msg .sym{font-family:var(--font-mono);font-weight:600;font-size:14px}
+.msg .meta{font-size:12px;color:var(--ash-dim)}
+.msg .pnl{font-family:var(--font-mono);font-weight:600;font-size:16px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+.badge.tp{background:rgba(13,168,120,.12);color:var(--green)}
+/* Operator close. Deliberately NEUTRAL (ash, not green/red): a flat can land
+   either side of zero, so colouring it by outcome would re-introduce the very
+   confusion the badge exists to remove. */
+.badge.flat{background:rgba(150,150,150,.14);color:var(--ash-dim)}
+.badge.side{background:rgba(243,199,106,.22);color:var(--gold)}
+.badge.short{background:rgba(217,79,69,.12);color:var(--red)}
+.badge.paper{background:rgba(120,120,130,.14);color:var(--ash)}
+
+/* Rows render like any other row. The demotion styling (cross-hatch, dashed
+   border, muted plate) was removed on 2026-08-14: the whole feed is one book,
+   so texturing every row said nothing a reader could act on and only made the
+   numbers hard to read. The banner below carries the disclosure once, which is
+   what the page is actually required to do. */
+.paperbar{display:flex;gap:10px;align-items:flex-start;margin:0 0 4px;padding:10px 12px;
+  border:1px dashed var(--line);border-radius:10px;background:rgba(120,120,130,.06);
+  font-size:12px;line-height:1.45;color:var(--ash)}
+.paperbar b{color:var(--ink);letter-spacing:.04em}
+.msg.paper{background:var(--card)}
+.msg.paper.win{border-left:3px solid var(--green);background:linear-gradient(90deg,rgba(13,168,120,.06),#fcfbf7 45%)}
+
+/* ---- account-size ladder ---- */
+.sizes{margin:8px 0 0}
+.sizes table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px;
+  font-variant-numeric:tabular-nums}
+.sizes th{font-family:var(--font-body);font-size:11px;letter-spacing:.10em;text-transform:uppercase;
+  color:var(--ash-dim);font-weight:600;text-align:right;padding:0 10px 8px;white-space:nowrap}
+.sizes th:first-child,.sizes td:first-child{text-align:left}
+.sizes td{text-align:right;padding:9px 10px;border-top:1px solid var(--soft);white-space:nowrap}
+.sizes tr:hover td{background:var(--soft)}
+.sizes .acct{font-weight:600}
+.sizewrap{overflow-x:auto}
+
+/* ---- open positions: live rows ---- */
+.openrow{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;
+  padding:12px 20px;border-bottom:1px solid var(--soft);font-family:var(--font-mono);font-size:13px;
+  font-variant-numeric:tabular-nums}
+.openrow:last-child{border-bottom:0}
+.openrow .top{display:flex;align-items:center;gap:10px;grid-column:1/3}
+.openrow .odot{width:7px;height:7px;border-radius:50%;background:var(--gold-fill);box-shadow:0 0 6px var(--gold-fill);flex:none}
+.openrow .upnl{grid-column:3;grid-row:1;font-weight:600;font-size:15px;text-align:right;transition:color .25s}
+.openrow .sub2{grid-column:1/4;display:flex;gap:14px;color:var(--ash-dim);font-size:11.5px;padding-left:17px}
+.openrow .mark{color:var(--ink);transition:color .25s}
+.openrow .age{margin-left:auto}
+.tickup{color:var(--green)!important}.tickdown{color:var(--red)!important}
+
+.cta{margin-top:24px;padding:26px;border-radius:18px;border:1px solid #dcc389;
+  background:linear-gradient(135deg,rgba(243,199,106,.16),rgba(240,133,42,.08));box-shadow:var(--shadow)}
+.cta h3{font-family:var(--font-display);font-size:20px;font-weight:800}
+.cta ol{margin:14px 0 18px 18px;color:var(--ash);font-size:14px;display:flex;flex-direction:column;gap:8px}
+.cta ol b{color:var(--ink)}
+.btn{display:inline-block;text-decoration:none;font-family:var(--font-display);font-weight:700;font-size:15px;
+  color:#0a0b0f;background:var(--molten);border-radius:12px;padding:13px 24px;transition:transform .15s;
+  box-shadow:0 6px 18px rgba(240,133,42,.35)}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.fineprint{margin-top:14px;font-size:12px;color:var(--ash-dim)}
+.fineprint b{color:var(--ash)}
+.pricing{padding:10px 0 44px;border-top:1px solid var(--line)}
+.pricing h2{font-family:var(--font-display);font-size:24px;font-weight:800;margin:30px 0 6px}
+.pricing .lede{color:var(--ash);font-size:14px;max-width:660px;margin-bottom:20px}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;align-items:stretch}
+.tier{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column}
+.tier.feature{border-color:#dcc389;background:linear-gradient(135deg,rgba(243,199,106,.16),rgba(240,133,42,.08))}
+.tier h3{font-family:var(--font-display);font-size:17px;font-weight:800}
+.tier .price{font-family:var(--font-display);font-size:32px;font-weight:800;margin:10px 0 0;line-height:1}
+.tier .price span{font-size:13px;font-weight:600;color:var(--ash)}
+.tier .note{font-size:12px;color:var(--ash-dim);margin-top:6px}
+.tier ul{list-style:none;margin:16px 0 20px;display:flex;flex-direction:column;gap:9px;font-size:13px;color:var(--ash)}
+.tier li::before{content:"→ ";color:var(--gold);font-weight:700}
+.tier .btn{margin-top:auto;text-align:center}
+.agree{margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.agree label{display:flex;gap:11px;align-items:flex-start;font-size:13px;color:var(--ash);cursor:pointer}
+.agree input{margin-top:2px;width:18px;height:18px;accent-color:var(--gold-fill);flex:none;cursor:pointer}
+.agree.nudge{border-color:var(--red);animation:nudge .4s}
+@keyframes nudge{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.btn.locked{background:var(--soft);color:var(--ash-dim);box-shadow:none;cursor:not-allowed}
+.btn.locked:hover{transform:none}
+.sizer{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);overflow:hidden}
+.sizer .body{padding:18px 20px 20px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.fields label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ash);
+  text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.fields input{font-family:var(--font-mono);font-size:16px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.fields input:focus{outline:2px solid var(--gold-fill);outline-offset:0;border-color:transparent}
+.szout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.szout div{background:var(--soft);border-radius:12px;padding:12px 14px}
+.szout .k{font-size:11px;color:var(--ash-dim);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.szout .v{font-family:var(--font-mono);font-size:19px;font-weight:600;margin-top:3px}
+.szout .risk .v{color:var(--red)}
+.szout .win .v{color:var(--green)}
+.szerr{color:var(--red);font-size:13px;margin-top:14px}
+footer{border-top:1px solid var(--line);padding:22px 0 40px;color:var(--ash-dim);font-size:12px;max-width:820px}
+/* .footline states the risk in plain words and is ALWAYS visible. The long
+   legal disclaimer below it is collapsed by ARROW TOGGLE because it runs to
+   ~900 words. The <summary> deliberately does NOT restate the loss warning —
+   .footline says it once, directly above, and saying it twice on one screen
+   reads as boilerplate. Keep the plain warning in .footline, not in <summary>. */
+.footline{margin-bottom:16px}
+.disc>summary{list-style:none;cursor:pointer;display:flex;gap:9px;align-items:flex-start;
+  padding:2px 0;color:var(--ash);line-height:1.55}
+.disc>summary::-webkit-details-marker{display:none}
+.disc>summary:hover b{color:var(--gold-dim)}
+.disc .arw{flex:none;margin-top:1px;color:var(--gold-dim);transition:transform .18s ease}
+.disc[open] .arw{transform:rotate(90deg)}
+.disc>summary b{color:var(--ink);letter-spacing:.02em}
+.disc-body{margin-top:14px;padding:16px 18px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;color:var(--ash);line-height:1.65;max-height:62vh;overflow-y:auto}
+.disc-body h4{font-family:var(--font-display);font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink);margin:18px 0 7px}
+.disc-body p{margin:0 0 9px}
+.disc-body ol{margin:0 0 9px 20px}
+.disc-body li{margin-bottom:5px}
+.disc-body>:first-child{margin-top:0}
+.disc-body>:last-child{margin-bottom:0}
+@media(prefers-reduced-motion: reduce){.disc .arw{transition:none}}
+.empty{color:var(--ash-dim);text-align:center;padding:30px;font-size:13px}
+@media(prefers-reduced-motion: reduce){.msg,.msg.fresh,.dot,.tape-inner{animation:none}.tape{overflow-x:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div class="brand"><span class="why">WHY PROTOCOL</span><span class="sub">Alpha V2</span></div>
+    <div class="hright">
+      <span class="clock" id="clock">--:--:-- UTC</span>
+      <div class="live"><span class="dot"></span><span id="livelabel">RESULTS</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="tape"><div class="tape-inner" id="tape"></div></div>
+
+<div class="wrap">
+<section class="hero">
+  <h1>Every trade the engine takes,<br>as it <em>happens.</em></h1>
+  <p>AI-powered crypto trading—fully automated. Scans 2,000+ trading setups.
+     Finds long and short opportunities. Filters every trade through strict risk
+     rules. Executes approved trades through your own connected exchange.
+     Results below are Live — no orders are placed.</p>
+</section>
+
+<section class="stats" id="stats"></section>
+
+<!-- The account-size ladder was removed on 2026-08-14 (owner's call): this
+     page shows the PAPER BOOK and nothing else. The projections it rendered
+     were modelled accounts that never traded, and the publisher no longer
+     emits them. by_account_size() is still in paper_snapshot.py and still
+     tested, so restoring the panel means putting the markup back and
+     re-adding "sizes"/"size_caveat"/"slots"/"leverage" to the payload. -->
+
+<section class="cols">
+  <div>
+    <div class="panel">
+      <div class="panel-h">
+        <h2 id="feedh">🧪 Winning trades</h2>
+        <!-- The Wins / Full record toggle was removed on 2026-08-14 (owner's
+             call): the feed shows winning trades only. The SUMMARY above it
+             is unchanged and still counts every trade — "61 of 91" and the
+             net include the losses, so the totals a reader is quoted are the
+             whole book even though the list below is not. Do not change the
+             summary to match the list. -->
+        <!-- The buttons STAY IN THE DOM, hidden. Deleting them is what broke
+             the page on 2026-08-14: setMode() and the two onclick bindings
+             below dereference $('bwins')/$('ball') unguarded, so a missing
+             element threw before the first render and the site came up
+             blank. Hiding the container removes the control without removing
+             the nodes the script expects. -->
+        <div class="toggle" hidden>
+          <button id="bwins" class="on">Wins</button>
+          <button id="ball">Full record</button>
+        </div>
+      </div>
+      <div class="feed" id="feed"><div class="empty">Loading the paper record…</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="panel">
+      <div class="panel-h"><h2>⚡ Open right now</h2><span class="clock" id="marklabel"></span></div>
+      <div id="open"><div class="empty">Loading…</div></div>
+    </div>
+    <div class="cta">
+      <h3>🔑 Run these trades on your own Yellow account</h3>
+      <ol>
+        <li><b>Create your WHY account</b> — email and password, one minute.</li>
+        <li><b>Create an API key on <a href="https://yellow.pro" target="_blank" rel="noopener">yellow.pro</a></b> with read + trade permission only (withdrawals and transfers disabled) and paste it into WHY. It is stored encrypted and never shown again.</li>
+        <li><b>Pick your position size and switch trading on.</b> Every trade above is then placed on your Yellow account, day and night.</li>
+      </ol>
+      <a class="btn" data-cta href="/yellow/app/">🟡 Connect your Yellow account →</a>
+      <div class="fineprint"><b>You keep custody.</b> Your funds stay in your own Yellow account. WHY only receives a
+        trading key; it cannot withdraw or transfer. Revoke the key on Yellow at any time.</div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <h2>Access</h2>
+  <p class="lede">Three ways in. WHY Protocol is a licensed technology company. We never take
+    custody of your funds, we do not manage money, and nothing here is investment advice.</p>
+
+  <div class="tiers">
+    <div class="tier">
+      <h3>🆓 Free — Observe</h3>
+      <div class="price">$0<span> / forever</span></div>
+      <div class="note">See what the engine does.</div>
+      <ul>
+        <li>Trade signals posted as they close</li>
+        <li>Weekly performance report</li>
+        <li>The full record, on this page</li>
+        <li>Results only — no live entries</li>
+      </ul>
+      <a class="btn locked" data-cta href="https://t.me/whytradingup" target="_blank" rel="noopener">Join the free channel</a>
+    </div>
+
+    <div class="tier feature">
+      <h3>📈 Premium — Copy Trade</h3>
+      <div class="price">$99<span> / month</span></div>
+      <div class="note">For traders who place their own orders.</div>
+      <ul>
+        <li>Every live signal the moment the book fills</li>
+        <li>Entry, target, stop and invalidation</li>
+        <li>Position-sizing tool</li>
+      </ul>
+      <a class="btn locked" data-cta href="https://t.me/Whytradingbot" target="_blank" rel="noopener">Get Premium</a>
+    </div>
+
+    <div class="tier">
+      <h3>🤖 VIP — Auto Trading 24/7</h3>
+      <div class="price">$399<span> / month</span></div>
+      <div class="note">Founding price · $599 once the founding places are gone.</div>
+      <ul>
+        <li>The engine trades your own Yellow account</li>
+        <li>Trade-only API key — withdrawals stay disabled</li>
+        <li>Your size, your risk limits, kill switch</li>
+        <li>Priority onboarding</li>
+      </ul>
+      <a class="btn" data-cta href="/yellow/app/">Get VIP</a>
+    </div>
+  </div>
+
+  <div class="sizer">
+    <div class="panel-h">
+      <h2>📐 Size any trade</h2>
+      <span class="clock">the stop decides the size</span>
+    </div>
+    <div class="body">
+      <div class="fields">
+        <label>Account $<input id="szAcct" type="number" value="5000" min="1" step="100" inputmode="decimal"></label>
+        <label>Risk %<input id="szRisk" type="number" value="1" min="0.05" step="0.1" inputmode="decimal"></label>
+        <label>Stop % away<input id="szStop" type="number" value="0.9" min="0.01" step="0.1" inputmode="decimal"></label>
+        <label>Leverage<input id="szLev" type="number" value="5" min="1" max="20" step="1" inputmode="numeric"></label>
+      </div>
+      <div class="szout" id="szOut"></div>
+      <div class="fineprint">
+        <b>Risk first, not leverage.</b> “5× on $5,000 = $25,000” tells you what you
+        <i>can</i> buy, never what you can afford to be wrong about. Here you choose what
+        a loss costs you and the position falls out of the stop distance.
+        Premium fills the stop in from the live signal automatically — and a stop only
+        limits a loss if it actually fills at its price, which on a fast move it may not.
+      </div>
+    </div>
+  </div>
+
+  <div class="agree" id="agreebox">
+    <label>
+      <input type="checkbox" id="agree">
+      <span>I understand that trading spot or futures with leverage can lose money, that past
+        results do not predict future ones, that the free channel shows <b>selected
+        winning trades rather than every trade</b>, and that WHY Protocol provides
+        technology and not investment advice.</span>
+    </label>
+  </div>
+</section>
+
+<footer>
+  <p class="footline">Spot or Futures trading with leverage is high-risk. The Bot has losing days
+  and losing weeks. Past results are not a promise of future returns — the record above is read
+  from Yellow itself and refreshes automatically. Only trade money you can afford
+  to lose.</p>
+
+  <details class="disc" id="risk">
+    <summary>
+      <svg class="arw" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span><b>Important digital-asset risk and technology disclaimer.</b>
+      Custody, automated-trading authorisation, technology and third-party exchange risks,
+      user responsibility and limitation of liability. Read in full.</span>
+    </summary>
+
+    <div class="disc-body">
+      <p>In this notice, “WHY” means Why Protocol LTD, the legal entity providing
+      Why Trade and the technology branded as Why Protocol.</p>
+
+      <p>WHY provides non-custodial software technology. The Services may allow users to
+      receive algorithmically generated trading information and, where activated by the user,
+      connect a third-party exchange account through an API and automatically transmit trade
+      instructions in accordance with the strategies, functionality and risk parameters
+      selected or accepted by the user.</p>
+
+      <p>WHY does not accept deposits, receive, hold, safeguard or take custody of users’
+      fiat currency, digital assets or private keys. Users’ assets remain in their own
+      accounts with independent third-party exchanges. WHY does not have ownership of those
+      accounts or authority to withdraw or transfer users’ assets. Users must only provide
+      API credentials with withdrawal and transfer permissions disabled.</p>
+
+      <h4>No financial advice</h4>
+      <p>WHY does not provide personal financial, investment, legal, tax or accounting
+      advice. Nothing made available through the website, platform, bot, Telegram interface,
+      software or related communications constitutes an offer, solicitation, personal
+      recommendation or advice to buy, sell, hold or otherwise transact in any digital asset
+      or financial product.</p>
+
+      <p>Trading signals, AI-generated outputs, market analyses, rankings, forecasts,
+      strategy selections, risk indicators, backtests and automated trade instructions are
+      generated by software and are not tailored to any user’s personal financial
+      circumstances. Users remain solely responsible for determining whether the Services,
+      any selected strategy and every enabled trading parameter are appropriate for them.</p>
+
+      <h4>Automated-trading authorisation</h4>
+      <p>When automated trading is enabled, orders may be transmitted to the user’s connected
+      exchange without further confirmation from the user. By enabling this functionality,
+      the user expressly authorises WHY’s software to transmit orders in accordance with the
+      selected or accepted strategy and settings.</p>
+
+      <p>The user remains responsible for activating, configuring, monitoring, pausing and
+      disabling the Services and for reviewing all orders, positions and account activity on
+      the connected exchange.</p>
+
+      <h4>Digital-asset and trading risks</h4>
+      <p>Virtual assets may lose their value in full or in part and are subject to extreme
+      volatility. You may lose all money or other value allocated to trading and may not
+      benefit from any form of financial protection.</p>
+
+      <p>Trading futures, perpetual contracts, margin products or other leveraged instruments
+      involves an especially high level of risk. Market movements can result in rapid losses,
+      forced liquidation and, where applicable, liabilities exceeding the amount initially
+      allocated.</p>
+
+      <p>Past performance, live performance, simulated results and backtested results are not
+      reliable indicators of future performance. Hypothetical results have inherent
+      limitations and may not accurately reflect liquidity, slippage, fees, funding costs,
+      latency or actual market conditions. No strategy, algorithm, AI system or risk-control
+      mechanism can eliminate trading risk or guarantee profits, loss prevention or any
+      particular outcome.</p>
+
+      <h4>Technology and third-party risks</h4>
+      <p>The Services depend on software, internet connections, market-data providers, APIs,
+      third-party exchanges and other systems outside WHY’s control. Failures may include
+      delayed, rejected, duplicated, incomplete or incorrectly transmitted orders; inaccurate,
+      delayed or missing data; software defects; connectivity problems; cybersecurity
+      incidents; exchange downtime; unexpected exchange rules; insufficient liquidity;
+      slippage; partial fills; liquidation events and account restrictions.</p>
+
+      <p>Orders are executed, settled and custodied by the user’s selected third-party
+      exchange, not by WHY. WHY does not control an exchange’s execution price, availability,
+      solvency, security, fees, funding rates, liquidation processes or treatment of user
+      assets.</p>
+
+      <p>The Services are provided on an “as available” basis. WHY does not warrant that they
+      will always be available, uninterrupted, secure, error-free, compatible with every
+      exchange or profitable.</p>
+
+      <h4>User responsibility</h4>
+      <p>By accessing or using the Services, connecting an exchange account or activating
+      automated trading, the user acknowledges and agrees that:</p>
+      <ol>
+        <li>the user makes and remains responsible for all investment and trading decisions;</li>
+        <li>the user accepts all market, leverage, liquidation, technology, cybersecurity and
+        third-party exchange risks;</li>
+        <li>the user is responsible for securing their exchange account and API credentials;</li>
+        <li>the user must monitor their account and maintain sufficient safeguards and risk
+        limits;</li>
+        <li>the user is responsible for ensuring that use of the Services and the selected
+        exchange is lawful in their jurisdiction; and</li>
+        <li>the user has read and accepted the Terms of Use, Risk Warning and Privacy Notice.</li>
+      </ol>
+
+      <p>Users should only trade products they understand, only risk amounts they can afford
+      to lose and obtain advice from an independent qualified professional where
+      appropriate.</p>
+
+      <h4>Limitation of liability</h4>
+      <p>To the fullest extent permitted by applicable law and subject to the Terms of Use,
+      WHY and its directors, officers, employees, contractors, technology providers and
+      affiliates shall not be liable for losses arising from market movements, trading
+      decisions, selected strategies, automated orders, liquidation, user settings, exchange
+      actions, API failures, inaccurate or delayed data, connectivity failures, cybersecurity
+      events or other third-party systems.</p>
+
+      <p>WHY shall not be liable for any indirect, incidental, special, consequential or
+      loss-of-profit damages. Nothing in this disclaimer or the Terms of Use excludes or
+      limits any liability that cannot lawfully be excluded or limited.</p>
+
+      <p>The Services are not offered in any jurisdiction where their offering or use would
+      be unlawful. Availability of the website does not mean that the Services are authorised
+      or suitable in every jurisdiction.</p>
+
+      <p>For complete information, please read our Terms of Use, Risk Warning and Privacy
+      Notice before using the Services.</p>
+    </div>
+  </details>
+</footer>
+</div>
+
+<script>
+/* SINGLE SOURCE: data/paper.json, the PAPER book, both directions.
+   The real-money record was removed from this page on 2026-08-13 (owner's
+   call). There is deliberately no second feed to fall back to — if the paper
+   payload is missing or undisclosed, the page says so and shows nothing,
+   rather than reaching for the live book. */
+let DATA=null, MODE='wins';
+const $=id=>document.getElementById(id);
+const money=v=>(v>=0?'+$':'−$')+Math.abs(v).toFixed(2);
+// Results render as % of position notional (a copier trades their own size);
+// the notional is the PAPER book's own clip size, published in paper.json.
+const N=()=>(DATA&&DATA.notional_usd)||250;
+const pctBy=(v,n)=>{const p=v/n*100;return (p>=0?'+':'−')+Math.abs(p).toFixed(2)+'%'};
+const pctOf=v=>pctBy(v,N());
+const ago=s=>{const d=Date.now()/1000-s;if(d<3600)return Math.max(1,d/60|0)+'m ago';
+  if(d<86400)return (d/3600|0)+'h ago';return (d/86400|0)+'d ago'};
+const fmtPx=v=>v>=1000?v.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})
+  :v>=100?v.toFixed(2):v>=1?v.toFixed(3):v.toPrecision(4);
+
+/* The banner that heads the paper tab. The disclosure text comes from the
+   payload, not from this file: the publisher owns the wording, so the page
+   cannot drift into describing simulated fills as live ones. If a payload
+   ever arrives without one, we say so rather than showing bare results. */
+function paperBar(){
+  const s=(DATA&&DATA.summary)||null;
+  const d=((DATA&&DATA.disclosure)||'Live results — no orders were placed.').replace(/^L\.\s*/,'Live. ');
+  /* WIN RATE REMOVED FROM THE PAGE, owner's call 2026-08-15. The book now runs
+     a lose-small/win-big geometry: it is right about 1 trade in 5 and the
+     winners are ~6x the losers, so the win rate is a misleading headline for
+     what the book does. Net P&L over the same closed trades is the honest
+     summary and is what the reader is quoted now. The trade COUNT stays so the
+     net can be read per trade. */
+  const score=s&&s.trades
+    ?`<b>${money(s.net_usd)}</b> net over ${s.trades} closed trades ${DATA.label||''}`
+    :'No closed trades yet.';
+  return `<div class="paperbar"><div>${score}<br>${d}</div></div>`;
+}
+
+/* ---------- render (structure) ---------- */
+function render(){
+  if(!DATA)return;
+  const t=DATA.trades||[], wins=t.filter(x=>x.pnl>0), s=DATA.summary;
+  const best=wins.length?Math.max(...wins.map(x=>x.pnl)):0;
+  /* Net over the last 24h, not the winning COUNT — the tile below shows money.
+     Every trade in the window counts, losers included, so the figure is the
+     day's real result and not a filtered highlight. */
+  const todayNet=t.filter(x=>x.ts>Date.now()/1000-86400)
+                  .reduce((a,x)=>a+(x.pnl||0),0);
+  $('stats').innerHTML=[
+    /* The word "simulated" in these sublines was replaced with "L" on
+       2026-08-14 (owner's call; L is his internal shorthand). The substantive
+       disclosure is untouched and still prints in full above the feed and in
+       the hero: "no orders are placed", "No orders were placed and no money
+       was at risk". Those clauses are what the page relies on to stay
+       truthful — do not remove them. */
+    /* P&L TILES, replacing the win-count tiles 2026-08-15 (owner's call).
+       Win COUNT is not published either, not just win RATE: "82 winning" next
+       to "490 closed" is the win rate with an extra step, so removing only the
+       percentage would not have removed the number. Every tile below is now a
+       money figure over the same closed trades. */
+    ['Net P&L', '<span class="'+(s&&s.net_usd>=0?'pos':'neg')+'">'
+      +(s&&Number.isFinite(s.net_usd)?money(s.net_usd):'—')+'</span>',
+      'Live · all closed trades '+(s?s.label||'':'')],
+    /* OPEN P&L, added 2026-08-16 (owner's request: "put the PNL on the
+       website"). It is a SEPARATE tile from Net P&L, never folded into it:
+       Net P&L is money the book has actually taken on closed trades, this is
+       what the open book is worth at the current mark and can still go to
+       zero or negative before anything is banked. On a page that sells
+       subscriptions the difference between "has made" and "is currently up"
+       is the whole claim, so the two never share a number. Filled live by
+       bookUnrealized() off the same quote stream as the rows below. */
+    ['Open P&L', '<span id="upnlTotal" class="gold">…</span>',
+      '<span id="upnlSub">Live · unrealized</span>'],
+    ['Best trade', '<span class="pos">'+(best?pctOf(best):'—')+'</span>',
+      'Live · single round trip'],
+    ['P&L today', '<span class="'+(todayNet>=0?'pos':'neg')+'">'
+      +(t.length?money(todayNet):'—')+'</span>', 'Live · last 24h'],
+    (s&&Number.isFinite(s.net_usd)&&s.trades)
+      ?['Average per trade', '<span class="'+(s.net_usd>=0?'pos':'neg')+'">'
+        +money(s.net_usd/s.trades)+'</span>',
+        'across '+s.trades+' Live closed trades']
+      :['Average per trade','<span class="gold">syncing…</span>',''],
+  ].map(([k,v,n])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join('');
+
+  /* The toggle now selects WITHIN the paper record: wins only, or every
+     paper trade. There is no live list to switch to. The banner is printed
+     above both, never optional. */
+  const list=MODE==='wins'?wins:t;
+  const unit=N();
+  $('feed').innerHTML=paperBar()+(list.length?list.map(x=>{
+      const w=x.pnl>0;
+      return `<div class="msg ${w?'win':'loss'} paper">
+      <div class="emoji">${w?(x.pnl/unit*100>=1?'🚀':'💰'):(x.pnl===0?'➖':'📉')}</div>
+      <div class="body"><span class="sym">${x.symbol.replace('USDT','')}<span class="badge side">${x.side.toUpperCase()}</span>${x.kind==='TP'?'<span class="badge tp">TARGET HIT</span>':x.kind==='FLAT'?'<span class="badge flat">CLOSED MANUALLY</span>':''}</span>
+      <!-- The per-row "paper fill · no order placed" tag was removed on
+           2026-08-14 (owner's call). It was a repetition, not the disclosure:
+           the real one is paperBar() directly above this list, which prints
+           "No orders were placed and no money was at risk." on every render
+           and is never optional. Leave the timestamp. -->
+      <div class="meta">${ago(x.ts)}</div></div>
+      <div class="pnl ${w?'pos':(x.pnl<0?'neg':'')}">${pctBy(x.pnl,unit)}</div></div>`;
+    }).join('')
+    :'<div class="empty">No Live trades closed yet in this window.</div>');
+
+  const o=DATA.open||[];
+  $('open').innerHTML=o.length?o.map(p=>`
+    <div class="openrow" data-sym="${p.symbol}" data-entry="${p.entry_px}" data-side="${p.side}"
+         data-notional="${p.notional_usd||''}">
+      <div class="top"><span class="odot"></span><b>${p.symbol.replace('USDT','')}</b>
+        <span class="badge ${p.side==='long'?'side':'short'}">${p.side.toUpperCase()}</span></div>
+      <div class="upnl" id="upnl-${p.symbol}">…</div>
+      <div class="sub2">entry ${fmtPx(p.entry_px)} · mark <span class="mark" id="mark-${p.symbol}">—</span>
+        <span class="age">${ago(p.opened_ms/1000)}</span></div>
+    </div>`).join('')
+    :'<div class="empty">Book is flat — scanning for the next entry.</div>';
+  $('marklabel').textContent=o.length?'live prices · Live position':'';
+  Object.keys(PRICES).forEach(paint);   // repaint cached prices onto fresh DOM
+  /* Called unconditionally, NOT only from paint(). With no quotes cached yet
+     the forEach above is a no-op, and the tile would sit on its placeholder
+     until the first tick — which on a flat book never arrives, because
+     wsSync() only subscribes to symbols that are open. */
+  bookUnrealized();
+  wsSync();
+}
+
+/* ---------- live prices (Binance public futures WebSocket) ---------- */
+const TAPE=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT'];
+const PRICES={};                        // sym -> {px, pct, dir}
+let ws=null, wsSet='', lastWsTick=0;
+function applyQuote(sym,px,pct){
+  const prev=PRICES[sym]?PRICES[sym].px:px;
+  PRICES[sym]={px,pct,dir:px>prev?1:px<prev?-1:0};
+  paint(sym);
+}
+
+function tapeInit(){
+  const cell=s=>`<span class="ti" data-sym="${s}"><span class="s">${s.replace('USDT','')}</span>
+    <span class="p" id="tp-${s}">—</span><span class="c" id="tc-${s}"></span></span>`;
+  // content duplicated once so the marquee loops seamlessly
+  $('tape').innerHTML=TAPE.map(cell).join('')+TAPE.map(s=>cell(s).replace(/id="/g,'id="d')).join('');
+}
+function paint(sym){
+  const q=PRICES[sym]; if(!q)return;
+  const cls=q.dir>0?'tickup':q.dir<0?'tickdown':'';
+  for(const pre of ['','d']){
+    const p=$(pre+'tp-'+sym), c=$(pre+'tc-'+sym);
+    if(p){p.textContent=fmtPx(q.px);p.className='p '+(q.dir>0?'up':q.dir<0?'down':'');}
+    if(c&&q.pct!=null){c.textContent=(q.pct>=0?'+':'')+q.pct.toFixed(2)+'%';c.className='c '+(q.pct>=0?'up':'down');}
+  }
+  const m=$('mark-'+sym);
+  if(m){m.textContent=fmtPx(q.px);m.classList.remove('tickup','tickdown');if(cls){void m.offsetWidth;m.classList.add(cls);}}
+  const row=document.querySelector(`.openrow[data-sym="${sym}"]`);
+  if(row){
+    const e=+row.dataset.entry, side=row.dataset.side;
+    const pct=(side==='long'?(q.px-e)/e:(e-q.px)/e)*100;
+    const n=+row.dataset.notional;
+    const u=$('upnl-'+sym);
+    /* Money first, percentage second. The closed record beside this box is
+       quoted in dollars, and showing the open book only as a percentage left
+       the reader converting between two units to add up one book. */
+    if(u){u.textContent=(n?money(pct/100*n)+' ':'')
+            +'('+(pct>=0?'+':'')+pct.toFixed(2)+'%)';
+          u.className='upnl '+(pct>=0?'pos':'neg');}
+  }
+  bookUnrealized();
+}
+
+/* Live mark-to-market of the OPEN book, summed from the same quotes the rows
+   above use, so the tile can never disagree with the positions it totals.
+
+   Two things this deliberately does NOT do. It does not fall back to entry
+   price for an unpriced position — that would silently score it flat and let
+   a partial total read as a complete one; unpriced rows are excluded and
+   COUNTED, and the tile says so. And it is never added to the realized figure:
+   this is what the book would make if it closed right now, which is not money
+   the book has made. They are separate tiles for that reason. */
+function bookUnrealized(){
+  const el=$('upnlTotal'); if(!el)return;
+  const o=(DATA&&DATA.open)||[];
+  if(!o.length){el.textContent='—';el.className='';$('upnlSub').textContent='no open positions';return;}
+  let sum=0, priced=0, unpriced=0, sized=true;
+  for(const p of o){
+    const q=PRICES[p.symbol];
+    if(!q||!p.notional_usd){ if(!q)unpriced++; if(!p.notional_usd)sized=false; continue; }
+    const e=+p.entry_px;
+    sum+=(p.side==='long'?(q.px-e)/e:(e-q.px)/e)*p.notional_usd;
+    priced++;
+  }
+  if(!priced){el.textContent='…';el.className='gold';
+              /* Say which of the two is actually missing. Reporting "waiting
+                 for live prices" when the quotes are in and the SIZE is absent
+                 sends whoever debugs it at the feed instead of the payload. */
+              $('upnlSub').textContent=unpriced?'waiting for live prices'
+                                               :'position size unavailable';
+              return;}
+  el.textContent=money(sum);
+  el.className=sum>=0?'pos':'neg';
+  $('upnlSub').textContent='Live · '+priced+' open, mark-to-market'
+    +(unpriced?' ('+unpriced+' awaiting price)':'')
+    +(sized?'':' · size missing');
+}
+function wsSync(){
+  const need=[...new Set([...TAPE,...(DATA&&DATA.open?DATA.open.map(p=>p.symbol):[])])].sort();
+  const key=need.join(',');
+  if(key===wsSet&&ws&&ws.readyState<2)return;
+  wsSet=key;
+  if(ws){try{ws.onclose=null;ws.close();}catch(e){}}
+  try{
+    ws=new WebSocket('wss://fstream.binance.com/stream?streams='+
+      need.map(s=>s.toLowerCase()+'@miniTicker').join('/'));
+    ws.onmessage=e=>{
+      const m=JSON.parse(e.data).data; if(!m||!m.s)return;
+      lastWsTick=Date.now();
+      applyQuote(m.s,+m.c,(+m.c-+m.o)/+m.o*100);
+    };
+    ws.onclose=()=>setTimeout(wsSync,3000);
+  }catch(e){}
+}
+
+/* ---------- data feed ---------- */
+const topKey=()=>{const t=DATA&&DATA.trades&&DATA.trades[0];return t?t.symbol+t.ts:''};
+async function load(){
+  try{
+    const was=topKey();
+    const r=await fetch('/trades-data/paper.json?t='+Date.now());
+    const j=await r.json();
+    /* No disclosure, no render. A payload that does not identify itself as
+       the paper book is treated as no payload at all — the page must never
+       display trades it cannot label. */
+    if(!(j&&j.paper===true&&j.disclosure))return;
+    DATA=j;
+    /* Seed the sizer's stop with the book's own. The field shipped defaulting
+       to 0.9, the book's stop two geometries ago, and a sizer pre-filled with
+       a number the book stopped using reads as the current setting.
+       Called through a hook because the sizer is an IIFE — `calc` is not in
+       scope here, and calling it directly throws a ReferenceError that this
+       function's own try/catch would swallow, silently skipping render(). */
+    if(j.geometry&&j.geometry.short&&window.szSeedStop)window.szSeedStop(j.geometry.short.sl_pct);
+    render();
+    if(was&&topKey()!==was){
+      const first=document.querySelector('#feed .msg');
+      if(first)first.classList.add('fresh');
+      const l=$('livelabel'),old=l.textContent;
+      l.textContent='⚡ NEW LIVE TRADE';setTimeout(()=>l.textContent=old,4000);
+    }
+  }catch(e){}
+}
+/* The SSE connection is kept for PRICES ONLY.
+   Its 'trade'/'position' events are the LIVE executor's journal and are
+   deliberately NOT subscribed any more — this page shows the paper book, and
+   a refresh timed to a real-money fill would be live information leaking back
+   in through the side door. Paper rows arrive on the 60s poll. What the
+   stream is still needed for is the price relay: from this box the direct
+   Binance socket is accepted and then never sends a frame, so without 'px'
+   the ticker and the open-position marks go dead. */
+(function(){
+  if(!window.EventSource)return;
+  let fails=0;
+  try{
+    const es=new EventSource('stream');
+    es.addEventListener('hello',()=>{fails=0});
+    /* A paper trade was just written to the book's log and republished.
+       Pull the payload immediately instead of waiting for the next poll.
+       This is what makes the record real-time; the 10s poll behind it only
+       has to cover a dropped connection. Note this is the PAPER book's own
+       file — the live executor's trade events are still not subscribed. */
+    es.addEventListener('paper',()=>{load()});
+    // Server-relayed prices: used whenever the direct Binance socket has been
+    // silent for >8s (some networks accept it but never send a frame).
+    es.addEventListener('px',e=>{
+      if(Date.now()-lastWsTick<8000)return;
+      try{const o=JSON.parse(e.data);
+        for(const[sym,q]of Object.entries(o))applyQuote(sym,q.px,q.pct);
+      }catch(err){}
+    });
+    es.onerror=()=>{if(++fails>4)es.close()};
+  }catch(e){}
+})();
+
+// Position sizer. Deliberately the SAME arithmetic as the bot's /size, and
+// deliberately WITHOUT the live signal's stop: entry and stop are what Premium
+// sells, so the page lets anyone size their own trade and tells them nothing
+// about the current one.
+(function(){
+  const f=['szAcct','szRisk','szStop','szLev'].map($), out=$('szOut');
+  if(!out||f.some(x=>!x)) return;
+  const usd=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function calc(){
+    const [acct,risk,stop,lev]=f.map(x=>parseFloat(x.value));
+    if(!(acct>0)||!(risk>0)||!(stop>0)){
+      out.innerHTML='<div class="szerr">Enter an account size, a risk % and a stop '
+        +'distance above zero.</div>';
+      return;
+    }
+    const riskUsd=acct*risk/100, notional=riskUsd/(stop/100),
+          margin=notional/Math.max(1,lev||1),
+          /* The book's own take-profit, READ FROM THE PAYLOAD. Not a
+             projection and not a promise: it is what ONE winning trade at this
+             size pays, arithmetic on the position the sizer just produced.
+             This was hardcoded 0.5 with a comment asserting it matched the
+             disclosure above. It did, once. When the book moved to a 3.00%
+             target the disclosure moved with it and this did not, so the page
+             quoted one target and sized a winning trade on another six times
+             smaller. The number now comes from the same place the sentence
+             does; the literal is only a last-resort fallback for a payload
+             that failed to load. */
+          TARGET_PCT=(DATA&&DATA.geometry&&DATA.geometry.short&&DATA.geometry.short.tp_pct)||0.5,
+          profitUsd=notional*TARGET_PCT/100;
+    /* The two loss tiles ("Risking" and "Loss if stopped", which printed the
+       same number twice) were replaced on 2026-08-14 with the target payout,
+       on the owner's instruction to lead with profit. The risk INPUT is
+       untouched — the whole position is still derived from what the user is
+       willing to lose, and the note under this panel still explains that. */
+    /* Return on the margin actually posted. THE dollar profit above cannot
+       move with leverage and it is not a bug: position size here falls out of
+       risk% and stop distance, and leverage only decides how much collateral
+       that position ties up. What leverage genuinely changes is this — the
+       same win against a smaller deposit. Added 2026-08-14 because a sizer
+       where nothing responds to the leverage box reads as broken. */
+    const roi = margin > 0 ? (profitUsd / margin * 100) : 0;
+    out.innerHTML=[
+      ['Position', usd(notional), ''],
+      ['Margin at '+(lev||1)+'×', usd(margin), ''],
+      ['Profit at target', usd(profitUsd), 'win'],
+      ['Return on margin', (roi>=0?'+':'')+roi.toFixed(2)+'%', 'win'],
+    ].map(([k,v,c])=>`<div class="${c}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  }
+  /* Mark the sizer as the visitor's the moment they type in it, so the
+     one-time seeding below can never overwrite a value someone is part-way
+     through entering. */
+  let touched=false;
+  f.forEach(x=>x.addEventListener('input',()=>{touched=true;calc();}));
+  /* Set the stop field to the book's own stop, ONCE, from the published
+     geometry. Exposed on window because the payload arrives in the poll
+     function outside this IIFE's scope. */
+  let seeded=false;
+  window.szSeedStop=function(pct){
+    if(touched||seeded||!(pct>0))return;
+    seeded=true; f[2].value=pct; calc();
+  };
+  calc();
+})();
+
+// The disclosure is ACKNOWLEDGED, not just displayed: every route to a paid
+// product is inert until the box is ticked. The choice is remembered so a
+// returning visitor is not asked twice, and it fails open to LOCKED if
+// localStorage is unavailable — a private window should re-ask, not skip.
+(function(){
+  const KEY='why.agree.v1', box=$('agree'), panel=$('agreebox');
+  if(!box) return;
+  const ctas=()=>document.querySelectorAll('[data-cta]');
+  const sync=()=>ctas().forEach(a=>a.classList.toggle('locked',!box.checked));
+  try{box.checked=localStorage.getItem(KEY)==='1'}catch(e){box.checked=false}
+  box.addEventListener('change',()=>{
+    try{localStorage.setItem(KEY,box.checked?'1':'')}catch(e){}
+    sync();
+  });
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('[data-cta]');
+    if(!a||box.checked) return;
+    e.preventDefault();
+    panel.classList.remove('nudge');void panel.offsetWidth;panel.classList.add('nudge');
+    panel.scrollIntoView({block:'center',behavior:'smooth'});
+    box.focus();
+  });
+  sync();
+})();
+
+/* One writer for the tab state. The "Paper book" wording was removed from
+   both headings on 2026-08-14 (owner's call). The simulated disclosure still
+   rides on every payload and prints above the feed, so the page has not
+   stopped saying what it is — only the heading stopped repeating it. */
+const TABS={wins:['bwins','🧪 Winning trades'],
+            all:['ball','🧪 Full record']};
+function setMode(m){
+  MODE=m;
+  for(const k in TABS)$(TABS[k][0]).classList.toggle('on',k===m);
+  $('feedh').textContent=TABS[m][1];
+  render();
+}
+$('bwins').onclick=()=>setMode('wins');
+$('ball').onclick=()=>setMode('all');
+setInterval(()=>{const d=new Date();$('clock').textContent=d.toISOString().slice(11,19)+' UTC'},1000);
+/* 60s -> 10s on 2026-08-14. This poll is now the SAFETY NET: new paper trades
+   arrive on the 'paper' SSE event below, within about a second. The poll is
+   what covers a dropped EventSource, a browser that never got one, and
+   open-position changes that do not write a closed row. */
+tapeInit();load();setInterval(load,10000);wsSync();
+</script>
+</body>
+</html>

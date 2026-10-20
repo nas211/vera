@@ -1,0 +1,55 @@
+{
+ "armed_ts": 1789821135.2203808,
+ "tracked": [
+  {
+   "symbol": "BNBUSDT",
+   "market": "BNBUSDT-PERP",
+   "side": "short",
+   "ex_side": "Sell",
+   "entry": 764.0,
+   "qty": 0.13,
+   "link": "wbo9f8e27bc7fad2de250c9e3341cd8fb",
+   "tp_link": "wbt6a477c8556656d376b97292742edf1",
+   "venue_stop": "779.1",
+   "opened_ms": 1789791303011
+  },
+  {
+   "symbol": "BTCUSDT",
+   "market": "BTCUSDT-PERP",
+   "side": "short",
+   "ex_side": "Sell",
+   "entry": 81183.7,
+   "qty": 0.003,
+   "link": "wbo26b0b2857818903a17e85985233cdf",
+   "tp_link": "wbtf3cf889f34f58a7920005cd32ea461",
+   "venue_stop": "82792.8",
+   "opened_ms": 1789802402127
+  },
+  {
+   "symbol": "XRPUSDT",
+   "market": "XRPUSDT-PERP",
+   "side": "short",
+   "ex_side": "Sell",
+   "entry": 1.4214000000000002,
+   "qty": 210.9,
+   "link": "wbodea32e0edc56617900a2991dfd26ac",
+   "tp_link": "wbt5d6f1e51a5595f02a2ac2cfa1346be",
+   "venue_stop": "1.4502",
+   "opened_ms": 1789814102960
+  }
+ ],
+ "overrides": {
+  "allocation_usd": 194.0,
+  "compounding": false,
+  "leverage": 10,
+  "margin_per_trade_usd": 20.0,
+  "clip_usd": 200.0,
+  "max_open": 8,
+  "max_total_notional_usd": 1600.0,
+  "daily_loss_kill_usd": 194.0,
+  "max_drawdown_kill_usd": 194.0,
+  "_status": "ACTIVE LIVE CONFIG (owner-authorized 2026-09-19, applied by the one-time deferred transition): $194 bankroll (= funded USDT), 10x, $20 fixed margin/trade, $200 target notional, max 8 open ($160 max margin committed; the ~$34 left over is free collateral headroom, NOT a 9th position), non-compounding. Only read when WB_MODE=live.",
+  "notes": "clip_usd = margin_per_trade_usd x leverage = $200. max_open=8 x $20 = $160 max margin committed; max_total_notional = max_open x clip = $1600. Qty is rounded DOWN to the venue qtyStep so a position never exceeds ~$200. Sizing is fixed and NON-compounding: bankroll basis = allocation_usd; profits never grow the clip. Loss kills are set to the full $194 bankroll. per_trade_max_loss_usd only gates a min-lot bump (dormant: no symbol needs a bump at $200). The previous live_risk.json is kept as live_risk.json.pre-194x8-*.bak."
+ },
+ "risk_sha_at_arm": "71834fe7b4776b1e"
+}

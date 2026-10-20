@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# One-shot deploy of the affiliate CRM onto the hosted Supabase project + this box.
+# Owner runs:  bash /opt/why-yellow/deploy/affiliate_deploy.sh you@company.com
+# Steps: 1) additive migration (partner_code column, affiliate_* tables, 'yellow' partner)
+#        2) first admin login for the dashboard (password printed ONCE)
+#        3) restart why-yellow-customer so signups carry the partner code
+#        4) restart why-affiliate
+# Then: add DNS  A  affiliate.whytradingbot.com -> 45.77.66.217  and run
+#        certbot --nginx -d affiliate.whytradingbot.com
+set -euo pipefail
+cd /opt/why-yellow
+ADMIN_EMAIL="${1:-}"
+set -a; . secrets/customer.env; set +a
+echo "== 1/4 migration"
+for m in supabase/migrations/20260930*affiliate*.sql; do echo "   $m"; psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -q -f "$m"; done
+psql "$SUPABASE_DB_URL" -Atc "select 'partners: '||count(*) from public.affiliate_partners; select 'partner_code column: '||count(*) from information_schema.columns where table_name='yellow_accounts' and column_name='partner_code';"
+if [ -n "$ADMIN_EMAIL" ]; then
+  echo "== 2/4 admin user"
+  python3 -m affiliate.admin add-user "$ADMIN_EMAIL" --role admin || echo "   (login already exists — use: why-affiliate reset-password $ADMIN_EMAIL)"
+else
+  echo "== 2/4 skipped (pass an email as first argument to create the admin login)"
+fi
+echo "== 3/4 restart customer platform"
+systemctl restart why-yellow-customer && sleep 3 && curl -s http://127.0.0.1:8104/yellow/api/health | head -c 300; echo
+echo "== 4/4 restart affiliate dashboard"
+systemctl restart why-affiliate && sleep 2 && curl -s http://127.0.0.1:8109/health; echo
+echo
+echo "Dashboard now: https://whytradingbot.com/affiliate/"
+echo "Partner link for Yellow: https://whytradingbot.com/r/yellow"
+echo "Subdomain: add A affiliate -> 45.77.66.217 in GoDaddy, then: certbot --nginx -d affiliate.whytradingbot.com"
+echo "Reset mails + email alerts: why-affiliate set-secret RESEND_API_KEY  (paste key, Enter, Ctrl-D), then systemctl restart why-affiliate"
+echo "Partner login for Yellow:   why-affiliate add-partner-user someone@yellow.pro yellow"

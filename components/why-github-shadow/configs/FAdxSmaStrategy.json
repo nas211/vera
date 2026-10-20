@@ -1,0 +1,96 @@
+{
+  "dry_run": true,
+  "dry_run_wallet": 25000,
+  "trading_mode": "futures",
+  "margin_mode": "isolated",
+  "strategy": "FAdxSmaStrategy",
+  "bot_name": "WHY-SHADOW-FAdxSmaStrategy",
+  "max_open_trades": 8,
+  "stake_currency": "USDT",
+  "stake_amount": 200,
+  "tradable_balance_ratio": 0.95,
+  "fiat_display_currency": "",
+  "max_entry_position_adjustment": 2,
+  "cancel_open_orders_on_exit": false,
+  "fee": 0.00055,
+  "exchange": {
+    "name": "bybit",
+    "key": "",
+    "secret": "",
+    "enable_ws": false,
+    "ccxt_config": {
+      "enableRateLimit": true,
+      "timeout": 35000,
+      "options": {
+        "defaultType": "swap",
+        "defaultSubType": "linear"
+      }
+    },
+    "ccxt_async_config": {
+      "enableRateLimit": true,
+      "timeout": 35000,
+      "options": {
+        "defaultType": "swap",
+        "defaultSubType": "linear"
+      }
+    },
+    "pair_whitelist": [
+      "BTC/USDT:USDT",
+      "ETH/USDT:USDT",
+      "SOL/USDT:USDT",
+      "XRP/USDT:USDT",
+      "DOGE/USDT:USDT",
+      "BNB/USDT:USDT",
+      "LINK/USDT:USDT",
+      "SUI/USDT:USDT",
+      "TAO/USDT:USDT",
+      "HYPE/USDT:USDT"
+    ],
+    "pair_blacklist": []
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList"
+    }
+  ],
+  "entry_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "other",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "limit",
+    "stoploss": "market",
+    "stoploss_on_exchange": false,
+    "emergency_exit": "market",
+    "force_entry": "market",
+    "force_exit": "market"
+  },
+  "unfilledtimeout": {
+    "entry": 5,
+    "exit": 5,
+    "exit_timeout_count": 0,
+    "unit": "minutes"
+  },
+  "telegram": {
+    "enabled": false,
+    "token": "",
+    "chat_id": ""
+  },
+  "initial_state": "running",
+  "force_entry_enable": false,
+  "internals": {
+    "process_throttle_secs": 15,
+    "heartbeat_interval": 60
+  },
+  "user_data_dir": "/opt/why-github-shadow/state/FAdxSmaStrategy",
+  "datadir": "/opt/why-github-shadow/state/FAdxSmaStrategy/data",
+  "db_url": "sqlite:////opt/why-github-shadow/state/FAdxSmaStrategy/trades.sqlite",
+  "logfile": "/opt/why-github-shadow/state/FAdxSmaStrategy/freqtrade.log"
+}

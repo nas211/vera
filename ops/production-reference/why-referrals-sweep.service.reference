@@ -1,0 +1,19 @@
+[Unit]
+Description=WHY Referrals — re-check queued social task claims and run spot checks
+After=network-online.target
+# Deliberately no dependency in either direction on any alpha* unit: rewards
+# must never gate trading, and trading must never gate rewards.
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/why-referrals
+Environment=# omitted: configure a separate Vera environment
+EnvironmentFile=-/etc/why-referrals/env
+ExecStart=/usr/bin/python3 -m why_referrals.cli sweep -n 100
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/why-referrals
+MemoryMax=200M
+Nice=15

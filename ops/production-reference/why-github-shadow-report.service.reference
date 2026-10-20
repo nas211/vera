@@ -1,0 +1,31 @@
+[Unit]
+Description=WHY GitHub shadow read-only result publisher for AI lab
+After=why-shadow-lab.service
+
+[Service]
+User=whyshadowlab
+Group=whyshadowlab
+ExecStart=/usr/bin/python3 -B /opt/why-github-shadow/report_shadow.py
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+ProtectProc=invisible
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+IPAddressDeny=any
+TemporaryFileSystem=/opt:ro /etc:ro /run:ro /var:ro
+BindReadOnlyPaths=/opt/why-github-shadow/report_shadow.py /opt/why-github-shadow/state
+BindReadOnlyPaths=/etc/ld.so.cache /etc/ld.so.conf /etc/ld.so.conf.d /etc/nsswitch.conf /etc/passwd /etc/group
+BindPaths=/opt/why-shadow-lab/state
+CPUQuota=5%
+MemoryMax=64M
+TasksMax=8
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

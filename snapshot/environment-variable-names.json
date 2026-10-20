@@ -1,0 +1,295 @@
+{
+  "note": "Names derived from source only; no production secret files were read. Not exhaustive for dynamically constructed names.",
+  "files": {
+    "components/why-auth-mail-relay/relay.py": [
+      "AFFILIATE_MAIL_FROM",
+      "AUTH_MAIL_STATE",
+      "RESEND_API_KEY",
+      "SUPABASE_DB_URL",
+      "SUPABASE_URL"
+    ],
+    "components/why-bybit-demo-yellow/guard.py": [
+      "BYBIT_DEMO_ONLY"
+    ],
+    "components/why-yellow-markshadow/markshadow.py": [
+      "WYS_HTTP_PORT",
+      "WYS_WS_URL"
+    ],
+    "components/why-yellow/yellow_exec.py": [
+      "YELLOW_ARMED",
+      "YELLOW_AUTH_BASE",
+      "YELLOW_TRADE_BASE"
+    ],
+    "components/why-partners/server.py": [
+      "PARTNERS_AUTH",
+      "PARTNERS_BASE_URL",
+      "PARTNERS_BIND",
+      "PARTNERS_COOKIE_SECURE",
+      "PARTNERS_PORT"
+    ],
+    "components/why-partners/exch.py": [
+      "PARTNERS_KEYFILE",
+      "PARTNERS_PUBLISHER_DIR"
+    ],
+    "components/why-partners/partnersctl.py": [
+      "PARTNERS_PASSWORD"
+    ],
+    "components/why-partners/book.py": [
+      "PARTNERS_CACHE_SEC",
+      "PARTNERS_CAPITAL_USD",
+      "PARTNERS_LEVERAGE_X",
+      "PARTNERS_PRICE_TTL_SEC",
+      "PARTNERS_PUBLISHER_DIR",
+      "PARTNERS_SINCE_ISO",
+      "PARTNERS_STATE",
+      "PARTNERS_TRADES"
+    ],
+    "components/why-partners/auth.py": [
+      "PARTNERS_DB",
+      "PARTNERS_LOGIN_LOCK_SEC",
+      "PARTNERS_LOGIN_MAX_FAILS",
+      "PARTNERS_LOGIN_WINDOW_SEC",
+      "PARTNERS_MIN_PASSWORD",
+      "PARTNERS_SESSION_IDLE_SEC",
+      "PARTNERS_SESSION_MAX_SEC",
+      "PARTNERS_SIGNUP_TTL_SEC"
+    ],
+    "components/why-partners/mailer.py": [
+      "PARTNERS_MAIL_FROM",
+      "RESEND_API_KEY",
+      "SMTP_HOST",
+      "SMTP_PASS",
+      "SMTP_PORT",
+      "SMTP_USER"
+    ],
+    "components/why-shadow-lab/check_connection.py": [
+      "WHY_LAB_LLM_KEY"
+    ],
+    "components/why-shadow-lab/lab.py": [
+      "WHY_LAB_STATE"
+    ],
+    "components/why-shadow-lab/agents.py": [
+      "WHY_LAB_LLM_ENDPOINT",
+      "WHY_LAB_LLM_KEY",
+      "WHY_LAB_LLM_MODEL"
+    ],
+    "components/why-bybit-shadow/report.py": [
+      "SHADOW_STATE_DIR"
+    ],
+    "components/why-bybit-shadow/agent_transport.py": [
+      "AGENT_CHARS_PER_TOKEN",
+      "AGENT_QUOTA_FILE",
+      "AGENT_TOKEN_BUDGET_PER_DAY",
+      "AGENT_TOKEN_BURST_FLOOR",
+      "AGENT_TOKEN_BURST_FRACTION",
+      "AGENT_TOKEN_DIRECTION_FLOOR",
+      "AGENT_TOKEN_SHARE_DIRECTION",
+      "AGENT_TOKEN_SHARE_PROMOTION",
+      "OPENAI_COMPAT_JSON_SCHEMA"
+    ],
+    "components/why-bybit-shadow/shadow.py": [
+      "PROBE_MARKET",
+      "SHADOW_STATE_DIR",
+      "SHADOW_WS_URL"
+    ],
+    "components/why-bybit/bybit_exec.py": [
+      "BYBIT_ARMED",
+      "BYBIT_BASE",
+      "BYBIT_REQUIRE_IP_WHITELIST",
+      "BYBIT_WS_PRIVATE",
+      "WB_STATE_DIR"
+    ],
+    "components/why-bybit/bybit_paper.py": [
+      "WB_MODE",
+      "WB_STATE_DIR",
+      "WB_WS_URL"
+    ],
+    "components/why-bybit-demo-yellow/tests/test_engine.py": [
+      "BYBIT_DEMO_ONLY"
+    ],
+    "components/why-referrals/why_referrals/config.py": [
+      "WHYR_"
+    ],
+    "components/why-referrals/why_referrals/quests.py": [
+      "WHYR_OUR_X_HANDLE",
+      "X_HANDLE"
+    ],
+    "components/why-referrals/why_referrals/verifiers/ig_graph.py": [
+      "WHYR_IG_ENV_FILE"
+    ],
+    "components/why-referrals/why_referrals/verifiers/apify.py": [
+      "APIFY_TOKEN",
+      "WHYR_APIFY_LIKES_ACTOR",
+      "WHYR_APIFY_TOKEN",
+      "WHYR_IG_ENV_FILE"
+    ],
+    "components/why-referrals/why_referrals/verifiers/x_api.py": [
+      "WHYR_X_BEARER",
+      "X_BEARER_TOKEN"
+    ],
+    "components/why-bybit-live-yellow/tests/test_engine.py": [
+      "BYBIT_LIVE_YELLOW"
+    ],
+    "components/why-website/lib/mail.ts": [
+      "MAIL_FROM",
+      "RESEND_API_KEY",
+      "SMTP_HOST",
+      "SMTP_PASS",
+      "SMTP_PORT",
+      "SMTP_USER"
+    ],
+    "components/why-website/tests/scalp-coming-soon-dom.cjs": [
+      "JSDOM_MODULE_PATH"
+    ],
+    "components/why-website/tests/human-chat-api.cjs": [
+      "WHY_HUMAN_INTERNAL_SECRET"
+    ],
+    "components/why-website/tests/profile-live.cjs": [
+      "CHROME_PATH",
+      "PLAYWRIGHT_MODULE_PATH",
+      "PROFILE_TEST_SCREENSHOT_DIR",
+      "PROFILE_TEST_URL"
+    ],
+    "components/why-website/tests/human-chat-browser.cjs": [
+      "CHROME_PATH",
+      "HELPDESK_SCREENSHOT_DIR",
+      "HELPDESK_TEST_URL",
+      "PLAYWRIGHT_MODULE_PATH"
+    ],
+    "components/why-website/tests/helpdesk-browser.cjs": [
+      "CHROME_PATH",
+      "HELPDESK_SCREENSHOT_DIR",
+      "HELPDESK_TEST_URL",
+      "PLAYWRIGHT_MODULE_PATH"
+    ],
+    "components/why-website/tests/helpdesk-api.cjs": [
+      "WHY_SUPPORT_ENDPOINT",
+      "WHY_SUPPORT_MODEL",
+      "WHY_SUPPORT_REASONING_EFFORT"
+    ],
+    "components/why-website/tests/strategy-switch-dom.cjs": [
+      "JSDOM_MODULE_PATH"
+    ],
+    "components/why-website/tests/mobile-dashboard-browser.cjs": [
+      "CHROME_PATH",
+      "DASHBOARD_TEST_URL",
+      "PLAYWRIGHT_MODULE_PATH"
+    ],
+    "components/why-website/lib/helpdesk/agent.ts": [
+      "WHY_SUPPORT_API_KEY",
+      "WHY_SUPPORT_ENDPOINT",
+      "WHY_SUPPORT_MODEL",
+      "WHY_SUPPORT_REASONING_EFFORT"
+    ],
+    "components/why-website/app/api/waitlist/route.ts": [
+      "NOTIFY_EMAIL",
+      "REFERRAL_API",
+      "REFERRAL_TOKEN",
+      "SITE_ORIGIN",
+      "WAITLIST_ACTIVATION_HOURS",
+      "WAITLIST_BATCH",
+      "WAITLIST_COUNT_FLOOR",
+      "WAITLIST_DROP_EVERY_DAYS",
+      "WAITLIST_FILE",
+      "WAITLIST_NEXT_DROP",
+      "WAITLIST_POSITION_OFFSET",
+      "WAITLIST_PRIORITY_INVITES"
+    ],
+    "components/why-website/app/api/waitlist/pow.ts": [
+      "WAITLIST_POW_RANGE",
+      "WAITLIST_POW_SECRET"
+    ],
+    "components/why-website/app/api/helpdesk/route.ts": [
+      "WHY_SUPPORT_ORIGIN"
+    ],
+    "components/why-website/app/api/helpdesk/human/route.ts": [
+      "WHY_HUMAN_INTERNAL_SECRET",
+      "WHY_SUPPORT_ORIGIN"
+    ],
+    "components/why-website/services/human-support/bridge.py": [
+      "WHY_HUMAN_BOT_TOKEN",
+      "WHY_HUMAN_DATABASE",
+      "WHY_HUMAN_INITIAL_ONLINE",
+      "WHY_HUMAN_INTERNAL_SECRET",
+      "WHY_HUMAN_OWNER_ID",
+      "WHY_HUMAN_PORT"
+    ],
+    "components/why-yellow/execution/geometry.py": [
+      "WY_LEVERAGE",
+      "WY_TIMEOUT_BARS"
+    ],
+    "components/why-yellow/affiliate/admin.py": [
+      "SUDO_USER",
+      "USER"
+    ],
+    "components/why-yellow/customer/readiness.py": [
+      "YELLOW_ARMED",
+      "YELLOW_TRADE_BASE"
+    ],
+    "components/why-yellow/tests/customer/harness.py": [
+      "WY_TEST_DB_URL",
+      "WY_TEST_HOSTED"
+    ],
+    "components/why-partners/tests/test_portal.py": [
+      "AV2_PAPER_NOTIONAL_USD",
+      "PARTNERS_CACHE_SEC",
+      "PARTNERS_COOKIE_SECURE",
+      "PARTNERS_DB",
+      "PARTNERS_LOGIN_MAX_FAILS",
+      "PARTNERS_PORT",
+      "PARTNERS_SINCE_ISO",
+      "PARTNERS_STATE",
+      "PARTNERS_TRADES"
+    ],
+    "components/why-discovery/backend/discovery/context_feed.py": [
+      "WHY_DISCOVERY_STATE"
+    ],
+    "components/why-discovery/backend/discovery/server.py": [
+      "SUPABASE_URL",
+      "WHY_DISCOVERY_AUTH_JWT_SECRET",
+      "WHY_DISCOVERY_PORT",
+      "WHY_DISCOVERY_STATE"
+    ],
+    "components/why-discovery/backend/discovery/model.py": [
+      "WHY_DISCOVERY_MODEL",
+      "WHY_DISCOVERY_MODEL_ENDPOINT",
+      "WHY_DISCOVERY_MODEL_KEY"
+    ],
+    "components/why-discovery/backend/discovery/agents.py": [
+      "WHY_DISCOVERY_CONTEXT_FILE"
+    ],
+    "components/why-discovery/backend/discovery/bulk_bridge.py": [
+      "WHY_DISCOVERY_BULK_DIR"
+    ],
+    "components/why-bybit-shadow/tests/test_e2e.py": [
+      "AGENT_QUOTA_FILE",
+      "GROQ_API_KEY",
+      "SHADOW_STATE_DIR"
+    ],
+    "components/why-bybit-shadow/tests/test_policy.py": [
+      "AGENT_QUOTA_FILE",
+      "GROQ_API_KEY",
+      "SHADOW_STATE_DIR"
+    ],
+    "components/why-bybit/validation/final_tables.py": [
+      "WB_MODE"
+    ],
+    "components/why-bybit/tools/econ_replay.py": [
+      "REPLAY_DAYS",
+      "WB_MODE"
+    ],
+    "components/why-bybit/tools/patch_exec_1.py": [
+      "BYBIT_REQUIRE_IP_WHITELIST"
+    ],
+    "components/why-bybit/tools/patch_engine_1.py": [
+      "WB_MODE",
+      "WB_STATE_DIR"
+    ],
+    "components/why-bybit/tools/deferred_transition.py": [
+      "TR_BASE"
+    ],
+    "components/why-bybit/tools/validate_live.py": [
+      "BYBIT_ARMED"
+    ]
+  }
+}

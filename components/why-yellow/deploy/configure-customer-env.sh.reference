@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Interactive, secret-safe writer for /opt/why-yellow/secrets/customer.env.
+# Values are read with `read -s` (no echo), never printed, never logged; the file is 0600 root.
+# Usage (on the VPS, as root):  bash /opt/why-yellow/deploy/configure-customer-env.sh
+set -euo pipefail
+ENV=/opt/why-yellow/secrets/customer.env
+umask 077
+mkdir -p /opt/why-yellow/secrets && chmod 700 /opt/why-yellow/secrets
+echo "WHY x Yellow — Supabase configuration (nothing you type is echoed or stored anywhere but $ENV)"
+read -r -p "SUPABASE_URL      (Project Settings → Data API → Project URL, e.g. https://abcd1234.supabase.co): " SUPABASE_URL
+read -r -s -p "SUPABASE_ANON_KEY (Project Settings → API Keys → anon / publishable key): " SUPABASE_ANON_KEY; echo
+read -r -s -p "SUPABASE_DB_URL   (Connect → Session pooler URI, with the database password filled in): " SUPABASE_DB_URL; echo
+read -r -s -p "SUPABASE_JWT_SECRET (optional; ONLY if Project Settings → JWT Keys says legacy HS256; Enter to skip): " SUPABASE_JWT_SECRET; echo
+case "$SUPABASE_URL" in https://*.supabase.co) ;; *) echo "SUPABASE_URL must look like https://<ref>.supabase.co"; exit 2;; esac
+case "$SUPABASE_DB_URL" in postgres://*|postgresql://*) ;; *) echo "SUPABASE_DB_URL must be a postgresql:// URI"; exit 2;; esac
+[ -n "$SUPABASE_ANON_KEY" ] || { echo "SUPABASE_ANON_KEY is empty"; exit 2; }
+case "$SUPABASE_DB_URL" in *sslmode=*) ;; *) SUPABASE_DB_URL="${SUPABASE_DB_URL}$( [[ "$SUPABASE_DB_URL" == *\?* ]] && echo '&' || echo '?')sslmode=require";; esac
+TMP=$(mktemp "$ENV.XXXXXX")
+{
+  echo "# written by deploy/configure-customer-env.sh on $(date -u +%FT%TZ) — mode 0600, never commit"
+  echo "SUPABASE_URL=$SUPABASE_URL"
+  echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+  echo "SUPABASE_DB_URL=$SUPABASE_DB_URL"
+  [ -n "$SUPABASE_JWT_SECRET" ] && echo "SUPABASE_JWT_SECRET=$SUPABASE_JWT_SECRET"
+} > "$TMP"
+chmod 600 "$TMP" && mv "$TMP" "$ENV"
+echo "wrote $ENV ($(stat -c '%a %U' "$ENV")). Variables set: $(sed -E 's/=.*//' "$ENV" | grep -v '^#' | tr '\n' ' ')"
+echo "checking Postgres connectivity (no values printed) ..."
+if psql "$SUPABASE_DB_URL" -Atc "select current_user || ' @ ' || version()" 2>&1 | sed -E 's/(password|PASSWORD)[^ ]*/[redacted]/g' | head -1; then :; fi
+echo "checking Auth health ..."; curl -s -o /dev/null -w "auth/v1/health HTTP %{http_code}\n" "$SUPABASE_URL/auth/v1/health" -H "apikey: $SUPABASE_ANON_KEY"
+echo "next: systemctl restart why-yellow-customer && curl -s 127.0.0.1:8104/yellow/api/health"

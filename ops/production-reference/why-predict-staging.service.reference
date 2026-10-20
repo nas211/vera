@@ -1,0 +1,42 @@
+[Unit]
+Description=WHY Predict (staging, free-to-play) — read-only consumer of Forge events, loopback only, NO ORDERS
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/alpha/v2-trade-graduation-v2
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+# LIVE PAPER BOOK (2026-08-26). Markets come from the same trades the website's
+# /trades page and the Telegram channel publish, produced by
+# why-predict-paper-bridge.service. Point this back at demo_forge_events.jsonl
+# to return to synthetic markets, or unset it to follow the probation book once
+# a strategy actually reaches PROBATION.
+Environment=# omitted: configure a separate Vera environment
+# Prediction window. The default 120s was sized for the demo's fast synthetic
+# cycle; the paper book opens ~8 trades a day and holds them for hours, so a
+# 2-minute window meant nobody was ever present for one. 10 minutes of a
+# multi-hour hold still closes long before the outcome is knowable.
+Environment=# omitted: configure a separate Vera environment
+# Shared $Y ledger (referrals + social tasks), owned by /opt/why-referrals.
+EnvironmentFile=-/etc/why-referrals/env
+Environment=# omitted: configure a separate Vera environment
+Environment=# omitted: configure a separate Vera environment
+ExecStart=/opt/alpha/v2-trade-graduation-v2/why_predict/.venv/bin/uvicorn why_predict.app:app --host 127.0.0.1 --port 8100 --workers 1 --log-level info
+Restart=on-failure
+RestartSec=5
+MemoryMax=300M
+CPUWeight=30
+Nice=10
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=/opt/alpha/v2-trade-graduation-v2/state/why_predict /var/lib/why-referrals
+# /opt/alpha/tgbot/webui/data holds paper.json — the published book numbers
+# rendered by /api/book. Read-only: this service never publishes them.
+ReadOnlyPaths=/opt/alpha/v2-trade-graduation-v2/state/alpha_strategy_probation /opt/alpha/v2-trade /opt/alpha/tgbot/webui/data /opt/why-referrals
+
+[Install]
+WantedBy=multi-user.target

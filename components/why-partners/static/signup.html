@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>WHY · Partner Portal · Create account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Bricolage+Grotesque:wght@600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="/partners/static/brand.svg" type="image/svg+xml"><link rel="stylesheet" href="/partners/static/app.css"></head>
+<body class="login-body">
+<main class="login-card">
+  <div class="brand"><img src="/partners/static/brand.svg" alt="" width="34" height="34"><div><span class="why">WHY PROTOCOL</span><span class="sub">Partner Portal</span></div></div>
+  <section id="step1">
+    <h1>Create your account</h1>
+    <p class="lede">We'll email you a 6-digit code to confirm the address.</p>
+    <form id="fs" autocomplete="on" novalidate>
+      <label>Name<input name="name" type="text" autocomplete="name" maxlength="80"></label>
+      <label>Email<input name="email" type="email" autocomplete="email" required maxlength="120" autocapitalize="none" spellcheck="false"></label>
+      <label>Password<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="256"></label>
+      <p class="hint">At least 10 characters.</p>
+      <p class="hint">Manage supported exchange connections in your <a href="/profile">WHY account</a>.</p>
+      <button type="submit" id="bs">Send code</button>
+      <p class="err" id="es" role="alert" aria-live="polite"></p>
+    </form>
+  </section>
+  <section id="step2" hidden>
+    <h1>Enter your code</h1>
+    <p class="lede" id="msg">Check your inbox for a 6-digit code.</p>
+    <form id="fv" autocomplete="off" novalidate>
+      <label>Email<input name="email" type="email" required maxlength="120" autocapitalize="none" spellcheck="false"></label>
+      <label>Verification code<input name="code" class="code-in" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
+      <button type="submit" id="bv">Activate account</button>
+      <p class="err" id="ev" role="alert" aria-live="polite"></p>
+    </form>
+  </section>
+  <p class="alt">Already have an account? <a href="/partners/login">Sign in</a></p>
+  <p class="paper-tag">SIMULATED / PAPER TRADING PERFORMANCE</p>
+  <p class="fine">Results shown inside are generated from simulated trading and do not represent live customer accounts or actual investor capital.</p>
+</main>
+<script src="/partners/static/app.js" defer></script>
+</body></html>

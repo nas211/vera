@@ -1,0 +1,37 @@
+[Unit]
+Description=WHY shadow public Bybit GET-only data relay (no credentials or order routes)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=whygithubmarket
+Group=whygithubmarket
+RuntimeDirectory=why-github-market
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+ExecStart=/usr/bin/python3 -B /opt/why-github-shadow/market_relay.py
+Restart=on-failure
+RestartSec=10
+Environment=# omitted: configure a separate Vera environment
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectHome=yes
+ProtectSystem=strict
+ProtectProc=invisible
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+TemporaryFileSystem=/opt:ro /etc:ro
+BindReadOnlyPaths=/opt/why-github-shadow/market_relay.py
+BindReadOnlyPaths=/etc/ld.so.cache /etc/ld.so.conf /etc/ld.so.conf.d /etc/nsswitch.conf /etc/passwd /etc/group /etc/resolv.conf /etc/hosts /etc/ssl/certs
+MemoryMax=128M
+CPUQuota=10%
+TasksMax=64
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

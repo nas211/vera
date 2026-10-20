@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>WHY Trading Bot · Yellow</title>
+  <meta name="theme-color" content="#07080b">
+  <link rel="icon" href="assets/why-logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="view onb is-active" data-view="app">
+  <div class="glow"></div>
+  <div class="onb-top">
+    <div class="left">
+      <a href="/yellow" class="brand" aria-label="WHY × Yellow">
+        <img src="assets/why-logo.svg" alt="">
+        <span class="brand-name"><b>WHY</b> Trading Bot</span>
+      </a>
+      <span class="venue-chip"><span class="venue-dot"></span>Yellow integration</span>
+    </div>
+    <div class="top-right">
+      <span class="mono dim" id="whoEmail"></span>
+      <button class="btn btn-quiet hidden" id="signOutBtn" type="button">Sign out</button>
+    </div>
+  </div>
+
+  <div class="onb-stage">
+    <div class="notice amber hidden" id="configNotice"><span>!</span><div><div class="t">Service not configured</div><p>Supabase authentication is not configured on this server yet. Sign-in is unavailable.</p></div></div>
+    <div class="notice hidden" id="globalError"><span>!</span><div><div class="t">Something went wrong</div><p id="globalErrorText"></p></div></div>
+
+    <!-- AUTH -->
+    <section class="pane" data-pane="auth">
+      <div class="card onb-card">
+        <div class="step-label">Step 1 of 3</div>
+        <h2 id="authTitle">Sign in to WHY</h2>
+        <p class="sub">Your WHY account stores your trading settings. It never holds your funds.</p>
+        <form class="form" id="authForm" novalidate>
+          <div class="field" data-f="email">
+            <label for="authEmail">Email</label>
+            <input class="input" id="authEmail" type="email" autocomplete="email" placeholder="you@company.com" required>
+            <div class="err">Enter a valid email address.</div>
+          </div>
+          <div class="field" data-f="password">
+            <label for="authPass">Password</label>
+            <input class="input" id="authPass" type="password" autocomplete="current-password" placeholder="At least 8 characters" minlength="8" required>
+            <div class="err">Use at least 8 characters.</div>
+          </div>
+          <div class="field hidden" data-f="confirm" id="confirmField">
+            <label for="authPass2">Confirm password</label>
+            <input class="input" id="authPass2" type="password" autocomplete="new-password" placeholder="Repeat your password">
+            <div class="err">Passwords don't match.</div>
+          </div>
+          <label class="check hidden" id="termsField"><input type="checkbox" id="authTerms"><span>I agree to the <a class="link" href="/yellow/app/legal.html" target="_blank" rel="noopener">Terms of Service, Privacy Policy and Risk Disclosure</a>.</span></label>
+          <p class="hint err-text hidden" id="authError"></p>
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="authSubmit">Sign In</button>
+        </form>
+        <p class="form-foot" id="authSwitch">New to WHY? <a href="#" class="link" id="toSignup">Create an account</a></p>
+        <p class="form-foot"><a href="#" class="link dim" id="toForgot">Forgot your password?</a></p>
+      </div>
+      <div class="card onb-card hidden" id="forgotCard">
+        <h2>Reset your password</h2>
+        <p class="sub">We email you a link to choose a new password.</p>
+        <form class="form" id="forgotForm" novalidate>
+          <div class="field"><label for="forgotEmail">Email</label><input class="input" id="forgotEmail" type="email" autocomplete="email" required></div>
+          <p class="hint err-text hidden" id="forgotError"></p>
+          <p class="hint hidden" id="forgotInfo"></p>
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="forgotSubmit">Email me a reset link</button>
+        </form>
+        <p class="form-foot"><a href="#" class="link" id="forgotBack">Back to sign in</a></p>
+      </div>
+      <div class="card onb-card hidden" id="recoverCard">
+        <h2>Choose a new password</h2>
+        <form class="form" id="recoverForm" novalidate>
+          <div class="field"><label for="recoverPass">New password</label><input class="input" id="recoverPass" type="password" autocomplete="new-password" minlength="8" required></div>
+          <div class="field"><label for="recoverPass2">Repeat it</label><input class="input" id="recoverPass2" type="password" autocomplete="new-password" minlength="8" required></div>
+          <p class="hint err-text hidden" id="recoverError"></p>
+          <button class="btn btn-primary btn-lg btn-block" type="submit" id="recoverSubmit">Save password</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- CONNECT -->
+    <section class="pane" data-pane="connect">
+      <div class="card onb-card wide">
+        <div class="step-label">Step 2 of 3</div>
+        <h2>Connect your Yellow account</h2>
+        <p class="sub">Connect WHY to your Yellow account using API credentials. Your funds remain on Yellow. WHY does not need withdrawal access.</p>
+        <div class="connect-grid">
+          <div>
+            <div class="notice">
+              <span>🛡</span>
+              <div>
+                <div class="t">Security note — read before pasting</div>
+                <ul>
+                  <li>Create a <strong>dedicated API key</strong> for WHY Trading Bot with <strong>trading + read permissions only</strong>.</li>
+                  <li><strong>Withdrawal and transfer permissions must be disabled.</strong> A key that can withdraw or transfer is rejected automatically.</li>
+                  <li>The secret is sent once over HTTPS, stored encrypted server-side, and is never shown again.</li>
+                </ul>
+              </div>
+            </div>
+            <form class="form" id="connectForm" novalidate autocomplete="off">
+              <div class="field" data-f="key">
+                <label for="apiKey">API Key</label>
+                <input class="input mono" id="apiKey" type="text" autocomplete="off" spellcheck="false" placeholder="Paste your Yellow API key" required>
+                <div class="err">Paste the API key you created for WHY.</div>
+              </div>
+              <div class="field" data-f="secret">
+                <label for="apiSecret">API Secret</label>
+                <div class="input-wrap">
+                  <input class="input mono has-btn" id="apiSecret" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Yellow API secret" required>
+                  <button type="button" class="input-btn" id="revealSecret" aria-label="Show secret">👁</button>
+                </div>
+                <div class="err">Paste the API secret for this key.</div>
+                <p class="hint">Your API secret won't be shown again after setup.</p>
+              </div>
+              <p class="hint err-text hidden" id="connectError"></p>
+              <button class="btn btn-primary btn-lg btn-block" type="submit" id="connectSubmit">🔒 Verify &amp; Connect</button>
+            </form>
+          </div>
+          <aside class="aside privacy" aria-label="How WHY handles your credentials">
+            <h4>How WHY handles your credentials</h4>
+            <div class="privacy-item"><span class="ico">🔑</span><p><strong>Stored in a secrets vault</strong>Your key and secret are written to an encrypted server-side vault. Application tables hold only a masked identifier.</p></div>
+            <div class="privacy-item"><span class="ico">🙈</span><p><strong>Never redisplayed</strong>After setup you see <span class="mono">xxxx••••••••xxxx</span>. Nothing in the dashboard can retrieve the secret.</p></div>
+            <div class="privacy-item"><span class="ico">✔</span><p><strong>Verified before anything trades</strong>WHY reads your account to confirm the credential works and checks permissions where Yellow exposes them. Until that is confirmed the account stays in <em>Pending Yellow verification</em>.</p></div>
+            <div class="privacy-item"><span class="ico">💼</span><p><strong>Funds stay on Yellow</strong>Your balance remains in your Yellow account. WHY never requires withdrawal permission.</p></div>
+          </aside>
+        </div>
+        <p class="hint" style="margin-top:20px;text-align:center">By connecting, you agree to WHY's <a class="link" href="/yellow/app/legal.html" target="_blank" rel="noopener">Terms of Service, Privacy Policy &amp; Risk Disclosure</a>. WHY Trading Bot is operated by Modevas FZC.</p>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="pane" data-pane="dash">
+      <div class="card onb-card wide">
+        <div class="dash-head">
+          <div>
+            <div class="step-label">Your Yellow connection</div>
+            <h2>Account</h2>
+          </div>
+          <span class="pill" id="statePill">—</span>
+        </div>
+        <div class="kv" id="kv">
+          <div><div class="k">API Key</div><div class="v mono" id="kKey">—</div></div>
+          <div><div class="k">Verification</div><div class="v" id="kVerify">—</div></div>
+          <div><div class="k">Yellow account</div><div class="v mono small" id="kAsid">—</div></div>
+          <div><div class="k">Balance (equity)</div><div class="v mono" id="kEquity">—</div></div>
+          <div><div class="k">Available</div><div class="v mono" id="kAvail">—</div></div>
+          <div><div class="k">Open positions</div><div class="v mono" id="kOpen">—</div></div>
+        </div>
+        <div class="notice subtle hidden" id="stateNotice"><span>ℹ</span><div><div class="t" id="stateNoticeTitle"></div><p id="stateNoticeText"></p></div></div>
+
+        <h3 class="sec">Trading setup</h3>
+        <div class="setup-grid">
+          <div class="field">
+            <p class="hint" id="sizeHint">Each trade uses that coin's minimum valid order, subject to available Yellow margin and the eight-position limit.</p>
+            <p class="hint amber-text hidden" id="pendingHint"></p>
+          </div>
+          <div class="btn-col"><button class="btn btn-quiet hidden" id="sizeCancel" type="button">Cancel scheduled change</button></div>
+        </div>
+
+        <h3 class="sec">Controls</h3>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="activateBtn" type="button">Activate trading</button>
+          <button class="btn btn-ghost" id="pauseBtn" type="button">Pause new entries</button>
+          <button class="btn btn-ghost" id="verifyBtn" type="button">Re-check Yellow verification</button>
+          <button class="btn btn-danger" id="disconnectBtn" type="button">Disconnect Yellow</button>
+        </div>
+        <p class="hint">Pausing stops new entries only; open positions keep being managed. Disconnecting deletes the stored credential; open positions are not closed and are no longer managed by WHY.</p>
+
+        <h3 class="sec">Open positions</h3>
+        <div class="tbl-wrap"><table class="tbl" id="posTable"><thead><tr><th>Market</th><th>Side</th><th>Qty</th><th>Entry</th><th>State</th><th>Strategy</th></tr></thead><tbody></tbody></table></div>
+
+        <h3 class="sec">Recent activity</h3>
+        <ul class="events" id="events"></ul>
+
+        <h3 class="sec">System</h3>
+        <div class="health" id="health"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="card modal-card">
+      <h3 id="modalTitle"></h3>
+      <p id="modalText"></p>
+      <div class="btn-row">
+        <button class="btn btn-quiet" id="modalCancel" type="button">Cancel</button>
+        <button class="btn btn-danger" id="modalOk" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

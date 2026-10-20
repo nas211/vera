@@ -1,0 +1,8 @@
+secrets/
+state/
+venv/
+calib/
+__pycache__/
+*.pyc
+webui/data/
+research/**/*.json

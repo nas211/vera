@@ -1,0 +1,31 @@
+[Unit]
+Description=WHY independent forward-paper strategies and automatic promotion evidence
+After=why-yellow-markshadow.service why-strategy-research.service
+
+[Service]
+User=whystrategy
+Group=whystrategy
+WorkingDirectory=/opt/why-strategy-platform
+ExecStart=/usr/bin/python3 -m strategy_platform.worker paper
+Environment=# omitted: configure a separate Vera environment
+Restart=on-failure
+RestartSec=10
+CPUQuota=20%
+MemoryMax=400M
+Nice=10
+NoNewPrivileges=yes
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectProc=invisible
+ReadWritePaths=/opt/why-strategy-platform/state
+InaccessiblePaths=/opt/why-yellow/secrets /opt/why-shadow-lab /etc/why-shadow-lab
+CapabilityBoundingSet=
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

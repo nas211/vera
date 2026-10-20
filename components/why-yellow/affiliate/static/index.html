@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>WHY Affiliate CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07080b;--card:#0f1117;--card2:#141724;--line:#1f2330;--ink:#e8eaf0;--dim:#8b90a0;--y:#f5c400;--g:#3ddc84;--a:#ffb347;--red:#ff5d5d;--blue:#5aa9ff}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif}
+a{color:var(--y)}.mono{font-family:"JetBrains Mono",monospace}.dim{color:var(--dim)}.hidden{display:none!important}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(7,8,11,.92);backdrop-filter:blur(8px);z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}.brand i{width:12px;height:12px;border-radius:50%;background:var(--y)}
+.brand small{color:var(--dim);font-weight:500;margin-left:6px}
+nav{display:flex;gap:4px;flex-wrap:wrap}nav button{background:transparent;border:1px solid transparent;color:var(--dim);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer}
+nav button.on{color:var(--ink);background:var(--card2);border-color:var(--line)}
+.who{display:flex;align-items:center;gap:10px;font-size:13px}.who form{margin:0}
+main{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .k{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}.kpi .v{font-size:26px;font-weight:700;margin-top:4px;font-family:"JetBrains Mono",monospace}.kpi .s{font-size:12px;color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--dim);font-weight:500;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #161a26;vertical-align:top}tr:last-child td{border-bottom:0}tbody tr:hover{background:#12151f}
+.tbl-wrap{overflow:auto}.num{text-align:right;font-family:"JetBrains Mono",monospace}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#1c2030;color:var(--dim);white-space:nowrap}
+.pill.g{background:rgba(61,220,132,.14);color:var(--g)}.pill.a{background:rgba(255,179,71,.14);color:var(--a)}.pill.r{background:rgba(255,93,93,.14);color:var(--red)}.pill.b{background:rgba(90,169,255,.14);color:var(--blue)}.pill.y{background:rgba(245,196,0,.16);color:var(--y)}
+input,select{background:#0a0c12;border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 11px;font:inherit}input:focus,select:focus{outline:none;border-color:var(--y)}
+.btn{background:var(--card2);border:1px solid var(--line);color:var(--ink);padding:8px 13px;border-radius:9px;font:inherit;cursor:pointer}.btn.p{background:var(--y);color:#111;border-color:var(--y);font-weight:600}.btn.s{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+.chart{width:100%;height:220px;display:block}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:6px}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.link-box{display:flex;gap:6px;align-items:center}.link-box code{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink);background:#0a0c12;padding:4px 8px;border-radius:6px;border:1px solid var(--line);white-space:nowrap}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1c2030;border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:13px;z-index:9}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.form{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:end}.form label{font-size:12px;color:var(--dim);display:block;margin-bottom:4px}
+.note{font-size:12px;color:var(--dim)}.err{color:var(--red);font-size:13px}
+.empty{color:var(--dim);padding:20px;text-align:center}
+</style></head><body>
+<header>
+  <div class="brand"><i></i>WHY Affiliate CRM <small>partners · signups · activations</small></div>
+  <nav><button data-tab="overview" class="on">Overview</button><button data-tab="signups">Signups</button><button data-tab="partners">Partners</button><button data-tab="team">Team</button></nav>
+  <div class="who"><span class="dim" id="whoEmail"></span><button class="btn s" id="pwBtn" type="button">Password</button><form method="post" action="{{PREFIX}}/logout"><button class="btn s" type="submit">Sign out</button></form></div>
+</header>
+<main>
+  <!-- OVERVIEW -->
+  <section data-tab="overview">
+    <div class="row">
+      <label class="dim">Range</label>
+      <select id="rangeSel"><option value="14">14 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">1 year</option></select>
+      <span class="dim" id="asOf"></span>
+      <button class="btn s" id="refreshBtn">Refresh</button>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card"><h2>Signups per day <span class="dim" id="chartSub"></span></h2><svg class="chart" id="chart" preserveAspectRatio="none"></svg><div class="legend" id="legend"></div></div>
+    <div class="card"><h2>By partner <span class="dim" id="revNote"></span></h2><div class="tbl-wrap"><table><thead><tr><th>Partner</th><th>Link</th><th class="num">Signups</th><th class="num">7d</th><th class="num">30d</th><th class="num">Confirmed</th><th class="num">Yellow connected</th><th class="num">Trading</th><th class="num">Conv.</th><th class="num">Trades</th><th class="num">Users' P&amp;L</th><th class="num">Fees generated</th><th class="num">Rev share</th><th class="num">WHY revenue</th><th>Last signup</th></tr></thead><tbody id="partnerRows"></tbody></table></div></div>
+    <div class="card"><h2>Account states</h2><div id="states" class="row"></div></div>
+  </section>
+
+  <!-- SIGNUPS -->
+  <section data-tab="signups" class="hidden">
+    <div class="row">
+      <select id="fPartner"><option value="">All partners</option></select>
+      <input id="fQ" placeholder="Search email…" style="min-width:220px">
+      <select id="fDays"><option value="">All time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select>
+      <button class="btn" id="fApply">Filter</button>
+      <a class="btn" id="csvLink" href="#">Export CSV</a>
+      <span class="dim" id="sigCount"></span>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Email</th><th>Partner</th><th>Signed up</th><th>Email</th><th>Yellow</th><th>Key</th><th class="num">Size</th><th class="num">Equity</th><th class="num">Trades</th><th class="num">P&amp;L</th><th class="num">Fees</th><th>Activated</th><th>Last sign-in</th><th>Landing</th></tr></thead><tbody id="sigRows"></tbody></table></div>
+      <div class="row" style="margin-top:12px"><button class="btn s" id="prevBtn">‹ Prev</button><button class="btn s" id="nextBtn">Next ›</button></div></div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section data-tab="partners" class="hidden">
+    <div class="card" id="addPartnerCard"><h2>Add a partner</h2>
+      <div class="form"><div><label>Code (used in the link)</label><input id="pCode" placeholder="e.g. bybit" class="mono"></div><div><label>Name</label><input id="pName" placeholder="Bybit"></div><div><label>Notes</label><input id="pNotes" placeholder="deal terms, contact…"></div><div><button class="btn p" id="pAdd">Create link</button></div></div>
+      <p class="note">Every partner gets a link <span class="mono">https://whytradingbot.com/r/&lt;code&gt;</span>. Anyone who signs up after opening it is counted under that partner (first touch, kept until they sign up).</p><p class="err" id="pErr"></p></div>
+    <div class="card"><h2>Partners</h2><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>Link</th><th class="num">Signups</th><th class="num">Connected</th><th class="num">Trading</th><th class="num">Fees</th><th class="num">Rev share</th><th class="num">WHY revenue</th><th>Notes</th><th>Status</th><th></th></tr></thead><tbody id="pRows"></tbody></table></div></div>
+    <div class="card" id="partnerLoginCard"><h2>Partner logins</h2>
+      <p class="note">A partner login sees only its own partner's numbers: signups (emails masked), connections, activations, trades, fees and revenue share. No team or partner administration.</p>
+      <div class="form"><div><label>Partner email</label><input id="plEmail" type="email"></div><div><label>Name</label><input id="plName"></div><div><label>Partner</label><select id="plCode"></select></div><div><button class="btn p" id="plAdd">Create partner login</button></div></div>
+      <p class="note" id="plOut"></p><p class="err" id="plErr"></p>
+      <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Email</th><th>Name</th><th>Partner</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="plRows"></tbody></table></div></div>
+  </section>
+
+  <!-- TEAM -->
+  <section data-tab="team" class="hidden">
+    <div class="card" id="addTeamCard"><h2>Add a team member</h2>
+      <div class="form"><div><label>Email</label><input id="tEmail" type="email"></div><div><label>Name</label><input id="tName"></div><div><label>Role</label><select id="tRole"><option value="member">member (view)</option><option value="admin">admin (manage)</option></select></div><div><button class="btn p" id="tAdd">Add</button></div></div>
+      <p class="note" id="tOut"></p><p class="err" id="tErr"></p></div>
+    <div class="card"><h2>Team</h2><div class="tbl-wrap"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="tRows"></tbody></table></div></div>
+    <div class="card"><h2>Alerts <span class="dim" id="alertState"></span></h2><p class="note">New signups, Yellow connections, activations, pauses and disconnects are pushed to Telegram and email (configured on the server in secrets/affiliate.env).</p><button class="btn s" id="alertTest">Send test alert</button> <span class="note" id="alertOut"></span></div>
+    <div class="card"><h2>Activity log</h2><div class="tbl-wrap"><table><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Detail</th></tr></thead><tbody id="auditRows"></tbody></table></div></div>
+  </section>
+</main>
+<div id="pwModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:20"><div class="card" style="width:360px;margin:0">
+  <h2>Change your password</h2>
+  <div style="display:grid;gap:10px"><input id="pwCur" type="password" placeholder="Current password" autocomplete="current-password"><input id="pwNew" type="password" placeholder="New password (12+ characters)" autocomplete="new-password"><input id="pwNew2" type="password" placeholder="Repeat new password" autocomplete="new-password"></div>
+  <p class="err" id="pwErr"></p><div class="row" style="margin:12px 0 0;justify-content:flex-end"><button class="btn" id="pwCancel">Cancel</button><button class="btn p" id="pwSave">Save</button></div></div></div>
+<script>
+(() => {
+  "use strict";
+  const WHO = {{WHO}};
+  const PREFIX = "{{PREFIX}}";
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const dt = (s) => s ? s.replace("T", " ").slice(0, 16) + "Z" : "—";
+  const ago = (s) => { if (!s) return "—"; const m = (Date.now() - Date.parse(s)) / 60000; if (m < 60) return Math.max(1, Math.round(m)) + " min ago"; if (m < 1440) return Math.round(m / 60) + " h ago"; return Math.round(m / 1440) + " d ago"; };
+  const usd = (v) => v == null ? "—" : "$" + Number(v).toLocaleString("en-US", { maximumFractionDigits: 0 });
+  const pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "—";
+  const toast = (m) => { const t = document.createElement("div"); t.className = "toast"; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 4000); };
+  const COLORS = ["#f5c400", "#5aa9ff", "#3ddc84", "#ffb347", "#c084fc", "#ff5d5d", "#2dd4bf", "#f472b6"];
+  const isAdmin = WHO.role === "admin", isPartner = WHO.role === "partner";
+  const REVSHARE = Number("{{REVSHARE}}");
+  const money = (v) => v == null ? "—" : (v < 0 ? "-" : "") + "$" + Math.abs(Number(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pnlCell = (v) => `<span class="num" style="color:${v > 0 ? "var(--g)" : v < 0 ? "var(--red)" : "inherit"}">${money(v)}</span>`;
+  $("#whoEmail").textContent = WHO.email + (isAdmin ? " · admin" : isPartner ? " · partner: " + WHO.partner_code : "");
+  if (!isAdmin) { $("#addPartnerCard").classList.add("hidden"); $("#addTeamCard").classList.add("hidden"); $("#partnerLoginCard").classList.add("hidden"); }
+  if (isPartner) { document.querySelectorAll('nav button[data-tab="partners"], nav button[data-tab="team"]').forEach((b) => b.remove()); $("#fPartner").classList.add("hidden"); document.querySelector(".brand small").textContent = "partner view"; }
+
+  async function api(path, body) {
+    const r = await fetch("api/" + path, body ? { method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "why-affiliate" }, body: JSON.stringify(body) } : { cache: "no-store" });
+    if (r.status === 401) { location.href = PREFIX + "/login"; throw new Error("unauthorized"); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ("http_" + r.status));
+    return j;
+  }
+
+  // ---- tabs
+  document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll("main > section").forEach((s) => s.classList.toggle("hidden", s.dataset.tab !== b.dataset.tab));
+    ({ overview: loadOverview, signups: loadSignups, partners: loadPartners, team: loadTeam })[b.dataset.tab]();
+  }));
+
+  // ---- overview
+  const statePill = (s) => { const m = { ACTIVE: "g", DRAINING: "g", VERIFIED: "b", PAUSED: "a", PENDING_YELLOW_VERIFICATION: "a", ERROR: "r", DISCONNECTED: "", NO_ACCOUNT_ROW: "" }; return `<span class="pill ${m[s] ?? ""}">${esc((s || "—").replace(/_/g, " "))}</span>`; };
+  async function loadOverview() {
+    const days = $("#rangeSel").value;
+    const o = await api("overview?days=" + days);
+    const t = o.totals;
+    $("#asOf").textContent = "as of " + dt(o.as_of);
+    $("#kpis").innerHTML = [
+      ["Signups (all time)", t.signups, `${t.signups_24h} in last 24 h`],
+      ["Last 7 days", t.signups_7d, ""], ["Last 30 days", t.signups_30d, ""],
+      ["Email confirmed", t.confirmed, pct(t.confirmed, t.signups) + " of signups"],
+      ["Yellow connected", t.connected, pct(t.connected, t.signups) + " of signups"],
+      ["Trading active", t.active_trading, `${usd(t.active_size_usd)} total size`],
+      ["Equity under management", usd(t.active_equity), "active accounts, last read"],
+      ["Closed trades", t.closed_trades, `${t.wins} wins · ${t.open_positions} open now`],
+      ["Users' realized P&L", money(t.realized_pnl), "net of fees, all users"],
+      ["Fees generated", money(t.fees), `${money(t.volume)} volume traded`],
+      ["WHY revenue", money(t.revenue), isPartner ? "your users' fees × rev share" : `${REVSHARE}% of trading fees (Yellow deal)`],
+    ].map(([k, v, s]) => `<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
+    drawChart(o.daily, o.series_partners);
+    $("#chartSub").textContent = `${o.daily.reduce((a, d) => a + d.total, 0)} signups in ${o.range_days} days`;
+    $("#partnerRows").innerHTML = o.partners.map((p) => `<tr><td><b>${esc(p.name)}</b><div class="dim mono">${esc(p.code)}</div></td>
+      <td>${p.link ? `<div class="link-box"><code>${esc(p.link)}</code><button class="btn s" data-copy="${esc(p.link)}">copy</button></div>` : "<span class='dim'>—</span>"}</td>
+      <td class="num">${p.signups}</td><td class="num">${p.signups_7d}</td><td class="num">${p.signups_30d}</td><td class="num">${p.confirmed}</td><td class="num">${p.connected}</td><td class="num">${p.active_trading}</td><td class="num">${pct(p.active_trading, p.signups)}</td><td class="num">${p.closed_trades}</td><td class="num">${pnlCell(p.realized_pnl)}</td><td class="num">${money(p.fees)}</td><td class="num">${p.rev_share_pct}%</td><td class="num"><b>${money(p.revenue)}</b></td><td>${ago(p.last_signup_at)}</td></tr>`).join("") || `<tr><td colspan="15" class="empty">No signups yet.</td></tr>`;
+    $("#revNote").textContent = `WHY revenue = fees generated × rev share (${REVSHARE}% default)`;
+    $("#states").innerHTML = Object.entries(o.states).sort((a, b) => b[1] - a[1]).map(([s, n]) => `<span>${statePill(s)} <b class="mono">${n}</b></span>`).join("") || "<span class='dim'>—</span>";
+    fillPartnerFilter(o.partners);
+  }
+  function drawChart(daily, partners) {
+    const svg = $("#chart"), W = 1000, H = 220, padL = 34, padB = 22, padT = 8;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const max = Math.max(1, ...daily.map((d) => d.total));
+    const n = daily.length, bw = (W - padL) / n, ih = H - padB - padT;
+    const color = (p) => COLORS[partners.indexOf(p) % COLORS.length];
+    let out = "";
+    const steps = max <= 5 ? max : 5;
+    for (let i = 0; i <= steps; i++) { const v = Math.round(max * i / steps), y = padT + ih - ih * v / max; out += `<line x1="${padL}" x2="${W}" y1="${y}" y2="${y}" stroke="#1f2330" stroke-width="1"/><text x="${padL - 6}" y="${y + 4}" fill="#8b90a0" font-size="11" text-anchor="end" font-family="JetBrains Mono">${v}</text>`; }
+    daily.forEach((d, i) => {
+      let y = padT + ih; const x = padL + i * bw + bw * 0.15, w = Math.max(2, bw * 0.7);
+      partners.forEach((p) => { const v = d.by_partner[p] || 0; if (!v) return; const h = ih * v / max; y -= h; out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${color(p)}" rx="1"><title>${d.day} · ${p}: ${v}</title></rect>`; });
+      if (n <= 31 || i % Math.ceil(n / 15) === 0) out += `<text x="${x + w / 2}" y="${H - 6}" fill="#8b90a0" font-size="10" text-anchor="middle" font-family="JetBrains Mono">${d.day.slice(5)}</text>`;
+    });
+    svg.innerHTML = out;
+    $("#legend").innerHTML = partners.map((p) => `<span><i style="background:${color(p)}"></i>${esc(p)}</span>`).join("") || "<span>No signups in range.</span>";
+  }
+  $("#rangeSel").addEventListener("change", loadOverview);
+  $("#refreshBtn").addEventListener("click", loadOverview);
+  document.body.addEventListener("click", (e) => { const b = e.target.closest("[data-copy]"); if (b) { navigator.clipboard.writeText(b.dataset.copy).then(() => toast("Link copied")); } });
+
+  // ---- signups
+  const sig = { offset: 0, limit: 100 };
+  function fillPartnerFilter(partners) { const sel = $("#fPartner"), cur = sel.value; sel.innerHTML = '<option value="">All partners</option>' + partners.map((p) => `<option value="${esc(p.code)}">${esc(p.name)}</option>`).join(""); sel.value = cur; }
+  function sigQuery() { const q = new URLSearchParams(); if ($("#fPartner").value) q.set("partner", $("#fPartner").value); if ($("#fQ").value.trim()) q.set("q", $("#fQ").value.trim()); if ($("#fDays").value) q.set("days", $("#fDays").value); return q; }
+  async function loadSignups() {
+    if (!$("#fPartner").options.length || $("#fPartner").options.length === 1) { try { fillPartnerFilter((await api("partners")).items); } catch (e) {} }
+    const q = sigQuery(); q.set("limit", sig.limit); q.set("offset", sig.offset);
+    const d = await api("signups?" + q);
+    $("#csvLink").href = "api/export.csv?" + sigQuery();
+    $("#sigCount").textContent = d.total ? `${d.offset + 1}–${Math.min(d.offset + d.limit, d.total)} of ${d.total}` : "0 signups";
+    $("#prevBtn").disabled = d.offset === 0; $("#nextBtn").disabled = d.offset + d.limit >= d.total;
+    $("#sigRows").innerHTML = d.items.map((u) => `<tr><td class="mono">${esc(u.email)}</td><td><span class="pill ${u.partner === "direct" ? "" : "y"}">${esc(u.partner)}</span></td><td title="${esc(u.signed_up_at)}">${dt(u.signed_up_at)}</td>
+      <td>${u.confirmed_at ? '<span class="pill g">confirmed</span>' : '<span class="pill a">unconfirmed</span>'}</td><td>${statePill(u.yellow_state)}${u.state_reason ? `<div class="dim" style="font-size:11px">${esc(u.state_reason)}</div>` : ""}</td>
+      <td class="mono">${esc(u.api_key_masked || "—")}</td><td class="num">${u.position_size_usd ? usd(u.position_size_usd) : "—"}</td><td class="num">${usd(u.balance_equity)}</td><td class="num">${u.closed_trades}${u.open_positions ? ` <span class="dim">+${u.open_positions} open</span>` : ""}</td><td class="num">${u.closed_trades ? pnlCell(u.realized_pnl) : "—"}</td><td class="num">${u.fees ? money(u.fees) : "—"}</td><td>${dt(u.activated_at)}</td><td>${ago(u.last_sign_in_at)}</td><td class="dim" style="font-size:11px">${esc(u.landing || "")}${u.referrer ? "<br>" + esc(u.referrer) : ""}</td></tr>`).join("") || `<tr><td colspan="14" class="empty">No signups match.</td></tr>`;
+  }
+  $("#fApply").addEventListener("click", () => { sig.offset = 0; loadSignups(); });
+  $("#fQ").addEventListener("keydown", (e) => { if (e.key === "Enter") { sig.offset = 0; loadSignups(); } });
+  $("#prevBtn").addEventListener("click", () => { sig.offset = Math.max(0, sig.offset - sig.limit); loadSignups(); });
+  $("#nextBtn").addEventListener("click", () => { sig.offset += sig.limit; loadSignups(); });
+
+  // ---- partners
+  async function loadPartners() {
+    const d = await api("partners");
+    $("#pRows").innerHTML = d.items.map((p) => `<tr><td class="mono">${esc(p.code)}</td><td><b>${esc(p.name)}</b></td>
+      <td>${p.link ? `<div class="link-box"><code>${esc(p.link)}</code><button class="btn s" data-copy="${esc(p.link)}">copy</button></div>` : "—"}</td>
+      <td class="num">${p.signups}</td><td class="num">${p.connected}</td><td class="num">${p.active_trading}</td><td class="num">${money(p.fees)}</td><td class="num">${p.rev_share_pct}% ${isAdmin && p.registered ? `<button class="btn s" data-rev="${esc(p.code)}" data-pct="${p.rev_share_pct}">edit</button>` : ""}</td><td class="num"><b>${money(p.revenue)}</b></td><td class="dim">${esc(p.notes || "")}</td>
+      <td>${!p.registered ? '<span class="pill a">unregistered</span>' : p.active ? '<span class="pill g">active</span>' : '<span class="pill">paused</span>'}</td>
+      <td>${isAdmin && p.registered ? `<button class="btn s" data-toggle="${esc(p.code)}" data-active="${p.active ? 0 : 1}">${p.active ? "pause" : "activate"}</button> <button class="btn s" data-rename="${esc(p.code)}">rename</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="12" class="empty">No partners yet.</td></tr>`;
+    fillPartnerFilter(d.items);
+    if (isAdmin) {
+      const sel = $("#plCode"); sel.innerHTML = d.items.filter((p) => p.registered).map((p) => `<option value="${esc(p.code)}">${esc(p.name)} (${esc(p.code)})</option>`).join("");
+      try { const t = await api("team"); $("#plRows").innerHTML = t.items.filter((u) => u.role === "partner").map((u) => `<tr><td class="mono">${esc(u.email)}</td><td>${esc(u.name || "")}</td><td><span class="pill y">${esc(u.partner_code || "—")}</span></td><td>${u.active ? '<span class="pill g">active</span>' : '<span class="pill r">disabled</span>'}</td><td>${ago(u.last_login_at)}</td><td><button class="btn s" data-reset="${esc(u.email)}">reset password</button> <button class="btn s" data-act="${esc(u.email)}" data-on="${u.active ? 0 : 1}">${u.active ? "disable" : "enable"}</button></td></tr>`).join("") || `<tr><td colspan="6" class="empty">No partner logins yet.</td></tr>`; } catch (e) {}
+    }
+  }
+  $("#plAdd").addEventListener("click", async () => {
+    $("#plErr").textContent = ""; $("#plOut").textContent = "";
+    try { const r = await api("team", { email: $("#plEmail").value, name: $("#plName").value, role: "partner", partner_code: $("#plCode").value }); $("#plOut").textContent = `Created partner login ${r.email} for ${r.partner_code}. Password (shown once, send it securely): ${r.password}`; $("#plEmail").value = $("#plName").value = ""; loadPartners(); }
+    catch (e) { $("#plErr").textContent = ({ invalid_email: "Enter a valid email.", team_user_exists: "That email already has a login.", partner_code_required: "Pick a partner." })[e.message] || e.message; }
+  });
+  $("#plRows").addEventListener("click", async (e) => {
+    const r = e.target.closest("[data-reset]"), a = e.target.closest("[data-act]");
+    try {
+      if (r && confirm("Reset the password for " + r.dataset.reset + "?")) { const out = await api("team/" + encodeURIComponent(r.dataset.reset), { reset_password: true }); $("#plOut").textContent = `New password for ${out.email} (shown once): ${out.password}`; }
+      if (a) { await api("team/" + encodeURIComponent(a.dataset.act), { active: a.dataset.on === "1" }); loadPartners(); }
+    } catch (ex) { toast("Failed: " + ex.message); }
+  });
+  $("#pAdd").addEventListener("click", async () => {
+    $("#pErr").textContent = "";
+    try { const r = await api("partners", { code: $("#pCode").value, name: $("#pName").value, notes: $("#pNotes").value }); toast("Partner created: " + r.link); $("#pCode").value = $("#pName").value = $("#pNotes").value = ""; loadPartners(); }
+    catch (e) { $("#pErr").textContent = ({ invalid_partner_code: "Code: lowercase letters, digits, - or _, max 32.", partner_exists: "That code already exists.", invalid_partner_name: "Name is required." })[e.message] || e.message; }
+  });
+  $("#pRows").addEventListener("click", async (e) => {
+    const t = e.target.closest("[data-toggle]"), r = e.target.closest("[data-rename]"), rv = e.target.closest("[data-rev]");
+    try {
+      if (rv) { const pct = prompt("Revenue share % on trading fees for " + rv.dataset.rev, rv.dataset.pct); if (pct !== null) { await api("partners/" + rv.dataset.rev + "/revshare", { pct: Number(pct) }); loadPartners(); loadOverview(); } }
+      if (t) { await api("partners/" + t.dataset.toggle, { active: t.dataset.active === "1" }); loadPartners(); }
+      if (r) { const name = prompt("New name for " + r.dataset.rename); if (name) { await api("partners/" + r.dataset.rename, { name }); loadPartners(); } }
+    } catch (ex) { toast("Failed: " + ex.message); }
+  });
+
+  // ---- team
+  async function loadTeam() {
+    const d = await api("team");
+    $("#tRows").innerHTML = d.items.filter((u) => u.role !== "partner").map((u) => `<tr><td class="mono">${esc(u.email)}</td><td>${esc(u.name || "")}</td><td><span class="pill ${u.role === "admin" ? "y" : ""}">${u.role}</span></td><td>${u.active ? '<span class="pill g">active</span>' : '<span class="pill r">disabled</span>'}</td><td>${ago(u.last_login_at)}</td>
+      <td>${isAdmin ? `<button class="btn s" data-reset="${esc(u.email)}">reset password</button> ${u.email !== WHO.email ? `<button class="btn s" data-act="${esc(u.email)}" data-on="${u.active ? 0 : 1}">${u.active ? "disable" : "enable"}</button>` : ""}` : ""}</td></tr>`).join("");
+    try { const h = await fetch("health", { cache: "no-store" }).then((r) => r.json()); const al = h.ALERTS || {}; $("#alertState").textContent = `telegram: ${al.telegram ? "on" : "off"} · email: ${al.email ? "on" : "off"} · sent: ${al.sent ?? 0}`; } catch (e) {}
+    try { const a = await api("audit?limit=60"); $("#auditRows").innerHTML = a.items.map((x) => `<tr><td>${dt(x.at)}</td><td class="mono">${esc(x.actor)}</td><td>${esc(x.action.replace(/_/g, " "))}</td><td class="dim mono" style="font-size:11px">${esc(JSON.stringify(x.detail))}</td></tr>`).join("") || `<tr><td colspan="4" class="empty">Nothing yet.</td></tr>`; } catch (e) {}
+  }
+  $("#tAdd").addEventListener("click", async () => {
+    $("#tErr").textContent = ""; $("#tOut").textContent = "";
+    try { const r = await api("team", { email: $("#tEmail").value, name: $("#tName").value, role: $("#tRole").value }); $("#tOut").textContent = `Created ${r.email}. Password (shown once, send it securely): ${r.password}`; $("#tEmail").value = $("#tName").value = ""; loadTeam(); }
+    catch (e) { $("#tErr").textContent = ({ invalid_email: "Enter a valid email.", team_user_exists: "That email is already on the team." })[e.message] || e.message; }
+  });
+  $("#tRows").addEventListener("click", async (e) => {
+    const r = e.target.closest("[data-reset]"), a = e.target.closest("[data-act]");
+    try {
+      if (r && confirm("Reset the password for " + r.dataset.reset + "?")) { const out = await api("team/" + encodeURIComponent(r.dataset.reset), { reset_password: true }); $("#tOut").textContent = `New password for ${out.email} (shown once): ${out.password}`; }
+      if (a) { await api("team/" + encodeURIComponent(a.dataset.act), { active: a.dataset.on === "1" }); loadTeam(); }
+    } catch (ex) { toast("Failed: " + ex.message); }
+  });
+
+  $("#alertTest").addEventListener("click", async () => { try { const r = await api("alerts/test", {}); $("#alertOut").textContent = `sent — telegram ${r.telegram ? "on" : "off"}, email ${r.email ? "on" : "off"}`; } catch (e) { $("#alertOut").textContent = "failed: " + e.message; } });
+  // ---- own password
+  $("#pwBtn").addEventListener("click", () => { $("#pwErr").textContent = ""; $("#pwModal").classList.remove("hidden"); $("#pwCur").focus(); });
+  $("#pwCancel").addEventListener("click", () => $("#pwModal").classList.add("hidden"));
+  $("#pwSave").addEventListener("click", async () => {
+    $("#pwErr").textContent = "";
+    if ($("#pwNew").value !== $("#pwNew2").value) { $("#pwErr").textContent = "New passwords don't match."; return; }
+    try { await api("me/password", { current: $("#pwCur").value, new: $("#pwNew").value }); $("#pwModal").classList.add("hidden"); $("#pwCur").value = $("#pwNew").value = $("#pwNew2").value = ""; toast("Password changed."); }
+    catch (e) { $("#pwErr").textContent = ({ wrong_password: "Current password is wrong.", password_too_short: "Use at least 12 characters." })[e.message] || e.message; }
+  });
+  if (!isAdmin) $("#alertTest").disabled = true;
+  loadOverview().catch((e) => toast("Load failed: " + e.message));
+  setInterval(() => { if (document.visibilityState === "visible" && !$("section[data-tab=overview]").classList.contains("hidden")) loadOverview().catch(() => {}); }, 60000);
+})();
+</script>
+</body></html>

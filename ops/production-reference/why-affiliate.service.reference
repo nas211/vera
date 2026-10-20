@@ -1,0 +1,26 @@
+# WHY affiliate / partner CRM — team dashboard (affiliate.whytradingbot.com; also
+# whytradingbot.com/affiliate/ until that DNS exists). Loopback :8109 behind nginx.
+# Read-only over auth.users + public.yellow_* through the platform's Postgres connection,
+# plus its own affiliate_* tables. Never touches Yellow, Vault or the execution runner.
+[Unit]
+Description=WHY affiliate CRM dashboard (team login, partner signups)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow
+Environment=# omitted: configure a separate Vera environment
+EnvironmentFile=-/opt/why-yellow/secrets/customer.env
+EnvironmentFile=-/opt/why-yellow/secrets/affiliate.env
+ExecStart=/usr/bin/python3 -m affiliate.service
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadWritePaths=/opt/why-yellow/state
+
+[Install]
+WantedBy=multi-user.target

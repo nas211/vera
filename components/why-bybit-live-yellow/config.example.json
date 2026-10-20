@@ -1,0 +1,54 @@
+{
+  "_comment": "Bybit paper OPEN events are the live entry source. Each accepted paper entry is scaled to the available live collateral and exchange minimum, then checked again before an order. NO ORDER IS SENT unless state/ARMED.json holds START LIVE and the unit env BYBIT_LIVE_YELLOW=1 is set. Unarmed = DRY_RUN.",
+  "host": "https://api.bybit.com",
+  "secrets_file": "secrets/live_api_key.json",
+  "expected_uid": 0,
+  "signals": {
+    "source": "bybit_paper",
+    "journal": "/opt/why-bybit/state/journal.jsonl",
+    "mark_candles_dir": "/opt/why-yellow-markshadow/state/mark_candles",
+    "health_url": "http://127.0.0.1:8105/health",
+    "max_signal_age_s": 120
+  },
+  "sizing": {
+    "_comment": "mode min_size: qty = smallest lot that satisfies BOTH minOrderQty and minNotionalValue*min_notional_buffer at the live Bybit mark, rounded UP to qtyStep. target_notional_usd (null = min size) is the ONLY scaling knob; strategy parameters are never touched. leverage = production Yellow leverage (10x), set per symbol at arm time.",
+    "mode": "min_size",
+    "min_notional_buffer": 1.0,
+    "target_notional_usd": null,
+    "leverage": 10
+  },
+  "risk": {
+    "_comment": "Fit each paper signal to the live account and exchange minimum. Before every order, reread the wallet and require available collateral for initial margin, full stop loss, fees, overshoot and buffer; also enforce the exposure cap. If even the minimum lot cannot fit, record a SKIP with the shortfall.",
+    "max_exposure_x_equity": 10.0,
+    "margin_buffer_usd": 1.0,
+    "stop_overshoot_pct": 0.1,
+    "halt_flag": "state/halt.flag"
+  },
+  "key_policy": {
+    "forbid_any_permission": [
+      "Withdraw",
+      "Withdrawal"
+    ],
+    "forbid_wallet": [
+      "AccountTransfer"
+    ],
+    "warn_wallet": [
+      "SubMemberTransfer"
+    ],
+    "require_contract_trade": [
+      "Order",
+      "Position"
+    ],
+    "warn_if_ip_unrestricted": true
+  },
+  "exits": {
+    "_comment": "Exchange-side TP/SL (tpslMode Full, MarkPrice trigger, market fill) from the sleeve's tp_pct/sl_pct read from the production strategy; re-set from the real fill. TIMEOUT = production WY_TIMEOUT_BARS x 5m, reduce-only market close.",
+    "trigger_by": "MarkPrice"
+  },
+  "accounting": {
+    "_comment": "PRIMARY = actual_bybit_live (real fills, real Bybit fees, exchange closed-pnl) = what Loculus reads from uid 39279297. SECONDARY = yellow_adjusted (Yellow reference prices, spread and fee model at the strategy's $2000 reference notional, plus the same scaled to the live lot) for internal comparison only.",
+    "primary": "actual_bybit_live"
+  },
+  "poll_s": 2,
+  "http_port": 8108
+}

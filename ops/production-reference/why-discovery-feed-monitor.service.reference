@@ -1,0 +1,23 @@
+[Unit]
+Description=WHY Discovery read-only feed health journal
+After=why-discovery-paper.service
+
+[Service]
+Type=simple
+DynamicUser=true
+User=why-discovery-monitor
+ExecStart=/opt/migration-python314/bin/python /opt/why-discovery/monitor_feed.py
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6
+MemoryMax=64M
+CPUQuota=5%
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

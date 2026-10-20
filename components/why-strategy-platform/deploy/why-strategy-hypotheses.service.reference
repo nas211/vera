@@ -1,0 +1,29 @@
+[Unit]
+Description=WHY read-only export of existing AI strategy hypotheses
+After=why-shadow-lab-agents.service
+
+[Service]
+User=whyshadowlab
+Group=whyshadowlab
+WorkingDirectory=/opt/why-strategy-platform
+ExecStart=/usr/bin/python3 export_hypotheses.py
+Environment=# omitted: configure a separate Vera environment
+Restart=on-failure
+RestartSec=10
+CPUQuota=5%
+MemoryMax=80M
+NoNewPrivileges=yes
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectProc=invisible
+ReadWritePaths=/opt/why-strategy-platform/imports
+InaccessiblePaths=/opt/why-yellow /etc/why-shadow-lab
+CapabilityBoundingSet=
+RestrictSUIDSGID=yes
+
+[Install]
+WantedBy=multi-user.target

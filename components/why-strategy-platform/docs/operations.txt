@@ -1,0 +1,115 @@
+WHY strategy pipeline — deployed 2026-10-05
+
+Runtime: /opt/why-strategy-platform
+Development and deployment evidence: /root/why-strategy-platform
+Existing WY-REVERT and WY-PULLBACK signal sources are unchanged.
+
+Active processes
+- why-strategy-hypotheses: reads the existing AI lab's candidate proposals and
+  exports only bounded strategy specifications. No extra model spend or keys.
+- why-strategy-research: screens 2,160 initial parameter combinations plus AI
+  proposals. Adds up to 256 new combinations per hour when the queue is below
+  1,000, up to a 20,000-candidate registry. CPU capped at 30% of one core.
+- why-strategy-paper: independent simulated books for up to 200 candidates,
+  at most two simultaneous positions per candidate. CPU capped at 20% of a core.
+- why-yellow-customer: reads current eligible signals after processing core
+  signals and executes through its existing per-customer ledger and protection.
+
+Research model
+Five price-based feature families: momentum, breakout, mean reversion, range
+rejection, acceleration. The numerical parameter generator is not an LLM.
+The existing AI lab supplies genuine model-created hypotheses continuously;
+its own model budget and five-family vocabulary still apply. This release does
+not autonomously browse the web or execute arbitrary downloaded strategies.
+The six original GitHub/Freqtrade shadow bots remain a separate experiment;
+their results do not automatically authorise trading on Yellow.
+
+Historical screening
+Uses completed, covered Yellow mark candles. Rejects gaps and incomplete bars.
+Signals use causal features and enter on the next bar; ambiguous bars stop first.
+60% chronological training and 40% validation. Requires ten historical training
+trades and three validation trades, positive net result in both. Equivalent
+validation trade paths are deduplicated. This is exploratory repeated screening,
+not an independently sealed final test. History presently spans only the local
+recorder's available days. New screening datasets are archived in state/datasets.
+Execution estimates: 1.5 bps per side, 2 bps adverse slippage per side, and a
+3 bps/8h funding reserve. These are modeling assumptions, not actual fills.
+
+Forward paper and promotion
+Only entries after the candidate's paper admission count. Each strategy has its
+own ledger and needs ten completed, valid paper trades with positive net P&L.
+No minimum day count, profit-factor threshold, or best-trade-removal condition.
+Known data gaps invalidate a simulated trade as promotion evidence. Open losses
+are included in eligibility. Stops, targets and maximum holding time are applied.
+Paper loss budget is $20 at a modeled $200 notional; breached candidates retire.
+Paper uses sampled Yellow marks with modeled spread/slippage, not exchange fills.
+Results across independent candidate books are not a single achievable portfolio.
+
+Live integration
+Only active, unpaused Yellow customer accounts qualify. WEEX and other venues
+need their own evidence and integration. No strategy skips exchange readiness,
+market freshness, protection checks, available-margin checks, or existing limits.
+The live switch is enabled in config.json; this authorises future qualified
+signals. Enabling it does not force a trade or fabricate ten forward results.
+
+Core priority and ownership
+- Core signals are processed first; AI signals wait 20 seconds after bar close.
+- The core producer must have a fresh snapshot; its open markets are reserved.
+- Pending orders reserve both a market and exposure before sending to the venue.
+- A core signal may cancel an unfilled AI entry only with confirmed cancellation.
+- An already-filled AI position retains ownership and its own exits; the core
+  cannot forcibly replace it or close it using an unrelated journal timeout.
+- Two opposing AI/core positions cannot intentionally be opened on the same coin.
+- After a restart, strategy TP/SL/timeout are recoverable from its immutable name,
+  so protection does not depend on the research worker being available.
+
+Customer AI risk limits (owner confirmed 2026-10-05)
+All AI positions together: 10% of current exchange account equity in position
+notional, not leveraged margin. Maximum two AI positions; existing total slot and
+available-margin limits remain. Pending orders count, and exposure uses the higher
+of entry/current mark for open positions. Entry sizing reserves 1% slippage room;
+market gaps and price changes can still exceed the checked amount after execution.
+Start with the venue's minimum valid lot. If it cannot fit, skip it.
+After twenty profitable completed live trades for that strategy/account, permit
+one doubling of the minimum-lot size, still inside the combined 10% cap.
+No unlimited growth or automatic increase of customer account limits.
+Per-strategy/account loss budget: three times the initial filled trade's planned
+stop loss plus modeled costs. Mark-to-market losses count. Hitting it persistently
+blocks new entries for that strategy/account; existing positions retain protection
+and timeouts. Paper observation continues. Resetting a live pause is not automated
+in this release. Unconfirmed closed-trade P&L blocks further AI entries.
+
+Read status
+  cat /opt/why-strategy-platform/state/status.json
+  cat /opt/why-strategy-platform/state/research.json
+  systemctl status why-strategy-paper why-strategy-research why-strategy-hypotheses
+  journalctl -u why-yellow-customer --since '1 hour ago'
+
+Disable new AI entries
+Set live.enabled=false in /opt/why-strategy-platform/config.json atomically.
+The gateway reads it each poll; no customer-service restart is required.
+Keep Yellow customer execution running to reconcile/manage already-open positions.
+Stopping the paper worker also makes its signal file expire after 15 seconds,
+but the explicit config switch is the normal operational control.
+
+Rollback
+First disable new AI entries. Existing AI positions must remain managed until flat.
+Backups and hashes for the six execution integration files are in
+review/deployment. Do not remove AI geometry/timeout support while AI positions
+or unresolved AI orders remain. The core strategy generator was never edited.
+
+Verification
+183 staged execution tests passed, including 18 AI gateway/ownership/risk tests.
+16 platform tests passed, including future-price invariance, per-strategy forward
+counting, gap exclusion, simulated stops, idempotent closes, and unique generation.
+Initial offline trial paper positions were discarded before service rollout.
+No actual AI exchange order was placed as a test. First real orders must follow
+the same ten-forward-trade eligibility rules.
+
+Customer paper extension (2026-10-05): customer_paper.enabled is now true.
+Qualified AI signals fan out to all enabled/running paper accounts as well as Yellow
+live. Paused accounts stay paused. Shared AI cap 10% paper equity, max two positions,
+each entry at most 5%; customer allocation/size/free margin can further reduce it.
+Paper stops, targets and timeouts use persisted AI geometry and fresh marks.
+Disable new paper AI entries with customer_paper.enabled=false; keep exit code loaded.
+Audit, unchanged baseline test failures and rollback notes: /root/audit/ai-paper-20261005/audit.txt

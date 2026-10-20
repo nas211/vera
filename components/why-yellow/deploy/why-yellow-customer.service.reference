@@ -1,0 +1,29 @@
+# WHY × Yellow customer platform: Supabase-authenticated API (/yellow/api on loopback :8104),
+# tenant execution runner and public market feed. Installed to /etc/systemd/system/.
+#
+# It CANNOT place a real order unless the owner ALSO sets YELLOW_ARMED=1 here (not set),
+# turns the global entries switch on (state/exec_switches.json) and a customer account is
+# ACTIVE with a VERIFIED credential. Real Yellow orders during the integration phase: 0.
+[Unit]
+Description=WHY x Yellow customer platform (Supabase Auth + Vault, tenant execution runner; NOT ARMED)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/why-yellow
+Environment=# omitted: configure a separate Vera environment
+# SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_DB_URL [/ SUPABASE_JWT_SECRET] — owner-provided, mode 0600.
+# The file may be absent: the API then answers /health and /public-config only.
+EnvironmentFile=-/opt/why-yellow/secrets/customer.env
+ExecStart=/usr/bin/python3 -m customer.service
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadWritePaths=/opt/why-yellow/state
+
+[Install]
+WantedBy=multi-user.target

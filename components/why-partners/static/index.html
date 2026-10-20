@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>WHY · Partner Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Bricolage+Grotesque:wght@600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="/partners/static/brand.svg" type="image/svg+xml"><link rel="stylesheet" href="/partners/static/app.css"></head>
+<body>
+<header class="top">
+  <div class="brand"><img src="/partners/static/brand.svg" alt="" width="30" height="30"><div><span class="why">WHY PROTOCOL</span><span class="sub">Partner Portal · Paper Trading</span></div></div>
+  <div class="top-right">
+    <span class="paper-pill" title="All figures are simulated">SIMULATED / PAPER TRADING PERFORMANCE</span>
+    <span class="live-dot" id="livedot" title="Price feed"></span>
+    <span class="user" id="who"></span>
+    <button class="ghost" id="exbtn">Exchange</button>
+    <button class="ghost" id="logout">Logout</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">WHY Master Paper Book</p>
+      <h1>Performance overview</h1>
+      <p class="lede">Results shown are generated from simulated trading and do not represent live customer accounts or actual investor capital. Record <span id="since"></span>. All partners view the same master book.</p>
+    </div>
+    <div class="asof">As of <span id="asof">—</span><br><span class="muted" id="clipnote"></span></div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+  <section class="card">
+    <div class="card-head">
+      <div><h2>Equity curve</h2><p class="muted" id="eqnote">Realized cumulative P&amp;L on closed trades. No intraday mark-to-market history.</p></div>
+      <div class="seg" id="range" role="tablist">
+        <button data-r="1" role="tab">24H</button><button data-r="7" role="tab">7D</button><button data-r="30" role="tab">30D</button><button data-r="0" role="tab" class="on">ALL</button>
+      </div>
+    </div>
+    <div class="chart" id="chart"><svg id="svg" viewBox="0 0 900 320" preserveAspectRatio="none" role="img" aria-label="Equity curve"></svg><div class="tip" id="tip" hidden></div></div>
+    <div class="legend"><span><i class="sw sw-nav"></i>Paper NAV</span><span><i class="sw sw-dd"></i>Drawdown from peak</span><span class="muted" id="rangeinfo"></span></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Open positions <span class="count" id="opencount"></span></h2><p class="muted">Marks from the public exchange price feed, refreshed while you are viewing.</p></div></div>
+    <div class="tablewrap"><table class="tbl" id="opentbl"><thead><tr>
+      <th>Symbol</th><th>Side</th><th>Entry time</th><th class="num">Entry</th><th class="num">Mark</th><th class="num">Qty</th><th class="num">Notional</th><th class="num">Target</th><th class="num">Stop</th><th class="num">Unrealized $</th><th class="num">Unrealized %</th><th>Duration</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Closed trades <span class="count" id="closedcount"></span></h2><p class="muted" id="feenote"></p></div></div>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search symbol / model / exit…" aria-label="Search">
+      <select id="fsym" aria-label="Symbol"><option value="">All symbols</option></select>
+      <select id="fside" aria-label="Side"><option value="">Long &amp; short</option><option value="long">Long</option><option value="short">Short</option></select>
+      <select id="fres" aria-label="Result"><option value="">Wins &amp; losses</option><option value="win">Profitable</option><option value="loss">Losing</option></select>
+      <label class="dr">From <input type="date" id="dfrom"></label><label class="dr">To <input type="date" id="dto"></label>
+      <button class="ghost small" id="clear">Clear</button>
+    </div>
+    <div class="tablewrap"><table class="tbl sortable" id="closedtbl"><thead><tr>
+      <th data-k="symbol">Symbol</th><th data-k="side">Side</th><th data-k="opened_ms">Entry time</th><th data-k="closed_ms" class="on desc">Exit time</th><th data-k="entry_px" class="num">Entry</th><th data-k="exit_px" class="num">Exit</th><th data-k="qty" class="num">Qty</th><th data-k="notional_usd" class="num">Notional</th><th data-k="target_px" class="num">Target</th><th data-k="stop_px" class="num">Stop</th><th data-k="pnl_usd" class="num">P&amp;L $</th><th data-k="pnl_pct" class="num">P&amp;L %</th><th data-k="exit_reason">Exit</th><th data-k="hold_min">Duration</th><th data-k="model">Model</th>
+    </tr></thead><tbody></tbody></table></div>
+    <div class="pager"><span class="muted" id="pinfo"></span><div><button class="ghost small" id="prev">‹ Prev</button><button class="ghost small" id="next">Next ›</button></div></div>
+  </section>
+
+  <footer class="foot">
+    <p><b>SIMULATED / PAPER TRADING PERFORMANCE.</b> Every figure on this page is produced by WHY Protocol's simulated (paper) trading book. No orders were placed on any exchange and no money was at risk. Results are hypothetical, unaudited, and do not represent live customer accounts, investor capital under management, or any actual trading by WHY Protocol or its partners.</p>
+    <p>Simulated results have inherent limitations: they are prepared with the benefit of hindsight in the sense that the model, its parameters and its universe were chosen while the record was being made; they do not reflect the impact of real market liquidity, execution latency or slippage; and modelled fees may differ from those actually charged. Past simulated performance is not indicative of future results, simulated or real. Nothing on this page is investment advice, an offer, or a solicitation. Access is provided to invited partners for information only and is confidential.</p>
+    <p class="muted">Prices are public exchange market data. Strategy logic is proprietary and is not disclosed; models are shown by anonymous ordinal only.</p>
+  </footer>
+</main>
+
+<div class="drawer-bg" id="dbg" hidden></div>
+<aside class="drawer" id="exdrawer" hidden aria-labelledby="extitle"><div class="drawer-head"><h3 id="extitle">Exchange connection</h3><button class="ghost small" id="exclose" aria-label="Close">✕</button></div>
+  <div id="exstatus" class="exstatus"></div>
+  <p class="hint" id="exnote"></p>
+  <p class="hint"><a href="/profile">Manage supported exchange connections in your WHY account</a>.</p>
+  <button type="button" class="ghost small" id="exremove" hidden>Remove saved key</button>
+</aside>
+<aside class="drawer" id="drawer" hidden aria-labelledby="dtitle"><div class="drawer-head"><h3 id="dtitle"></h3><button class="ghost small" id="dclose" aria-label="Close">✕</button></div><div id="dbody"></div></aside>
+<script src="/partners/static/app.js" defer></script>
+</body></html>

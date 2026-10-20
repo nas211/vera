@@ -1,0 +1,4 @@
+#!/bin/sh
+# Operator entry point. Kept as a shell stub so the package can live anywhere
+# and the service units do not need PYTHONPATH set.
+exec /usr/bin/python3 -m why_referrals.cli "$@"

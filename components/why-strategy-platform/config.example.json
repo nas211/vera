@@ -1,0 +1,35 @@
+{
+  "source": "/opt/why-yellow-markshadow/state",
+  "core_snapshot": "/opt/why-yellow/state/snapshot.json",
+  "ai_hypotheses": "/opt/why-strategy-platform/imports/hypotheses.json",
+  "venue": "yellow",
+  "poll_seconds": 3,
+  "screen_batch": 200,
+  "screen_interval_seconds": 10,
+  "max_paper_strategies": 200,
+  "max_paper_positions_per_strategy": 2,
+  "paper_notional": 200,
+  "taker_bps": 1.5,
+  "slippage_bps": 2,
+  "funding_reserve_bps_per_8h": 3,
+  "minimum_paper_trades": 10,
+  "minimum_paper_days": 0,
+  "minimum_profit_factor": null,
+  "paper_loss_budget": 20,
+  "quote_max_age_seconds": 15,
+  "max_signal_age_seconds": 90,
+  "core_priority_delay_seconds": 20,
+  "live": {
+    "enabled": false,
+    "blocker": null,
+    "max_open_positions": 2,
+    "max_share": 0.1,
+    "exposure_basis": "account_equity_notional",
+    "fixed_notional_cap": null
+  },
+  "customer_paper": {
+    "enabled": true,
+    "qualification": "same_forward_promotion_as_live",
+    "respect_running_state": true
+  }
+}
