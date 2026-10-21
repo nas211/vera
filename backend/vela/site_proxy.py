@@ -1,4 +1,4 @@
-"""Trust public-origin headers only from the existing Sites edge connection."""
+"""Trust public-origin headers only from an authenticated Vela reverse proxy."""
 import hmac
 import ipaddress
 import json

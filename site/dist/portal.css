@@ -14,3 +14,16 @@
 @media(max-width:380px){.portal-modal{padding:30px 18px}.portal-modal h2{font-size:25px}.portal-wallet-options small{line-height:1.6}.portal-modal .portal-details>div{flex-wrap:wrap;gap:5px}.portal-modal .portal-details dd{margin-left:auto}}
 
 .portal-advanced[open]>.portal-costs{margin-top:24px}
+
+/* Wallet-first onboarding shares Vela's existing type, palette and controls. */
+.portal-onboarding{min-height:calc(100svh - 80px);display:grid;place-items:center;padding:32px 16px;box-sizing:border-box}
+.portal-connect-card{width:100%;max-width:520px;min-width:0;padding:40px;border:1px solid #ffffff15;border-radius:24px;background:#171a18;box-sizing:border-box}
+.portal-connect-card h1{font-size:clamp(28px,6vw,40px);line-height:1.15;margin:20px 0 16px}
+.portal-connect-card>p{color:#a3aaa4;line-height:1.6;overflow-wrap:anywhere}
+.portal-connect-card .portal-wallet-options{margin:28px 0 20px}
+.portal-connect-card .portal-wallet-options button{min-width:0;white-space:normal}
+.portal-connect-card .portal-wallet-options button>span:nth-child(2){min-width:0;flex:1}
+.portal-connect-card .portal-wallet-options small{white-space:normal;line-height:1.5}
+.portal-connect-card .portal-wallet-options button>span:last-child{font-size:12px;flex-shrink:0}
+.portal-connect-card .portal-footer{margin-top:28px;padding-top:20px}
+@media(max-width:480px){.portal-onboarding{padding:24px 12px}.portal-connect-card{padding:28px 18px}.portal-connect-card .portal-wallet-options button{gap:10px;padding:16px 12px}.portal-connect-card .wallet-glyph{width:28px;font-size:24px}.portal-header>.portal-subtle{font-size:12px}}

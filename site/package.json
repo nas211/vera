@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-wallet.mjs && node scripts/build-sites.mjs",
+    "test:portal-auth": "node checks/portal-auth.test.mjs",
     "test:edge": "node --test checks/edge.test.mjs"
   },
   "dependencies": {

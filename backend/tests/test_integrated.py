@@ -214,3 +214,102 @@ def test_refuse_shared_database_and_live_mode(setup_db,desk,monkeypatch):
         create_app(Settings(db_path=desk.config.db_path),paper_settings=desk.config)
     monkeypatch.setenv('VELA_EXECUTION_MODE','LIVE')
     with pytest.raises(ValueError,match='LIVE is disabled'):create_app(setup_db[1])
+
+
+def test_nginx_missing_proxy_headers_reproduce_connection_error(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            body={'address':Account.create().address,'chainId':CHAIN}
+            response=await post(client,'auth/challenge',body,headers={
+                'Host':'defivela.xyz','X-Forwarded-Proto':'https',
+                'X-Vela-Site-Token':'','X-Vela-Public-Origin':''})
+            assert response.status_code==403
+            assert response.json()=={'detail':'Invalid portal connection'}
+            assert rt.db.execute('SELECT count(*) FROM portal_challenges').fetchone()[0]==0
+            # With the existing secret and pinned origin, real signing works.
+            _,response,_=await login(client)
+            assert response.status_code==200
+    run(scenario)
+
+
+def test_stale_tab_cannot_read_mutate_or_disconnect_another_wallet(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            first,_,_=await login(client)
+            first_headers={'X-Vela-Wallet':first.address}
+            await post(client,'deposit',dict(clientId='first-wallet-funds',amount='100'))
+            second,_,_=await login(client)
+            assert (await client.get('/api/portal/account',headers=first_headers)).status_code==403
+            for route,body in [('deposit',dict(clientId='stale-tab-credit',amount='500')),('withdraw',dict(clientId='stale-tab-debit',amount='10')),
+                               ('start',{}),('stop',{}),('preferences',dict(leverage=3)),('auth/logout',{})]:
+                assert (await post(client,route,body,headers=first_headers)).status_code==403,route
+            response=await client.get('/api/portal/account',headers={'X-Vela-Wallet':second.address})
+            assert response.status_code==200 and response.json()['balance']=='0'
+            assert response.json()['wallet']==second.address.lower()
+            await login(client,first)
+            assert (await client.get('/api/portal/account',headers=first_headers)).json()['balance']=='100'
+    run(scenario)
+
+
+def test_public_engineering_tokens_cannot_create_or_access_accounts(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            before=rt.db.execute('SELECT count(*) FROM users').fetchone()[0]
+            for method,path,body in [('POST','session',{}),('GET','account',None),
+                    ('POST','orders',dict(clientId='unverified-entry',symbol='BTC/USD',side='long',notional='100')),
+                    ('POST','agent',dict(autonomous=True,symbol='BTC/USD',leverage='2'))]:
+                response=await client.request(method,'/api/paper/'+path,json=body,headers={'X-Vela-Paper':'a'*64})
+                assert response.status_code==401,(path,response.text)
+            assert rt.db.execute('SELECT count(*) FROM users').fetchone()[0]==before
+            for path in ('health','markets'):
+                assert (await client.get('/api/paper/'+path)).status_code==200
+    run(scenario)
+
+
+def test_foreign_position_and_order_are_forbidden(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            first,_,_=await login(client)
+            await post(client,'deposit',dict(clientId='owner-deposit',amount='1000'))
+            pending=await post(client,'orders',dict(clientId='owner-entry',symbol='BTC/USD',side='long',notional='100'))
+            assert pending.status_code==202
+            tick(rt,desk)
+            position=(await client.get('/api/portal/account')).json()['positions'][0]
+            await login(client)
+            response=await post(client,f"positions/{position['id']}/close",dict(clientId='foreign-close',fraction='1'))
+            assert response.status_code==403
+            assert (await post(client,f"orders/{pending.json()['id']}/cancel")).status_code==403
+            assert len(rt.adapter.getPosition('wallet:'+first.address.lower()))==1
+    run(scenario)
+
+
+def test_all_private_portal_controls_require_session(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            for route,body in [('deposit',dict(clientId='no-session-credit',amount='100')),('withdraw',dict(clientId='no-session-debit',amount='10')),
+                    ('start',{}),('stop',{}),('preferences',dict(leverage=2)),('reset',dict(clientId='no-session-reset',confirm=True)),
+                    ('close-all',dict(clientId='no-session-close',confirm=True)),('positions/unknown/close',dict(clientId='no-session-exit',fraction='1')),
+                    ('orders/unknown/cancel',{}),('orders',dict(clientId='no-session-order',symbol='BTC/USD',side='long',notional='100'))]:
+                assert (await post(client,route,body)).status_code==401,route
+            assert (await client.get('/api/portal/account')).status_code==401
+            await login(client)
+            rt.db.execute('UPDATE portal_sessions SET expires=?',(time.time()-1,))
+            assert (await client.get('/api/portal/account')).status_code==401
+            assert (await post(client,'deposit',dict(clientId='expired-credit',amount='100'))).status_code==401
+    run(scenario)
+
+
+def test_expired_challenge_never_creates_session_or_account(setup_db,desk):
+    async def scenario():
+        async with connected(setup_db[1],desk) as (_,client,rt):
+            key=Account.create()
+            response=await post(client,'auth/challenge',dict(address=key.address,chainId=CHAIN))
+            challenge=response.json()
+            signature='0x'+Account.sign_message(encode_defunct(text=challenge['message']),key.key).signature.hex().removeprefix('0x')
+            rt.db.execute('UPDATE portal_challenges SET expires=? WHERE id=?',(time.time()-1,challenge['challengeId']))
+            body=dict(challengeId=challenge['challengeId'],signature=signature)
+            assert (await post(client,'auth/verify',body)).status_code==401
+            assert (await post(client,'auth/verify',body)).status_code==401
+            assert rt.db.execute('SELECT count(*) FROM portal_sessions').fetchone()[0]==0
+            assert not rt.db.execute('SELECT 1 FROM users WHERE address=?',('wallet:'+key.address.lower(),)).fetchone()
+    run(scenario)

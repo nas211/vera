@@ -29,7 +29,7 @@ async function until(task,predicate,label,timeout=30000){const end=Date.now()+ti
       if(method==='eth_accounts')return [address];
       if(method==='eth_chainId')return sessionStorage.getItem('fixture-chain')||chain;
       if(method==='wallet_switchEthereumChain'){chain=params[0].chainId;sessionStorage.setItem('fixture-chain',chain);window.__walletEvent('chainChanged',chain);return null;}
-      if(method==='personal_sign')return window.__signFixture(params[0]);
+      if(method==='personal_sign'){if(window.__rejectSignature){window.__rejectSignature=false;throw Object.assign(Error('Rejected signature'),{code:4001});}if(window.__holdSignature)await new Promise(resolve=>window.__releaseSignature=resolve);return window.__signFixture(params[0]);}
       if(method==='eth_getBalance')return '0xa688906bd8b00000';
       if(method==='wallet_revokePermissions'){connected=false;return null;}
       throw Error('Unexpected wallet call: '+method);
@@ -45,14 +45,32 @@ async function until(task,predicate,label,timeout=30000){const end=Date.now()+ti
     await page.goto(origin+'/');
     assert.equal((await page.locator('.hero-actions a').first().innerText()).replace(/\s+/g,' '),'START TRADING ↗');
     await page.getByRole('link',{name:'START TRADING'}).click();
-    await page.getByRole('dialog').waitFor();
+    await page.getByRole('heading',{name:'Welcome to Vela'}).waitFor();
+    assert.equal(await page.getByRole('navigation').count(),0);
+    assert.equal(await page.getByTestId('equity').count(),0);
     assert.equal(await page.locator('.portal-wallet-options>button').count(),2);
+    for(const width of [320,390,768,1440]){
+      await page.setViewportSize({width,height:640});
+      assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Onboarding fits '+width);
+      await page.screenshot({path:path.join(artifacts,`wallet-${width}.png`),fullPage:true});
+    }
+    await page.setViewportSize({width:1440,height:1080});
     assert(await page.getByRole('button',{name:/DogeOS \/ MyDoge/}).isDisabled());
-    assert((await page.getByRole('dialog').innerText()).includes('Coming Soon — Mobile Only'));
+    assert((await page.locator('.portal-connect-card').innerText()).includes('Coming Soon — Mobile Only'));
     await page.evaluate(()=>window.__reject=true);
-    await page.getByRole('button',{name:/MetaMask Desktop/}).click();
+    await page.getByRole('button',{name:'Connect MetaMask',exact:true}).click();
     await page.getByText('Cancelled in your wallet. You can try again.').waitFor();
-    await page.getByRole('button',{name:/MetaMask Desktop/}).click();
+    await page.evaluate(()=>window.__rejectSignature=true);
+    await page.getByRole('button',{name:'Connect MetaMask',exact:true}).click();
+    await page.getByText('Cancelled in your wallet. You can try again.').waitFor();
+    assert.equal(await page.getByTestId('equity').count(),0);
+    await page.evaluate(()=>window.__holdSignature=true);
+    await page.getByRole('button',{name:'Connect MetaMask',exact:true}).click();
+    await page.getByText('Sign the authentication message in MetaMask…').waitFor();
+    assert.equal(await page.getByRole('navigation').count(),0);
+    assert.equal(await page.getByTestId('equity').count(),0);
+    assert.equal(await page.getByRole('button',{name:'+ Deposit',exact:true}).count(),0);
+    await page.evaluate(()=>window.__releaseSignature());
     await page.getByTestId('equity').waitFor();
     let a=await read();assert.equal(a.wallet,signer.address.toLowerCase());assert.equal(Number(a.balance),0);assert.equal(a.totals.trades,0);
     assert((await context.cookies()).find(c=>c.name==='vela_demo_session').httpOnly);
@@ -141,10 +159,13 @@ async function until(task,predicate,label,timeout=30000){const end=Date.now()+ti
     await context.setOffline(false);await until(()=>page.locator('.portal-feed').innerText(),x=>x==='Markets live','reconnect',45000);
     await page.route('**/api/portal/auth/logout',r=>r.abort());
     await page.getByRole('button',{name:'Disconnect wallet'}).click();
-    await page.locator('main [role="alert"]').filter({hasText:'Could not disconnect the server session. Please retry.'}).waitFor();
+    await page.getByRole('heading',{name:'Welcome to Vela'}).waitFor();
+    assert.equal(await page.getByRole('navigation').count(),0);
+    assert.equal(await page.getByTestId('equity').count(),0);
+    await page.locator('main [role="alert"]').filter({hasText:'Server disconnect could not be confirmed.'}).waitFor();
     assert.equal((await page.request.get(origin+'/api/portal/account')).status(),200);
     await page.unroute('**/api/portal/auth/logout');
-    await page.getByRole('button',{name:'Disconnect wallet'}).click();await page.getByRole('dialog').waitFor();
+    await page.getByRole('button',{name:'Retry disconnect'}).click();await page.getByText('Wallet disconnected. Connect to continue.').waitFor();
     assert.equal((await page.request.get(origin+'/api/portal/account')).status(),401);
     const calls=allWalletMethods;
     assert(!calls.some(m=>/sendTransaction|signTransaction|eth_send|eth_sign$/.test(m)));

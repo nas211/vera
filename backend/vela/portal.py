@@ -82,7 +82,15 @@ class Portal:
         if not re.fullmatch(r'[a-f0-9]{64}',token):raise HTTPException(401,'Connect your wallet to continue')
         row=self.rt.db.execute('SELECT * FROM portal_sessions WHERE id=? AND expires>?',(digest(token),time.time())).fetchone()
         if not row:raise HTTPException(401,'Your session expired. Reconnect your wallet')
+        self.check_wallet(request,row['user'])
         return row['user']
+
+    def check_wallet(self,request,user):
+        # Cookies are shared across tabs. A stale tab must never read or mutate
+        # the account selected by another tab's newer wallet login.
+        address=request.headers.get('x-vela-wallet')
+        if address is not None and (not re.fullmatch(r'0x[0-9a-fA-F]{40}',address) or user!='wallet:'+address.lower()):
+            raise HTTPException(403,'Wallet session changed. Reconnect your wallet')
 
     def ensure_account(self,address):
         user='wallet:'+address.lower();db=self.rt.db
@@ -111,6 +119,11 @@ class Portal:
             checkedAt=c.get('at'),status='Connected' if connected else 'Awaiting connection check' if self.rt.model.ready and c.get('ok') is not False else 'Disconnected')
 
     def pause(self,user): self.rt.adapter.pause_entries(user)
+
+    def owned(self,table,identifier,user):
+        # Use the same response for unknown and foreign identifiers.
+        if not self.rt.db.execute(f'SELECT 1 FROM {table} WHERE id=? AND user=?',(identifier,user)).fetchone():
+            raise HTTPException(403,'This item is not available to your wallet')
 
     def pending(self,user,entries_only=False):
         rows=self.rt.db.execute("SELECT payload FROM paper_orders WHERE user=? AND status='pending'",(user,)).fetchall()
@@ -228,6 +241,7 @@ def attach_portal(app,Order,Close):
         p=service();p.guard(request)
         token=request.cookies.get(COOKIE,'');row=p.rt.db.execute('SELECT user FROM portal_sessions WHERE id=?',(digest(token),)).fetchone()
         if row:
+            p.check_wallet(request,row['user'])
             with transaction(p.rt.db):
                 p.pause(row['user'])
                 p.rt.db.execute('DELETE FROM portal_sessions WHERE id=?',(digest(token),))
@@ -297,6 +311,7 @@ def attach_portal(app,Order,Close):
     @router.post('/positions/{identifier}/close',status_code=202)
     async def close(identifier:str,body:Close,request:Request):
         p=service();user=p.user(request)
+        p.owned('positions',identifier,user)
         try:
             with transaction(p.rt.db):return p.rt.adapter.submit(user,dict(reduceOnly=True,positionId=identifier,fraction=body.fraction),body.clientId)
         except ValueError as exc:raise HTTPException(409,str(exc)) from None
@@ -304,6 +319,7 @@ def attach_portal(app,Order,Close):
     @router.post('/orders/{identifier}/cancel')
     async def cancel(identifier:str,request:Request):
         p=service();user=p.user(request)
+        p.owned('paper_orders',identifier,user)
         try:p.rt.adapter.cancel(user,identifier)
         except ValueError as exc:raise HTTPException(409,str(exc)) from None
         return p.snapshot(user)

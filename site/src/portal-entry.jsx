@@ -1,9 +1,8 @@
-import React, {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {api, authenticate, chainId, mobile, short, switchNetwork} from './portal-wallet.js';
+import {api, assertAccount, authenticate, chainId, mobile, short, switchNetwork} from './portal-wallet.js';
 import {chain} from './network.js';
 
-const MyDoge=lazy(()=>import('./portal-mydoge.jsx'));
 const usd=(v,d=2)=>v===null||v===undefined?'—':Number(v).toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:d,maximumFractionDigits:d});
 const num=(v,d=4)=>Number(v||0).toLocaleString('en-US',{maximumFractionDigits:d});
 const tone=v=>Number(v)>0?'positive':Number(v)<0?'negative':'';
@@ -11,11 +10,11 @@ const id=()=>crypto.randomUUID();
 const tabs=[['dashboard','◫','Dashboard'],['trades','⇄','Trades'],['history','◷','History'],['account','◎','Account']];
 const remember=kind=>{try{localStorage.setItem('vela.portal.wallet',kind);}catch{}};
 const currentTab=()=>{
-  const view=new URLSearchParams(location.search).get('view');
+  const view=new URLSearchParams(typeof location==='undefined'?'':location.search).get('view');
   return tabs.some(([key])=>key===view)?view:'dashboard';
 };
 
-function App(){
+export function App(){
   const [provider,setProvider]=useState(null),[wallet,setWallet]=useState(null),[account,setAccount]=useState(null);
   const [market,setMarket]=useState(null),[online,setOnline]=useState(false),[now,setNow]=useState(Date.now());
   const [tab,updateTab]=useState(currentTab),[modal,setModal]=useState('wallet'),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
@@ -33,22 +32,31 @@ function App(){
     window.addEventListener('popstate',restore);
     return()=>window.removeEventListener('popstate',restore);
   },[]);
-  const [mydoge,setMydoge]=useState(false),[dogeConnection,setDogeConnection]=useState(null),[balance,setBalance]=useState(null);
+  const [balance,setBalance]=useState(null),[phase,setPhase]=useState('DISCONNECTED'),[loggingOut,setLoggingOut]=useState(false);
+  const logoutTask=useRef(Promise.resolve(true)),logoutWallet=useRef(null);
   const version=useRef(0),restored=useRef(false),received=useRef(0),locked=useRef(false),mounted=useRef(true);
-  const isMobile=mobile();
+  const isMobile=typeof navigator!=='undefined'&&mobile();
   const walletRef=useRef(wallet);walletRef.current=wallet;
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;version.current++;};},[]);
 
-  const invalidate=useCallback((reason='Wallet disconnected. New AI entries are paused.')=>{
-    version.current++;setAccount(null);setWallet(null);setBalance(null);setModal('wallet');setMessage(typeof reason==='string'?reason:'Wallet disconnected. Reconnect to continue.');
-    api('auth/logout',{}).catch(()=>{setMessage('Connection interrupted. Reconnect to confirm that AI entries are paused. Existing risk controls remain active.');});
-    try{localStorage.removeItem('vela.portal.wallet');}catch{}
+  const endSession=useCallback(address=>{
+    logoutWallet.current=address;setLoggingOut(true);
+    const v=version.current;
+    logoutTask.current=api('auth/logout',{},undefined,address).then(()=>true).catch(e=>{
+      // Another tab's authenticated wallet is not ours to disconnect.
+      if(e.status===403)return true;
+      if(v===version.current)setMessage('Server disconnect could not be confirmed. Retry disconnect before reconnecting. Existing position protection remains active.');
+      return false;
+    }).finally(()=>{if(mounted.current)setLoggingOut(false);});
+    return logoutTask.current;
   },[]);
-  const onDoge=useCallback(value=>{setDogeConnection(old=>old?.provider===value.provider&&old?.address===value.address&&old?.chainId===value.chainId?old:value);if(!walletRef.current)setModal('wallet');},[]);
-  const onDogeStart=useCallback(()=>setModal(null),[]);
-  const onDogeFailure=useCallback(()=>setModal('wallet'),[]);
-  useEffect(()=>{if(wallet?.kind==='mydoge'&&dogeConnection&&(dogeConnection.address?.toLowerCase()!==wallet.address.toLowerCase()||chainId(dogeConnection.chainId)!==chain.id))invalidate('MyDoge account or network changed. Reconnect to continue.');},[wallet,dogeConnection,invalidate]);
-  const onDogeDisconnect=useCallback(()=>invalidate(),[invalidate]);
+  const invalidate=useCallback((reason='Wallet disconnected. Reconnect to continue.')=>{
+    const address=walletRef.current?.address;
+    version.current++;walletRef.current=null;setAccount(null);setWallet(null);setBalance(null);setOnline(false);setPhase('DISCONNECTED');setModal(null);
+    setMessage(typeof reason==='string'?reason:'Wallet disconnected. Reconnect to continue.');
+    try{localStorage.removeItem('vela.portal.wallet');}catch{}
+    return endSession(address);
+  },[endSession]);
 
   useEffect(()=>{
     const found=e=>{if(e.detail?.info?.rdns==='io.metamask'&&e.detail.provider?.request)setProvider(e.detail.provider);};
@@ -75,20 +83,22 @@ function App(){
     const v=version.current;
     (async()=>{try{
       const accounts=await provider.request({method:'eth_accounts'}), network=chainId(await provider.request({method:'eth_chainId'}));
-      const a=await api('account');
+      if(!accounts?.[0]||network!==chain.id){if(v===version.current)invalidate('Reconnect your wallet to continue.');return;}
+      const a=assertAccount(await api('account',undefined,undefined,accounts[0]),accounts[0]);
+      const current=await provider.request({method:'eth_accounts'}),currentChain=chainId(await provider.request({method:'eth_chainId'}));
       if(v!==version.current)return;
-      if(network!==chain.id||accounts?.[0]?.toLowerCase()!==a.wallet.toLowerCase()){invalidate('Reconnect your wallet to continue.');return;}
-      setWallet({provider,address:accounts[0],kind:'metamask'});setAccount(a);setModal(null);
-    }catch{/* A missing/expired session needs a fresh user-approved signature. */}})();
+      if(current?.[0]?.toLowerCase()!==accounts[0].toLowerCase()||currentChain!==chain.id){invalidate('Reconnect your wallet to continue.');return;}
+      setWallet({provider,address:accounts[0],kind:'metamask'});setAccount(a);setOnline(true);setPhase('AUTHENTICATED');setModal(null);
+    }catch(e){if(v===version.current)invalidate(e.status===401?'Session expired. Reconnect your wallet.':'Reconnect your wallet to continue.');}})();
   },[provider,invalidate]);
 
   useEffect(()=>{
     if(!wallet||!account)return;
     let stop=false,timer;const v=version.current;
     async function refresh(){try{
-      const a=await api('account');
+      const a=assertAccount(await api('account',undefined,undefined,wallet.address),wallet.address);
       if(!stop&&v===version.current){setAccount(a);setOnline(true);}
-    }catch(e){if(!stop){setOnline(false);if(e.status===401)invalidate('Session expired. Reconnect your wallet.');}}
+    }catch(e){if(!stop){setOnline(false);if(e.status===401||e.status===403)invalidate('Session changed or expired. Reconnect your wallet.');}}
       if(!stop)timer=setTimeout(refresh,1000);
     }
     refresh();return()=>{stop=true;clearTimeout(timer);};
@@ -106,47 +116,45 @@ function App(){
   },[wallet]);
 
   useEffect(()=>{
+    if(!account||!wallet)return;
     let stop=false,socket,retry,attempt=0;
     const open=()=>{if(stop)return;socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/api/paper/stream`);
       socket.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.mode!=='PAPER'||m.liveEnabled)throw Error();setMarket(m);received.current=Date.now();attempt=0;}catch{setMarket(null);socket.close();}};
       socket.onerror=()=>socket.close();socket.onclose=()=>{if(!stop){received.current=0;retry=setTimeout(open,Math.min(15000,1000*2**attempt++));}};};
     open();const timer=setInterval(()=>setNow(Date.now()),1000);
-    return()=>{stop=true;clearTimeout(retry);clearInterval(timer);socket?.close();};
-  },[]);
+    return()=>{stop=true;clearTimeout(retry);clearInterval(timer);socket?.close();received.current=0;setMarket(null);};
+  },[Boolean(account&&wallet)]);
 
-  async function connect(selected,kind,address){
-    if(locked.current)return;locked.current=true;setBusy(true);setMessage('');const v=++version.current;
+  useEffect(()=>{if(phase==='AUTHENTICATED')setPhase('DASHBOARD');},[phase]);
+
+  async function connect(selected,kind='metamask'){
+    if(locked.current||loggingOut)return;locked.current=true;setBusy(true);setAccount(null);setWallet(null);setMessage('');setPhase('CONNECTING');const v=++version.current;
     try{
+      if(!await logoutTask.current && !await endSession(logoutWallet.current))throw new Error('Retry disconnect before reconnecting.');
       if(!selected?.request)throw new Error('Open Vela in MetaMask’s browser or install the official MetaMask extension.');
-      const accounts=address?[address]:await selected.request({method:'eth_requestAccounts'});
+      const accounts=await selected.request({method:'eth_requestAccounts'});
       await switchNetwork(selected);
       if(v!==version.current)return;
-      setWallet({provider:selected,address:accounts[0],kind});
-      const a=await authenticate(selected,accounts[0],()=>v===version.current&&mounted.current);
-      if(v===version.current){setAccount(a);setOnline(true);setModal(null);remember(kind);setTab('dashboard');}
-    }catch(e){if(v===version.current){setWallet(null);setMessage(Number(e.code)===4001?'Cancelled in your wallet. You can try again.':e.message);}}
+      const a=await authenticate(selected,accounts[0],()=>v===version.current&&mounted.current,next=>{if(v===version.current)setPhase(next);});
+      if(v===version.current){setWallet({provider:selected,address:accounts[0],kind});setAccount(a);setOnline(true);setPhase('AUTHENTICATED');setModal(null);remember(kind);setTab('dashboard');}
+    }catch(e){if(v===version.current){setAccount(null);setWallet(null);setOnline(false);setPhase('DISCONNECTED');setMessage(Number(e.code)===4001?'Cancelled in your wallet. You can try again.':e.message);}}
     finally{locked.current=false;if(mounted.current)setBusy(false);}
   }
   async function act(path,body={},close=false){
-    if(locked.current)return false;locked.current=true;setBusy(true);setMessage('');const v=version.current;
+    if(locked.current||!wallet||!account)return false;locked.current=true;setBusy(true);setMessage('');const v=version.current;
     try{
-      await api(path,body);const a=await api('account');
+      await api(path,body,undefined,wallet.address);const a=assertAccount(await api('account',undefined,undefined,wallet.address),wallet.address);
       if(v===version.current){setAccount(a);setOnline(true);if(close)setModal(null);}return true;
-    }catch(e){if(v===version.current){setMessage(e.message);if(e.status===401)invalidate('Session expired. Reconnect your wallet.');}return false;}
+    }catch(e){if(v===version.current){setMessage(e.message);if(e.status===401||e.status===403)invalidate('Session changed or expired. Reconnect your wallet.');}return false;}
     finally{locked.current=false;if(mounted.current)setBusy(false);}
   }
   async function disconnect(){
-    if(locked.current)return;
-    locked.current=true;setBusy(true);setMessage('');
+    if(locked.current)return;locked.current=true;setBusy(true);
     const selected=wallet;
-    try {
-      await api('auth/logout',{});
-      version.current++;setAccount(null);setWallet(null);setBalance(null);setModal('wallet');
-      try{localStorage.removeItem('vela.portal.wallet');}catch{}
-      if(selected?.kind==='mydoge')try{await dogeConnection?.disconnect?.();}catch{}
-      else try{await selected?.provider.request({method:'wallet_revokePermissions',params:[{eth_accounts:{}}]});}catch{}
-    } catch(e){setMessage('Could not disconnect the server session. Please retry.');}
-    finally{locked.current=false;setBusy(false);}
+    try{
+      if(await invalidate('Disconnecting your wallet…'))setMessage('Wallet disconnected. New AI entries are paused.');
+      try{await selected?.provider.request({method:'wallet_revokePermissions',params:[{eth_accounts:{}}]});}catch{}
+    }finally{locked.current=false;if(mounted.current)setBusy(false);}
   }
 
   const active=Boolean(account?.preferences?.autonomous);
@@ -157,10 +165,27 @@ function App(){
   const explanation=decision?.answer?.reason||decision?.answer?.summary||decision?.answer?.action||decision?.answer?.verdict;
   const openPositions=account?.positions||[];
 
+  // Never mount navigation, balances, funding dialogs or trading controls until
+  // both the signed session and the selected provider account have been checked.
+  if(!wallet||!account||!['AUTHENTICATED','DASHBOARD'].includes(phase)||account.wallet.toLowerCase()!==wallet.address.toLowerCase())return <>
+    <header className="portal-header"><a className="brand" href="/" aria-label="Vela home">vela<span className="brand-period">.</span></a><a className="portal-subtle" href="/">Back to Vela ↗</a></header>
+    <main className="portal-onboarding" data-auth-state={phase}><section className="portal-connect-card" aria-labelledby="welcome-title">
+      <span className="portal-star" aria-hidden="true">✳</span><h1 id="welcome-title">Welcome to Vela</h1>
+      <p>Connect your wallet to access your AI trading dashboard.</p>
+      <div className="portal-wallet-options"><button disabled={busy||loggingOut} onClick={()=>connect(provider)} aria-label="Connect MetaMask"><span className="wallet-glyph">◈</span><span><strong>MetaMask</strong><small>Desktop &amp; compatible mobile browsers</small></span><span>Connect ↗</span></button>
+        <button disabled><span className="wallet-glyph doge">Ð</span><span><strong>DogeOS / MyDoge</strong><small>Coming Soon — Mobile Only</small></span><span>◷</span></button></div>
+      {!provider&&<a className="portal-subtle" href={isMobile?`https://link.metamask.io/dapp/${location.host}/trade`:'https://metamask.io/download/'} target="_blank" rel="noopener noreferrer">{isMobile?'Open in MetaMask':'Get MetaMask'} ↗</a>}
+      {(busy||loggingOut)&&<p role="status">{loggingOut?'Disconnecting your session…':phase==='SIGNING'?'Sign the authentication message in MetaMask…':'Approve the connection in MetaMask…'}</p>}
+      {message&&<p role="alert" className="portal-error">{message}</p>}
+      {message.includes('disconnect could not be confirmed')&&<button className="portal-subtle" disabled={loggingOut} onClick={async()=>{if(await endSession(logoutWallet.current))setMessage('Wallet disconnected. Connect to continue.');}}>Retry disconnect</button>}
+      <p className="portal-help">Sign a message to verify wallet ownership. No funds move.</p>
+      <footer className="portal-footer"><a href="https://lighter.xyz" target="_blank" rel="noopener noreferrer">Powered by Lighter</a></footer>
+    </section></main></>;
+
   return <><header className="portal-header"><a className="brand" href="/" aria-label="Vela home">vela<span className="brand-period">.</span></a><span className="portal-badge"><i/>DEMO MODE</span><button className="portal-wallet-button" onClick={()=>account?setTab('account'):setModal('wallet')}><span className={account?'connected-dot':''}/>{short(account?.wallet)}<span>↗</span></button></header>
     <div className="portal-layout"><nav className="portal-nav" aria-label="Trading navigation">{tabs.map(([key,icon,label])=><button key={key} aria-label={label} className={tab===key?'selected':''} aria-current={tab===key?'page':undefined} onClick={()=>{setTab(key);window.scrollTo({top:0,behavior:'instant'});}}><span>{icon}</span>{label}</button>)}<div className="portal-nav-note"><span>YOUR WALLET.<br/>YOUR AI TEAM.</span><p>More perspective.<br/>Less friction.</p></div></nav>
     <main className="portal-main" id="main"><div className="portal-page-title"><div><p className="eyebrow">YOUR NEXT CHAPTER</p><h1>{tab==='dashboard'?'Your trading home.':tabs.find(t=>t[0]===tab)?.[2]+'.'}</h1></div><span className={`portal-feed ${fresh?'positive':''}`}><i/>{fresh?'Markets live':'Markets reconnecting'}</span></div>
-    {!account?<section className="portal-welcome"><span className="portal-star">✳</span><h2>A little instinct.<br/><em>A team of intelligence.</em></h2><p>Connect your wallet. Add demo funds.<br/>Let Vela look for your next move.</p><button className="button button-gold" onClick={()=>setModal('wallet')}>Connect wallet <span>↗</span></button><small>Real markets. Simulated funds. No deposit required.</small></section>:<>
+    {<>
       {!online&&<div className="portal-notice" role="status">Account connection interrupted. Reconnecting…</div>}
       {account.fundingIncomplete&&<div className="portal-notice">Some funding intervals were not observed; P&amp;L excludes those intervals.</div>}
       {tab==='dashboard'&&<>
@@ -182,10 +207,6 @@ function App(){
     </>}
     {message&&!modal&&<div className="portal-notice" role="alert">{message}<button aria-label="Dismiss message" onClick={()=>setMessage('')}>×</button></div>}
     <footer className="portal-footer"><span>Vela · Real markets. Simulated funds.</span><a href="https://lighter.xyz" target="_blank" rel="noopener noreferrer">Powered by Lighter</a></footer></main></div>
-    {<Modal open={modal==='wallet'} title="Your wallet. Your Vela." onClose={()=>setModal(null)}><p className="portal-modal-intro">Connect to explore AI trading. Sign one message to verify ownership. No funds move.</p><div className="portal-wallet-options"><button disabled={busy} onClick={()=>connect(provider,'metamask')}><span className="wallet-glyph">◈</span><span><strong>MetaMask</strong><small>Desktop &amp; mobile</small></span><span>↗</span></button><button disabled={!isMobile||busy} onClick={()=>{setMydoge(true);setMessage('');}}><span className="wallet-glyph doge">Ð</span><span><strong>DogeOS / MyDoge</strong><small>Coming Soon — Mobile Only</small></span><span>{isMobile?'↗':'◷'}</span></button></div>
-      {!provider&&<a className="portal-subtle" href={isMobile?`https://link.metamask.io/dapp/${location.host}/trade`:'https://metamask.io/download/'} target="_blank" rel="noopener noreferrer">{isMobile?'Open in MetaMask':'Get MetaMask'} ↗</a>}
-      {mydoge&&isMobile&&<Suspense fallback={<p>Loading MyDoge…</p>}><MyDoge onProvider={onDoge} onDisconnect={onDogeDisconnect} onStart={onDogeStart} onFailure={onDogeFailure}/>{dogeConnection&&<button className="button button-gold" disabled={busy} onClick={()=>connect(dogeConnection.provider,'mydoge',dogeConnection.address)}>Verify wallet &amp; continue</button>}</Suspense>}
-      {busy&&<p role="status">Approve the request in your wallet…</p>}{message&&<p role="alert" className="portal-error">{message}</p>}<p className="portal-help">DogeOS Chikyū Testnet · Demo funds only</p>{isMobile&&<p className="portal-help">MyDoge mobile approval is not yet verified. Use MetaMask for the competition demo.</p>}</Modal>}
     {account&&['deposit','withdraw'].includes(modal)&&<Funding key={modal} kind={modal} account={account} busy={busy} message={message} act={act} onClose={()=>{setModal(null);setMessage('');}}/>}
     {account&&['reset','close-all'].includes(modal)&&<Modal title={modal==='reset'?'Reset your demo account?':'Close all positions?'} onClose={()=>setModal(null)}><p className="portal-modal-intro">{modal==='reset'?'This resets your simulated balance and performance. Stop trading and close all positions first. Your transfer audit remains available.':'Pause new entries and submit simulated market exits for every open position. Prices may change before the orders fill.'}</p><ConfirmButton kind={modal} busy={busy} act={act}/>{message&&<p className="portal-error" role="alert">{message}</p>}</Modal>}
   </>;
@@ -227,4 +248,5 @@ function OrderList({rows,act,busy}){return rows.length?<div className="portal-tr
 function MarketDetails({market}){const cfg=market?.config;const pct=v=>`${(Number(v||0)*100).toFixed(3)}%`;return <details className="portal-card portal-advanced"><summary>Market data &amp; execution assumptions <span>＋</span></summary><dl className="portal-details"><Row label="Maker / taker / Vela fee" value={`${pct(cfg?.makerFee)} / ${pct(cfg?.takerFee)} / ${pct(cfg?.platformFee)}`}/><Row label="Simulated latency" value={`${cfg?.latencyMs??300} ms`}/><Row label="Adverse slippage / extra half-spread" value={`${pct(cfg?.slippage)} / ${pct(cfg?.additionalHalfSpread)}`}/></dl><div className="portal-table-wrap"><table><thead><tr><th>Market</th><th>Best bid / size</th><th>Best ask / size</th><th>Hourly funding estimate</th></tr></thead><tbody>{(market?.markets||[]).map(m=><tr key={m.symbol}><td>{m.symbol}{!m.fresh?' · stale':''}</td><td>{usd(m.bids?.[0]?.[0],3)} / {num(m.bids?.[0]?.[1],5)}</td><td>{usd(m.asks?.[0]?.[0],3)} / {num(m.asks?.[0]?.[1],5)}</td><td>{pct(m.fundingRate)}</td></tr>)}</tbody></table></div><p className="portal-help">Simulation assumptions, not future live fee promises. Fills walk observed depth; maker queue priority and liquidation are approximations. Funding is prorated while data is fresh. No real trading or funding is enabled.</p></details>;}
 function ManualOrder({busy,ready,act,markets}){const [symbol,setSymbol]=useState('BTC/USD'),[side,setSide]=useState('long'),[type,setType]=useState('market'),[notional,setNotional]=useState('100'),[limit,setLimit]=useState(''),[leverage,setLeverage]=useState('2');return <details className="portal-card portal-advanced"><summary>Optional manual paper order <span>＋</span></summary><form onSubmit={e=>{e.preventDefault();act('orders',{clientId:id(),symbol,side,type,notional,leverage,stopBps:'50',targetBps:'75',...(type==='limit'?{limitPrice:limit}:{})});}}><div className="portal-form-grid"><label className="portal-field">Market<select aria-label="Market" value={symbol} onChange={e=>setSymbol(e.target.value)}>{['BTC','ETH','SOL'].map(s=><option key={s} value={s+'/USD'}>{s}</option>)}</select></label><label className="portal-field">Direction<select aria-label="Direction" value={side} onChange={e=>setSide(e.target.value)}><option value="long">Long</option><option value="short">Short</option></select></label><label className="portal-field">Order<select aria-label="Order" value={type} onChange={e=>setType(e.target.value)}><option value="market">Market</option><option value="limit">Limit</option></select></label><label className="portal-field">Notional · USD<input type="number" min="10" max="100000" value={notional} onChange={e=>setNotional(e.target.value)} required/></label><label className="portal-field">Leverage<select value={leverage} onChange={e=>setLeverage(e.target.value)}>{[1,2,3].map(n=><option key={n} value={n}>{n}×</option>)}</select></label>{type==='limit'&&<label className="portal-field">Limit price<input type="number" min="0.001" step={markets.find(m=>m.symbol===symbol)?.tick||'.001'} required value={limit} onChange={e=>setLimit(e.target.value)}/></label>}</div><p className="portal-help">0.5% stop / 0.75% target. Size may reduce to meet the fee-inclusive $2 risk ceiling.</p><button className="button button-outline" disabled={busy||!ready}>Place paper order ↗</button></form></details>;}
 class Boundary extends React.Component{state={error:false};static getDerivedStateFromError(){return {error:true};}render(){return this.state.error?<main className="portal-main"><h1>Let’s reconnect.</h1><p>Vela could not open this view.</p><a href="/trade">Reload Vela</a></main>:this.props.children;}}
-createRoot(document.getElementById('portal-root')).render(<Boundary><App/></Boundary>);
+const root=typeof document==='undefined'?null:document.getElementById('portal-root');
+if(root)createRoot(root).render(<Boundary><App/></Boundary>);

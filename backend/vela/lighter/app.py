@@ -188,6 +188,7 @@ def attach_lighter(app,settings=None,feed=None,model=None,start_background=True,
     def rt():return app.state.runtime
 
     def auth(token):
+        wallet_only()
         try:
             address=identity(token)
         except ValueError:
@@ -195,6 +196,12 @@ def attach_lighter(app,settings=None,feed=None,model=None,start_background=True,
         if not rt().db.execute("SELECT 1 FROM users WHERE address=?",(address,)).fetchone():
             raise HTTPException(401,"Create a paper session first")
         return address
+
+    def wallet_only():
+        # The old local engineering desk uses bearer capabilities and creates
+        # prefunded accounts. Public Vela uses signed wallets and zero balances.
+        if rt().portal.secure:
+            raise HTTPException(401,"Connect your wallet through /api/portal")
 
     def guard():
         if rt().error:
@@ -211,6 +218,7 @@ def attach_lighter(app,settings=None,feed=None,model=None,start_background=True,
 
     @app.post("/api/paper/session")
     async def session(x_vela_paper:str|None=Header(default=None)):
+        wallet_only()
         try:
             row=rt().adapter.account(x_vela_paper)
         except ValueError as exc:
