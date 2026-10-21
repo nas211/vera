@@ -1,0 +1,143 @@
+{
+  "verifiedAt": "2026-10-21T14:43:34.331727+00:00",
+  "preparedCode": true,
+  "productionDeployed": false,
+  "localPreview": "http://127.0.0.1:8791/trade",
+  "liveExecutionEnabled": false,
+  "realFundingEnabled": false,
+  "existingLiveProtectionChanged": false,
+  "verifiedLiveExchangeProtection": false,
+  "homepage": {
+    "unchangedExceptPrimaryCta": true,
+    "cta": "START TRADING \u2192 /trade",
+    "unchangedAssetHashes": {
+      "site/dist/styles.css": "a4428322925ef9315062fa9584bf48683e848654d656ae7ef700f32ea0aea0d8",
+      "site/dist/app.js": "ff79a5f5b63d208dec174987c463165ceaf90938371418fbcc97b8f0c7fa4093",
+      "site/dist/wallet.js": "21053448e58b507f21b32f4e05945c94338721f3edbab588d8523bf199365292"
+    },
+    "approvedCheckpointSha256": "49ed559a5a0520164ab6532ace45fc1b8af054786e9459a6f64bc046f0e00980",
+    "currentHtmlSha256": "b8bab29c1f2bcb5134be76661d628be385a795350882eba52692c5b73b761e77"
+  },
+  "backend": {
+    "passed": 119,
+    "warnings": 2,
+    "scope": "Full backend suite, including 34 portal regressions; chain tests use local Anvil 31337 only",
+    "warningsDetail": "Existing websockets and Starlette/httpx dependency deprecations"
+  },
+  "inheritedRiskExecution": {
+    "passed": 41,
+    "mode": "Offline mocked venues; all-account long/short fee-inclusive stops, partial exits and reconciliation"
+  },
+  "frontendBuild": "npm run build passed",
+  "browserFinal": {
+    "verifiedAt": "2026-10-21T14:41:21.979Z",
+    "wallet": "mock provider with real EIP-191 signatures",
+    "marketData": "live public Lighter",
+    "execution": "PAPER",
+    "realWalletApproval": false,
+    "productionDeployed": false,
+    "liveProtectionChanged": false,
+    "errors": [],
+    "widths": [
+      1440,
+      1024,
+      768,
+      390,
+      360
+    ],
+    "manualPositions": [
+      {
+        "symbol": "BTC/USD",
+        "side": "long",
+        "entry": "84069.2",
+        "stop": "83648.9",
+        "riskBudget": "2"
+      },
+      {
+        "symbol": "ETH/USD",
+        "side": "short",
+        "entry": "2474.89",
+        "stop": "2487.26",
+        "riskBudget": "2"
+      }
+    ],
+    "manualClosedFills": 3,
+    "manualPnl": "-0.06279124871446358526150958374",
+    "resultScope": "This isolated engineering account; partial exits count as closed fills. Not AI strategy performance.",
+    "walletMethods": [
+      "eth_requestAccounts",
+      "eth_chainId",
+      "wallet_switchEthereumChain",
+      "eth_accounts",
+      "eth_getBalance",
+      "personal_sign",
+      "wallet_revokePermissions"
+    ],
+    "positionsRemaining": 0,
+    "agentPaused": true,
+    "passed": true
+  },
+  "realModelIntegration": {
+    "model": "gpt-4.1-mini",
+    "livePublicData": true,
+    "wallet": "Mock MetaMask provider; actual backend verifies EIP-191 signature",
+    "decision": {
+      "at": 1792593303.1489203,
+      "session": "a164307990d04021a14d52d90d9f0b7b",
+      "phase": "direction",
+      "answer": {
+        "side": "long",
+        "action": "open",
+        "reason": "BTC/USD matches the strategy 'BTC rebound from mid-high range' conditions with negative 1-period return, strong positive 5 and 20-period returns, and a high range position above 0.6, indicating a potential short-term bounce."
+      }
+    },
+    "positions": [
+      {
+        "symbol": "BTC/USD",
+        "side": "long",
+        "qty": "0.00237",
+        "entry": "84116.9",
+        "stop": "83612.2",
+        "target": "85126.4",
+        "riskBudget": "2"
+      }
+    ],
+    "cleanup": {
+      "agentPaused": true,
+      "positionsRemaining": 0
+    },
+    "scope": "One isolated engineering account; genuine model decision and simulated fill, not a performance claim"
+  },
+  "mydoge": {
+    "passed": true,
+    "wallet": "Mock MyDoge SDK hooks, real EIP-191 signature verification",
+    "realMobileApproval": false,
+    "desktopAvailability": "Covered by portal.cjs",
+    "mobileRejectionRetry": true,
+    "accountChangeRevokesSession": true,
+    "nativeDoesNotRequireEmbeddedReadiness": true,
+    "errors": []
+  },
+  "landingRegression": "Passed responsive widths, navigation, tabs, chart, dialogs, reduced motion, zero production trading requests and zero JS errors",
+  "paperRegression": "Passed live feed, three markets, long/short, partial/full exits, limits/cancellation, persistence, P&L, reconnection and responsive checks; no wallet calls",
+  "runtimeHealth": {
+    "mode": "PAPER",
+    "liveEnabled": false,
+    "modelReady": true,
+    "marketData": true,
+    "engineReady": true,
+    "error": ""
+  },
+  "cleanup": {
+    "paperPositionsRemaining": 0,
+    "autonomousEngineeringAccounts": 0,
+    "chainOutboxRows": 0
+  },
+  "limitations": [
+    "Actual MyDoge mobile approval and actual MetaMask-extension approval unverified",
+    "Only local loopback preview; existing published site unchanged",
+    "Real funding/conversion/payout and LIVE adapter disabled",
+    "Funding, maker queue and liquidation are simulation approximations",
+    "Commercial authentication hardening, quotas, recovery, monitoring, backup and security/dependency review remain"
+  ]
+}

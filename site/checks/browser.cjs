@@ -29,8 +29,19 @@ fs.mkdirSync(artifacts, { recursive: true });
   assert.equal(await page.locator(".product-launchpad").count(),0);
   assert.equal(await page.locator(".feature-tab").count(),3);
   assert(await page.locator(".hero-actions").getByRole("link",{name:"Start earning"}).isVisible());
-  assert(!/paper trading/i.test(await page.locator("body").innerText()));
+  assert(await page.getByRole("link",{name:"START TRADING"}).isVisible());
+  assert.equal(await page.getByRole("link",{name:"Powered by Lighter"}).getAttribute("href"),"https://lighter.xyz");
   assert.equal(await page.locator('#nav-links a[href="/earn"]').count(),1);
+  assert.equal(await page.locator('#nav-links a').first().getAttribute('href'),'/trade');
+  const walletButtons=await page.locator('.wallet-open').count();
+  for(let i=0;i<walletButtons;i++){
+    await page.locator('.wallet-open').nth(i).click();
+    await page.waitForURL('**/trade');await page.getByRole('dialog').waitFor();
+    await page.goBack();await page.waitForURL(origin+'/');
+  }
+  await page.getByRole('link',{name:'Start earning',exact:true}).click();
+  await page.waitForURL('**/earn');assert.match(await page.title(),/Staking/);
+  await page.goBack();await page.waitForURL(origin+'/');
   await page.locator('[data-tab="earn"]').click();
   assert.equal(await page.locator("#panel-earn").isVisible(),true);
   await page.locator('[data-tab="trade"]').click();

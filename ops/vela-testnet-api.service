@@ -5,6 +5,13 @@ After=network-online.target
 [Service]
 WorkingDirectory=/root/Vera
 Environment=PYTHONPATH=/root/Vera/backend
+Environment=VELA_EXECUTION_MODE=PAPER
+Environment=VELA_CHAIN_WRITES=false
+Environment=VELA_PORTAL_ORIGIN=https://defivela.xyz
+# Existing dedicated Vela model settings; never load the testnet operator key here.
+EnvironmentFile=-/root/Vera/.runtime/lighter-showcase/model.env
+# Owner-only file containing VELA_SITE_PROXY_TOKEN, matching the Sites secret.
+EnvironmentFile=-/root/Vera/.runtime/lighter-showcase/site-proxy.env
 ExecStart=/root/Vera/.venv/bin/uvicorn vela.api:app --host 127.0.0.1 --port 8787
 Restart=on-failure
 RestartSec=5

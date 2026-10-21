@@ -1,0 +1,125 @@
+{
+  "preparedCode": true,
+  "build": "PASS: npm run build --prefix site",
+  "applicationRecreated": false,
+  "apkBuilt": false,
+  "deploymentPerformed": false,
+  "liveTradingEnabled": false,
+  "liveProtectionChanged": false,
+  "verifiedLiveProtection": false,
+  "changedFiles": [
+    "site/src/portal-mydoge.jsx",
+    "site/src/portal-entry.jsx",
+    "site/checks/browser.cjs",
+    "site/checks/wallet.cjs",
+    "site/checks/earn.cjs",
+    "site/checks/portal.cjs",
+    "site/dist/portal.css",
+    "site/dist/wallet.js",
+    "site/dist/index.html",
+    "site/dist/earn.html",
+    "docs/COMPETITION-PORTAL.md",
+    "backend/tests/test_portal.py",
+    "site/dist/assets/portal-portal-mydoge-KUSFC527.js",
+    "site/dist/assets/portal-portal-mydoge-KUSFC527.js.LEGAL.txt",
+    "site/dist/assets/portal.js",
+    "backend/vela/lighter/app.py",
+    "README.md"
+  ],
+  "removedGeneratedFiles": [
+    "site/dist/assets/portal-portal-mydoge-TA52KTCB.js.LEGAL.txt",
+    "site/dist/assets/portal-portal-mydoge-TA52KTCB.js"
+  ],
+  "unchangedCoreFiles": [
+    "backend/vela/agents.py",
+    "backend/vela/lighter/engine.py",
+    "backend/vela/lighter/feed.py",
+    "backend/vela/lighter/monitor.py",
+    "backend/vela/lighter/config.py",
+    "backend/vela/portal.py",
+    "site/src/portal-wallet.js",
+    "site/dist/styles.css",
+    "site/dist/app.js"
+  ],
+  "checks": {
+    "javascriptSyntax": "PASS",
+    "pythonSyntax": "PASS",
+    "diffWhitespace": "PASS",
+    "routeHandlers": {
+      "scope": "Direct route handlers and target files; no HTTP listener or browser",
+      "passed": true,
+      "routes": [
+        {
+          "path": "/trade",
+          "status": 200,
+          "file": "/root/Vera/site/dist/portal.html"
+        },
+        {
+          "path": "/earn",
+          "status": 200,
+          "file": "/root/Vera/site/dist/earn.html"
+        },
+        {
+          "path": "/earn/",
+          "status": 307,
+          "location": "/earn"
+        },
+        {
+          "path": "/mydoge.html",
+          "status": 307,
+          "location": "/trade"
+        }
+      ]
+    },
+    "offlineBackend": {
+      "passed": 77,
+      "deselected": 5,
+      "warnings": 2,
+      "log": ".runtime/ui-final-20261021/offline-backend-tests.log"
+    },
+    "inheritedExecution": {
+      "passed": 41,
+      "failed": 0,
+      "log": ".runtime/ui-final-20261021/execution-tests.log"
+    },
+    "fullBackendAttempt": {
+      "completed": false,
+      "localChainFailures": 2,
+      "remaining": "Timed out at TestClient API setup; no local Anvil listener",
+      "log": ".runtime/ui-final-20261021/backend-tests.log"
+    },
+    "portalApiAttempt": {
+      "passed": 0,
+      "completed": false,
+      "reason": "TestClient startup stalled before requests; interrupted after diagnostic stack capture",
+      "log": ".runtime/ui-final-20261021/portal-tests.log"
+    },
+    "browser": {
+      "status": "NOT VERIFIED",
+      "reason": "Chrome launch fails: setsockopt Operation not permitted; localhost binding also denied",
+      "log": ".runtime/ui-final-20261021/browser.log"
+    },
+    "genuineMetaMask": "NOT VERIFIED",
+    "genuineMyDoge": "NOT VERIFIED",
+    "freshLiveLighterAndModelIntegration": "NOT VERIFIED; core unchanged, deterministic AI/feed tests passed",
+    "screenshotComparison": "NOT VERIFIED: no new screenshots. Existing homepage CSS and animation script unchanged; layout markup retained with corrected demo copy.",
+    "whyReferenceMatch": "NOT VERIFIED: original reference screenshots unavailable"
+  },
+  "progress": {
+    "implementationAddressed": 27,
+    "acceptanceChecks": 30,
+    "preparedPercent": 90,
+    "priorEvidenceSupported": 23,
+    "priorEvidencePercent": 76.7,
+    "freshBrowserAcceptancePercent": null,
+    "note": "Prepared percentage describes code coverage only; changed UI checks require browser validation. Prior 23/30 evidence is historical and does not certify the new bundle."
+  },
+  "competitionReady": false,
+  "blockers": [
+    "Fresh desktop/mobile browser run, including modal geometry and Back/Forward",
+    "Genuine MetaMask wallet approval and account/network/session tests",
+    "WHY screenshot comparison",
+    "API TestClient and local Anvil checks in a permitted environment"
+  ],
+  "validationReport": "snapshot/ui-final-validation.json"
+}

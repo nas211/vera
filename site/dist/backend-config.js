@@ -1,2 +1,2 @@
-// Same-origin API by default. Deployment can set a dedicated HTTPS public API origin.
-window.VELA_BACKEND_URL = "https://plot-adds-vertical-workforce.trycloudflare.com";
+// All browser API traffic stays on defivela.xyz; its existing Sites edge forwards it.
+window.VELA_BACKEND_URL = "";

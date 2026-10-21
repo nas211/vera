@@ -1,0 +1,292 @@
+{
+  "verifiedAt": "2026-10-21T13:43:37.179310+00:00",
+  "preparedCode": true,
+  "productionDeployed": false,
+  "runtime": "Local loopback paper showcase at http://127.0.0.1:8790/paper",
+  "liveTradingEnabled": false,
+  "existingLiveProtectionChanged": false,
+  "modelVerification": "Actual gpt-4.1-mini: ETH and SOL research/review/direction approved, paper positions opened and closed; BTC research abstained. Deterministic full-pipeline fixture also passed.",
+  "publicData": "Verified real REST metadata and candles plus sequenced WebSocket depth, prices and funding for BTC/ETH/SOL",
+  "browser": {
+    "verifiedAt": "2026-10-21T13:39:50.307Z",
+    "livePublicMarketData": true,
+    "realModel": false,
+    "execution": "PAPER",
+    "trades": 4,
+    "scope": "One isolated engineering browser session; closed fills include one partial exit",
+    "pnl": "-0.134454",
+    "entries": [
+      {
+        "symbol": "BTC",
+        "side": "long",
+        "qty": "0.00119",
+        "entry": "83563.2",
+        "stop": "83145.4"
+      },
+      {
+        "symbol": "ETH",
+        "side": "short",
+        "qty": "0.0405",
+        "entry": "2467.37",
+        "stop": "2479.70"
+      },
+      {
+        "symbol": "SOL",
+        "side": "long",
+        "qty": "0.937",
+        "entry": "106.749",
+        "stop": "106.216"
+      }
+    ],
+    "positionsRemaining": 0,
+    "walletRequests": 0,
+    "errors": [],
+    "widths": [
+      1440,
+      1024,
+      768,
+      390,
+      360
+    ]
+  },
+  "runtimeStopChecks": {
+    "execution": "PAPER",
+    "livePublicData": true,
+    "realModel": false,
+    "scope": "Two explicit engineering stop checks, one long and one short; not AI strategy performance",
+    "checks": [
+      {
+        "side": "long",
+        "reason": "stop",
+        "pnl": "-0.03212993024951330726822156731",
+        "entry": "83757.6",
+        "exit": "83730.6",
+        "simulated": true
+      },
+      {
+        "side": "short",
+        "reason": "stop",
+        "pnl": "-0.04486305810625136438435945471",
+        "entry": "83727.6",
+        "exit": "83765.3",
+        "simulated": true
+      }
+    ]
+  },
+  "landingRegression": "Passed six responsive widths, tabs, chart, stop previews, staking/lending boundaries, dialogs, keyboard, reduced motion and no production trading requests",
+  "noSecretsOrWalletCalls": true,
+  "chainOutboxEntries": 0,
+  "simulatedPositionsRemainingAfterChecks": 0,
+  "limitations": [
+    "No production deployment",
+    "Funding is a prorated estimate with unobserved intervals flagged",
+    "Maker queue and liquidation are approximations"
+  ],
+  "backendTests": {
+    "passed": 85,
+    "warnings": 2,
+    "scope": "Full backend suite including 46 paper integration tests; local Anvil regression uses chain 31337 only",
+    "warningsDetail": "Existing websockets and Starlette/httpx dependency deprecations"
+  },
+  "frontendBuild": "npm run build passed; original wallet bundle preserved and separate paper bundle built",
+  "realModelChecks": [
+    {
+      "verifiedAt": "2026-10-21T13:39:11.838Z",
+      "execution": "PAPER",
+      "liveTradingEnabled": false,
+      "livePublicMarketData": true,
+      "realModel": "gpt-4.1-mini",
+      "symbol": "BTC",
+      "outcome": "Research abstained",
+      "decisions": [
+        {
+          "at": 1792589942.600352,
+          "phase": "research",
+          "answer": {
+            "strategies": [],
+            "reason": "Market data indicates a short-term negative return with low range position and moderate volatility. No clear long or short swing entry signals meet the criteria for strategy conditions; thus, no active strategies are proposed."
+          }
+        }
+      ],
+      "positions": [],
+      "scope": "One fresh engineering account with actual model decisions and live public data; not a strategy performance claim",
+      "errors": [],
+      "agentPaused": true,
+      "positionsRemaining": 0,
+      "closedFills": 0
+    },
+    {
+      "verifiedAt": "2026-10-21T13:39:52.571Z",
+      "execution": "PAPER",
+      "liveTradingEnabled": false,
+      "livePublicMarketData": true,
+      "realModel": "gpt-4.1-mini",
+      "symbol": "ETH",
+      "outcome": "AI-approved paper position opened",
+      "decisions": [
+        {
+          "at": 1792589974.2805436,
+          "phase": "research",
+          "answer": {
+            "strategies": [
+              {
+                "name": "Long recovery on low range bounce",
+                "thesis": "Price oversold and near the bottom of recent range with low volatility suggests a potential rebound",
+                "market": "ETH/USD",
+                "mode": "swing",
+                "side": "long",
+                "match": "all",
+                "conditions": [
+                  {
+                    "feature": "return_1",
+                    "op": "lt",
+                    "value": -40
+                  },
+                  {
+                    "feature": "range_position",
+                    "op": "lt",
+                    "value": 0.1
+                  },
+                  {
+                    "feature": "volatility",
+                    "op": "lt",
+                    "value": 25
+                  }
+                ],
+                "stop_bps": 80,
+                "target_bps": 160,
+                "max_hold_seconds": 14400,
+                "entry": "taker",
+                "breakeven_bps": 0,
+                "trail_bps": 0
+              }
+            ],
+            "reason": "ETH/USD is strongly down in short term and close to 100-minute low range with moderate volatility, suggesting potential swing long recovery opportunity."
+          }
+        },
+        {
+          "at": 1792589980.4467518,
+          "phase": "review",
+          "answer": {
+            "verdict": "confirm",
+            "reason": "All strategy conditions are met: recent 1-period return is below -40 bps, the price is near the bottom of the range (range_position < 0.1), and volatility is low (< 25). This supports the thesis of a potential rebound from an oversold, low-volatility bottom range. Parameters are within acceptable swing mode ranges.",
+            "sentiment": 0.7
+          }
+        },
+        {
+          "at": 1792589986.6118486,
+          "phase": "direction",
+          "answer": {
+            "side": "long",
+            "action": "open",
+            "reason": "Price is oversold with return_1 below -40 bps, range_position near bottom below 0.1, and volatility low under 25, indicating a potential rebound consistent with the 'Long recovery on low range bounce' strategy."
+          }
+        }
+      ],
+      "positions": [
+        {
+          "symbol": "ETH/USD",
+          "side": "long",
+          "qty": "0.0809",
+          "entry": "2470.71",
+          "stop": "2450.95",
+          "target": "2510.25",
+          "riskBudget": "2"
+        }
+      ],
+      "scope": "One fresh engineering account with actual model decisions and live public data; not a strategy performance claim",
+      "errors": [],
+      "agentPaused": true,
+      "positionsRemaining": 0,
+      "closedFills": 1
+    },
+    {
+      "verifiedAt": "2026-10-21T13:43:10.758Z",
+      "execution": "PAPER",
+      "liveTradingEnabled": false,
+      "livePublicMarketData": true,
+      "realModel": "gpt-4.1-mini",
+      "symbol": "SOL",
+      "outcome": "AI-approved paper position opened",
+      "decisions": [
+        {
+          "at": 1792590173.1520722,
+          "phase": "research",
+          "answer": {
+            "strategies": [
+              {
+                "name": "SOL/USD Mean Reversion Long",
+                "thesis": "Recent short-term dip with longer-term positive momentum suggests a bounce back opportunity.",
+                "market": "SOL/USD",
+                "mode": "swing",
+                "side": "long",
+                "match": "all",
+                "conditions": [
+                  {
+                    "feature": "return_5",
+                    "op": "lt",
+                    "value": -40
+                  },
+                  {
+                    "feature": "return_20",
+                    "op": "gt",
+                    "value": 0
+                  },
+                  {
+                    "feature": "range_position",
+                    "op": "lt",
+                    "value": 0.5
+                  }
+                ],
+                "stop_bps": 80,
+                "target_bps": 140,
+                "max_hold_seconds": 14400,
+                "entry": "taker",
+                "breakeven_bps": 0,
+                "trail_bps": 0
+              }
+            ],
+            "reason": "The market shows a strong short-term negative return (return_5 <-40bps) combined with a positive longer-term return (return_20 > 0) and the last close range position is below midpoint, indicating a potential mean reversion long opportunity. Conditions fit a swing trading style with reasonable stop and target levels."
+          }
+        },
+        {
+          "at": 1792590179.2294593,
+          "phase": "review",
+          "answer": {
+            "verdict": "confirm",
+            "reason": "Current market data matches all strategy conditions with a significant 5-minute dip, positive 20-minute return, and a mid-range position below 0.5, supporting the mean reversion thesis for a long position.",
+            "sentiment": 0.7
+          }
+        },
+        {
+          "at": 1792590184.5343165,
+          "phase": "direction",
+          "answer": {
+            "side": "long",
+            "action": "open",
+            "reason": "Return_5 is below -40bps indicating a short-term dip, return_20 is positive showing longer-term momentum, and range_position is below 0.5 suggesting price is in lower half of range; conditions met for mean reversion long with defined stop and target."
+          }
+        }
+      ],
+      "positions": [
+        {
+          "symbol": "SOL/USD",
+          "side": "long",
+          "qty": "1.878",
+          "entry": "106.521",
+          "stop": "105.669",
+          "target": "108.013",
+          "riskBudget": "2"
+        }
+      ],
+      "scope": "One fresh engineering account with actual model decisions and live public data; not a strategy performance claim",
+      "errors": [],
+      "agentPaused": true,
+      "positionsRemaining": 0,
+      "closedFills": 1
+    }
+  ],
+  "privateConfiguration": "User-supplied dedicated development model key in ignored owner-only runtime file; no credential values in source, browser, logs or this report",
+  "pendingOrdersAfterChecks": 0,
+  "autonomousTestAgentsRemaining": 0
+}

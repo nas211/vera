@@ -1,0 +1,64 @@
+{
+  "verifiedAt": "2026-10-21 14:59:17 UTC",
+  "reason": "Rebuilt and revalidated the saved Vela competition portal after connection loss.",
+  "preparedCode": true,
+  "applicationCodeChangedDuringResume": false,
+  "localPreview": "http://127.0.0.1:8791/trade",
+  "productionDeployed": false,
+  "liveExecutionEnabled": false,
+  "realFundingEnabled": false,
+  "existingLiveProtectionChanged": false,
+  "verifiedLiveExchangeProtection": false,
+  "frontendBuild": {
+    "command": "npm run build --prefix site",
+    "passed": true
+  },
+  "backend": {
+    "command": ".venv/bin/pytest backend/tests -q",
+    "passed": 119,
+    "warnings": 2,
+    "seconds": 174.49,
+    "scope": "Full backend suite; EVM integration restricted to loopback Anvil chain 31337."
+  },
+  "risk": {
+    "command": "python3 tools/check_execution.py",
+    "passed": 41,
+    "scope": "Offline mocked venues; long/short, fees, inward rounding, partial exits and existing-position reconciliation."
+  },
+  "browser": {
+    "portal": "passed",
+    "mydogeHooks": "passed",
+    "homepage": "passed",
+    "marketData": "live public Lighter",
+    "wallets": "Mock providers and SDK hooks with genuine EIP-191 signatures",
+    "actualWalletApprovalVerified": false,
+    "artifacts": ".runtime/resume-checks/"
+  },
+  "homepage": {
+    "matchesSavedCompletedBuild": true,
+    "approvedAssetHashesUnchanged": true
+  },
+  "model": {
+    "configured": true,
+    "realModelRecheckedDuringResume": false,
+    "priorIntegrationEvidence": "snapshot/competition-validation.json"
+  },
+  "cleanup": {
+    "paperPositionsRemaining": 0,
+    "pendingPaperOrders": 0,
+    "chainOutboxRows": 0
+  },
+  "runtimeHealth": {
+    "mode": "PAPER",
+    "liveEnabled": false,
+    "modelReady": true,
+    "marketData": true,
+    "engineReady": true,
+    "error": ""
+  },
+  "limitations": [
+    "Loopback preview only; published site was not updated.",
+    "Actual MetaMask-extension and MyDoge mobile approvals remain unverified.",
+    "No real funds, live exchange orders or verified live exchange stops."
+  ]
+}

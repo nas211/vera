@@ -157,12 +157,12 @@ def test_no_fake_agent_signals_without_warmup_or_model(setup_db, monkeypatch):
     assert not bars_for(db, "DOGE/USD", time.time())
 
 
-def test_api_scope_and_no_write_endpoints(setup_db):
+def test_api_scope_and_no_write_endpoints(setup_db,api_factory):
     db, s, u = setup_db
     a = PaperAdapter(db, s)
     p = a.open(u, sig())
     a.close(p["id"], "test")
-    with TestClient(create_app(s)) as client:
+    with TestClient(api_factory(s)) as client:
         assert client.get("/health").json()["mode"] == "testnet-paper"
         response = client.get("/api/users/" + u).json()
         assert response["scope"] == "current session"
@@ -176,20 +176,20 @@ def test_api_scope_and_no_write_endpoints(setup_db):
         assert client.get("/.env").status_code == 404
 
 
-def test_engineering_trade_not_reported_as_strategy_performance(setup_db):
+def test_engineering_trade_not_reported_as_strategy_performance(setup_db,api_factory):
     db, s, u = setup_db
     a = PaperAdapter(db, s)
     p = a.open(u, sig())
     a.close(p["id"], "engineering_smoke")
-    with TestClient(create_app(s)) as client:
+    with TestClient(api_factory(s)) as client:
         assert client.get("/api/leaderboard").json()["rows"] == []
         assert len(client.get("/api/users/" + u).json()["trades"]) == 1
 
 
-def test_ai_availability_comes_from_worker_not_api_credentials(setup_db):
+def test_ai_availability_comes_from_worker_not_api_credentials(setup_db,api_factory):
     from vela.db import put
     db, s, _ = setup_db
-    with TestClient(create_app(s)) as client:
+    with TestClient(api_factory(s)) as client:
         assert len(client.get("/api/strategies").json()) == 1
         assert not client.get("/api/strategies").json()[0]["available"]
         assert not client.get("/api/strategies").json()[0]["modelReady"]

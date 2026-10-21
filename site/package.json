@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-wallet.mjs"
+    "build": "node scripts/build-wallet.mjs && node scripts/build-sites.mjs",
+    "test:edge": "node --test checks/edge.test.mjs"
   },
   "dependencies": {
     "@dogeos/dogeos-sdk": "4.0.4",

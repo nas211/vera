@@ -50,12 +50,13 @@ class VelaModel(model_module.Model):
             "is the last close's position in the 100-minute range. Missing features cannot be used. "
             "Propose at most 3 strategies, each with 1-8 conditions. Mode swing, stop 40-120 basis points, "
             "target 60-180 basis points and at least 1.5 times stop, hold 7200-21600 seconds. "
-            "Vela fills at mid plus/minus slippage, defaults 2bp, and charges 5bp per side. Funding is ignored. "
+            + getattr(self, "execution_policy", "Vela fills at mid plus/minus slippage, defaults 2bp, and charges 5bp per side. Funding is ignored. ") +
             "Use entry taker, breakeven_bps 0 and trail_bps 0; other execution styles are not implemented. "
             "The separate risk engine caps leverage at 3x and stop-trigger loss including fees at $2 or less; "
             "this does not guarantee a realized loss cap under slippage. Never override those limits. "
             "Research may return an empty strategy list. Review must delay/veto and direction must hold/flat "
             "when evidence is absent, stale or ambiguous. No tools, executable code or account access. "
+            "When evidence includes an existing position, evaluate only hold or exit; never flip or increase exposure. "
             "Give a concise decision explanation without hidden reasoning. Do not promise returns."
         )
         messages = [dict(role="system", content=policy),
@@ -120,8 +121,11 @@ def features(bars):
 
 
 class Agents:
-    def __init__(self, db, model=None):
+    def __init__(self, db, model=None, eligible=None, markets=None, entry_gate=None, revision=None):
         self.db, self.model = db, model or VelaModel()
+        self.eligible, self.markets = eligible, markets
+        self.entry_gate = entry_gate
+        self.revision = revision
 
     def signal_candidates(self, now):
         """Existing signal families are inputs to one portfolio, not products."""
@@ -151,6 +155,8 @@ class Agents:
         candidate = get(self.db, "ai-approved:" + user["address"])
         if not candidate or candidate.get("session") != user["session"] or now - candidate["at"] > 300:
             return None
+        if self.revision and candidate.get("revision") != self.revision(user):
+            return None
         spec = candidate["spec"]
         bars = bars_for(self.db, spec["market"], now)
         if not bars or not rules.triggered(spec, features(bars)):
@@ -167,20 +173,28 @@ class Agents:
         if now - get(self.db, "ai-last-call", 0) < 5:
             return
         for user in self.db.execute("SELECT * FROM users WHERE status='active' AND strategy IN (1,2,3)"):
+            if self.eligible is not None and not self.eligible(user):
+                continue
             key = "ai-stage:" + user["address"]
             stage = get(self.db, key, {})
             if now - stage.get("at", 0) > 300 or stage.get("session") != user["session"]:
+                stage = {}
+            if self.revision and stage.get("revision") != self.revision(user):
                 stage = {}
             if self.db.execute("SELECT 1 FROM positions WHERE user=?", (user["address"],)).fetchone():
                 continue
             if not stage and now - get(self.db, "ai-last-research:" + user["address"], 0) < 180:
                 continue
             try:
+                revision = self.revision(user) if self.revision else None
+                def still_current():
+                    return self.revision is None or (self.revision(user) == revision and
+                        (self.eligible is None or self.eligible(user)))
                 from .prices import SYMBOLS, entries_allowed
                 evidence = {}
-                for symbol in SYMBOLS:
+                for symbol in (self.markets(user) if self.markets else SYMBOLS):
                     bars = bars_for(self.db, symbol, now)
-                    if bars and entries_allowed(self.db, symbol):
+                    if bars and (self.entry_gate(self.db, symbol) if self.entry_gate else entries_allowed(self.db, symbol)):
                         evidence[symbol] = features(bars)
                 if not evidence:
                     return
@@ -191,22 +205,29 @@ class Agents:
                 put(self.db,"ai-calls",calls)
                 put(self.db, "ai-last-call", now)
                 if not stage:
+                    candidates = self.signal_candidates(now)
+                    if self.markets:
+                        candidates = [s for s in candidates if s["symbol"] in evidence]
                     answer = self.model.ask("research", dict(markets=evidence,
-                        candidate_signals=self.signal_candidates(now), mode="Vela testnet paper only"), model_module.RESEARCH)
+                        candidate_signals=candidates,
+                        mode="Vela paper only" if self.markets else "Vela testnet paper only"), model_module.RESEARCH)
+                    if not still_current(): return
                     specs = [rules.validate(s, evidence) for s in answer["strategies"][:3]]
                     specs = [s for s in specs if all(c["feature"] in evidence[s["market"]] for c in s["conditions"])]
                     put(self.db, "ai-last-research:" + user["address"], now)
                     if specs:
-                        put(self.db, key, dict(at=now, session=user["session"], phase="review", spec=specs[0]))
+                        put(self.db, key, dict(at=now, session=user["session"], phase="review", spec=specs[0],revision=revision))
                 elif stage["phase"] == "review":
                     spec = stage["spec"]
                     answer = self.model.ask("review", dict(strategy=spec, markets=evidence), model_module.ASSESSMENT)
+                    if not still_current(): return
                     put(self.db, key, dict(stage, phase="direction") if answer["verdict"] == "confirm" else {})
                 else:
                     spec = stage["spec"]
                     answer = self.model.ask("direction", dict(strategy=spec, markets=evidence), model_module.DIRECTION)
+                    if not still_current(): return
                     if answer["action"] == "open" and answer["side"] == spec["side"]:
-                        put(self.db, "ai-approved:" + user["address"], dict(at=now, session=user["session"], spec=spec))
+                        put(self.db, "ai-approved:" + user["address"], dict(at=now, session=user["session"], spec=spec,revision=revision))
                     put(self.db, key, {})
                 put(self.db, "ai-connection", dict(ok=True,at=now,model=getattr(self.model,"model","fixture")))
                 put(self.db,"ai-decision:"+user["address"],dict(at=now,session=user["session"],phase=stage.get("phase","research"),answer=answer))

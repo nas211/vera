@@ -3,7 +3,26 @@
 Independent WHY source snapshot, extended with the Vela DogeOS Chikyū
 **testnet + paper-only** showcase.
 
-The public flow is wallet funded: MyDoge/email or MetaMask → faucet DOGE →
+The new **Vela competition portal** at `/trade` adds signed wallet onboarding,
+persistent demo-USDC deposits, a simple AI Managed dashboard, Start/Stop controls,
+confirmed position exits and demo withdrawals. The homepage keeps its design and animations; its **START TRADING** CTA and
+wallet/trading entry points share the demo onboarding. See [the competition runbook](docs/COMPETITION-PORTAL.md)
+for startup, verification and mobile-wallet limitations. The portal is now integrated
+into the original `vela.api:app`; the existing API, worker, domain and Sites project
+are retained. These are prepared source changes, not a verified production update.
+See [integration and rollback](docs/INTEGRATED-DEPLOYMENT.md).
+
+The new **wallet-free Vela paper desk** at `/paper` uses Lighter's public BTC,
+ETH and SOL data with an isolated virtual-USD ledger. It preserves this site's
+branding and the existing agent/risk logic. See [the Lighter paper runbook](docs/LIGHTER-PAPER.md)
+for local startup, configuration, test commands and limitations. It is prepared
+for local demonstration, not deployed to production. LIVE execution is disabled;
+no existing exchange accounts or live stops are changed. The dedicated local
+`gpt-4.1-mini` integration was verified through actual research, review, direction,
+paper position creation and closure using live public market data. Each new
+installation requires its own private development-model configuration.
+
+The older published testnet flow is wallet funded: MyDoge/email or MetaMask → faucet DOGE →
 one START transaction → wrapped DOGE and TUSDC credit → AI paper trading →
 one STOP transaction → operator settlement returns DOGE. The separate
 virtual-balance practice screen was removed from the public product.

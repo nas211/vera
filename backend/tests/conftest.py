@@ -11,6 +11,33 @@ from vela.settings import Settings
 from vela.db import connect
 
 
+def pytest_addoption(parser):
+    parser.addoption('--in-process-asgi',action='store_true',
+                     help='Use actual in-process ASGI requests instead of TestClient cross-thread transport')
+
+
+def pytest_configure(config):
+    if config.getoption('--in-process-asgi'):
+        import fastapi.testclient
+        from asgi_client import InProcessClient
+        fastapi.testclient.TestClient=InProcessClient
+
+
+@pytest.fixture
+def api_factory(setup_db):
+    """Original API tests get an isolated paper runtime, never production state/feed."""
+    from types import SimpleNamespace
+    from vela.api import create_app
+    from vela.lighter.config import PaperConfig
+    folder=ROOT/".runtime/lighter-showcase"/("test-api-"+uuid.uuid4().hex)
+    def factory(settings=None):
+        return create_app(settings or setup_db[1],paper_settings=PaperConfig(db_path=folder/'paper.sqlite3'),
+                          model=SimpleNamespace(ready=False),start_background=False,
+                          portal_origin='http://testserver')
+    yield factory
+    shutil.rmtree(folder,ignore_errors=True)
+
+
 @pytest.fixture
 def setup_db():
     folder = ROOT / ".runtime" / ("test-" + uuid.uuid4().hex)

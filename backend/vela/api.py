@@ -16,6 +16,9 @@ from .agents import STRATEGIES
 from .prices import quote
 from .fees import spent
 from . import practice
+from .lighter.app import attach_lighter
+from .lighter.config import PaperConfig
+from .site_proxy import SiteProxyMiddleware
 
 
 class QuoteRequest(BaseModel):
@@ -27,8 +30,13 @@ class PracticeRequest(BaseModel):
     amountDoge: str = Field(pattern=r"^[0-9]{1,6}(\.[0-9]{1,8})?$")
 
 
-def create_app(settings=None):
+def create_app(settings=None, *, paper_settings=None, feed=None, model=None,
+               start_background=True, portal_origin=None, proxy_token=None):
     settings = settings or Settings.from_env()
+    paper_settings = paper_settings or PaperConfig.from_env()
+    if settings.db_path == paper_settings.db_path:
+        raise ValueError("The existing testnet and paper databases must remain separate")
+    portal_origin = portal_origin or os.getenv("VELA_PORTAL_ORIGIN", "https://defivela.xyz")
     app = FastAPI(title="Vela Testnet · Paper Trading", docs_url=None, redoc_url=None)
     app.add_middleware(CORSMiddleware, allow_origins=[
         "https://defivela.xyz", "https://defivela.uuuiiaaaa.chatgpt.site",
@@ -241,6 +249,10 @@ def create_app(settings=None):
         with database() as db:
             return [dict(r) for r in db.execute("SELECT ts,level,message,detail FROM logs WHERE service=? ORDER BY id DESC LIMIT 50", (service,))]
 
+    attach_lighter(app,paper_settings,feed,model,start_background,
+                   portal_origin=portal_origin,redirect_legacy=False)
+    app.add_middleware(SiteProxyMiddleware,origin=portal_origin,
+                       token=proxy_token if proxy_token is not None else os.getenv("VELA_SITE_PROXY_TOKEN",""))
     app.mount("/", StaticFiles(directory=ROOT / "site/dist", html=True), name="site")
     return app
 

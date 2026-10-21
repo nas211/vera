@@ -1,0 +1,154 @@
+{
+  "prepared": true,
+  "deployed": false,
+  "liveProtectionChanged": false,
+  "existingProject": "appgprj_6ad757d1f93c8191bc736d87ada530be",
+  "domain": "https://defivela.xyz",
+  "lastConfirmedPublishedVersion": 10,
+  "entrypoint": "vela.api:app",
+  "existingService": "vela-testnet-api.service",
+  "existingPort": 8787,
+  "implementation": {
+    "portalRoutesIntegrated": true,
+    "legacyApiPreserved": true,
+    "legacyWalletPagePreserved": true,
+    "separatePaperDatabase": true,
+    "sameOriginSitesProxyPrepared": true,
+    "publicOrigin": "https://defivela.xyz",
+    "secureCookiesTested": true,
+    "liveExecutionEnabled": false,
+    "realFundingEnabled": false,
+    "installedServicesModified": false,
+    "sitesEnvironmentModified": true,
+    "proxySecretStaged": true,
+    "proxySecretActivatedInApi": false,
+    "proxySecretActivatedInSitesDeployment": false,
+    "sitesEnvironmentRevision": 1
+  },
+  "preservedHashes": {
+    "site/dist/index.html": true,
+    "site/dist/styles.css": true,
+    "site/dist/app.js": true,
+    "backend/vela/lighter/engine.py": true,
+    "backend/vela/lighter/monitor.py": true,
+    "backend/vela/lighter/feed.py": true,
+    "backend/vela/worker.py": true,
+    "backend/vela/agents.py": true
+  },
+  "tests": {
+    "backend": {
+      "passed": 131,
+      "deselected": 2,
+      "warnings": 5,
+      "transport": "in-process ASGI; actual handlers and EIP-191 signatures, deterministic models/markets",
+      "log": ".runtime/integration-20261021/backend-offline-tests.log"
+    },
+    "fullBackendAttempt": {
+      "completed": false,
+      "reason": "Two unavailable loopback-Anvil checks; initial run timed out. Two new precision assertions were corrected to match the existing six-decimal public P&L contract and passed in the final run."
+    },
+    "executionRisk": {
+      "passed": 41,
+      "log": ".runtime/integration-20261021/execution-tests.log"
+    },
+    "sitesEdge": {
+      "passed": 10,
+      "upstream": "mocked fetch and upgrade response; no live tunnel",
+      "log": ".runtime/integration-20261021/edge-tests-final.log"
+    },
+    "frontendBuild": "PASS",
+    "backendCompile": "PASS",
+    "artifactValidation": "PASS",
+    "gitDiffCheck": "PASS",
+    "browser": "NOT VERIFIED \u2014 known socket restrictions; no repeated browser/listener attempt",
+    "genuineMetaMask": "NOT VERIFIED",
+    "liveLighterAndModel": "NOT VERIFIED for this integrated release",
+    "restartSafety": {
+      "passed": 4,
+      "command": ".venv/bin/pytest backend/tests/test_deployment_preflight.py --in-process-asgi -q",
+      "scope": "Isolated lock ownership, missing ledger, private proxy-file validation and second-runtime refusal; no host restart"
+    }
+  },
+  "rollback": {
+    "localPreIntegrationArchiveVerified": true,
+    "filesVerified": 151,
+    "frontendVersion": 10,
+    "frontendVersionId": "appgprj_6ad757d1f93c8191bc736d87ada530be~appgver_b3d1b4071b7c8191b9ff43bc136ca9c2",
+    "frontendDeploymentId": "appgdep_6ad7b7673b4c8191a2007ee2983858e4",
+    "latestVersionDetailRecheck": "Transport closed; earlier provider listing retains version/archive provenance",
+    "hostBackupAndRestore": "Visible SQLite backups passed integrity checks; actual running process configuration and host restore remain NOT VERIFIED",
+    "visibleDatabaseBackupsVerified": 2,
+    "visibleDatabaseBackupDirectory": ".runtime/deployment-backup-20261021T175510Z"
+  },
+  "blockers": [
+    "Host service control denied: Failed to connect to bus: Operation not permitted; host console/service-manager access required",
+    "Competition paper ledger has an active engine lock; integrated API cannot own the same ledger while the current engine retains it; do not kill the 8791 process",
+    "Existing API has no explicit VELA_PAPER_DB; its default ledger does not exist and would create separate balances",
+    "Shared proxy secret staged privately in file and Sites environment revision 1; API override and Sites deployment have not activated it",
+    "Dedicated model configuration validates locally but is not loaded by the observed API unit",
+    "Sites source synchronization previously failed: Could not resolve host git.chatgpt-team.site; no repeated attempt without changed access",
+    "Host rollback, local-chain, genuine wallet/browser and live HTTP/WebSocket acceptance remain unverified"
+  ],
+  "artifacts": {
+    "vela-integrated-site.tar.gz": {
+      "path": ".runtime/integration-20261021/vela-integrated-site.tar.gz",
+      "sha256": "35768a9137bc18b20671f17b16a02571a7fcb06351a4a232d65a6e31811518d4"
+    },
+    "vela-integrated-backend.tar.gz": {
+      "path": ".runtime/integration-20261021/vela-integrated-backend.tar.gz",
+      "sha256": "19f036b18e61f174626549f53adaaf5984e119fd77f41d495c95c2c8ce856555"
+    },
+    "source-before.tar.gz": {
+      "path": ".runtime/integration-20261021/source-before.tar.gz",
+      "sha256": "bc3012cae7511b825b9b0297dcecb4e1126658deb475496a71cf9523938cb6d6"
+    }
+  },
+  "urls": {
+    "https://defivela.xyz": "Existing version 10 last confirmed by hosting provider",
+    "https://defivela.xyz/trade": "Integrated update not deployed or verified live",
+    "https://defivela.xyz/earn": "Updated route not verified live"
+  },
+  "competitionReady": false,
+  "modifiedFiles": [
+    "backend/vela/api.py",
+    "backend/vela/lighter/app.py",
+    "backend/vela/site_proxy.py",
+    "backend/.env.example",
+    "tools/run_lighter_paper.py",
+    "ops/vela-testnet-api.service",
+    "site/.openai/hosting.json",
+    "site/package.json",
+    "site/dist/backend-config.js",
+    "site/worker/index.js",
+    "site/scripts/build-sites.mjs",
+    "site/checks/edge.test.mjs",
+    "site/dist/server/index.js",
+    "site/dist/.openai/hosting.json",
+    "backend/tests/conftest.py",
+    "backend/tests/test_paper.py",
+    "backend/tests/test_practice.py",
+    "backend/tests/test_portal.py",
+    "backend/tests/test_integrated.py",
+    "backend/tests/asgi_client.py",
+    "README.md",
+    "docs/COMPETITION-PORTAL.md",
+    "docs/LIGHTER-PAPER.md",
+    "docs/INTEGRATED-DEPLOYMENT.md",
+    "snapshot/integrated-validation.json",
+    "tools/check_integrated_restart.py",
+    "ops/vela-integrated-api.override.conf",
+    "backend/tests/test_deployment_preflight.py"
+  ],
+  "hostObservations": {
+    "ownerReportedPorts": {
+      "8787": "Original Vela API; /trade HTTP 404",
+      "8791": "Paper portal; /trade HTTP 200"
+    },
+    "competitionLedgerOwnership": "Active exclusive engine lock observed; recorded portal PID not visible in executor namespace",
+    "defaultIntegratedLedgerExists": false,
+    "serviceManager": "Read-only systemctl show failed: Operation not permitted",
+    "preparedAdditiveOverride": "ops/vela-integrated-api.override.conf",
+    "restartGate": "tools/check_integrated_restart.py",
+    "runningProcessesChanged": false
+  }
+}

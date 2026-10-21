@@ -46,7 +46,7 @@ def test_practice_start_trade_stop_isolated_from_wallet_and_chain(setup_db):
         p.close()
 
 
-def test_practice_api_browser_capability_and_no_funding_required(setup_db):
+def test_practice_api_browser_capability_and_no_funding_required(setup_db,api_factory):
     source,settings,_=setup_db
     settings.practice_enabled=True  # Explicit engineering mode only.
     p=practice.Practice(source,settings,SimpleNamespace(ready=False))
@@ -54,7 +54,7 @@ def test_practice_api_browser_capability_and_no_funding_required(setup_db):
         p.tick()
         for service in ("practice","prices","agents"):
             health(source,service,True,"fixture")
-        client=TestClient(create_app(settings))
+        client=TestClient(api_factory(settings))
         assert client.get("/api/practice").status_code==401
         headers={"X-Vela-Practice":TOKEN}
         r=client.post("/api/practice/start",headers=headers,json={"amountDoge":"1000"})
