@@ -171,9 +171,18 @@
       "react",
       "react-dom",
       "scheduler"
-    ]
+    ],
+    "newProductToolchainAudit": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
   },
   "liveProtectionVerified": false,
   "realFundsMoved": false,
-  "zkPrivacyInScope": false
+  "zkPrivacyInScope": false,
+  "cleanProductBuildReproducedDeployedFiles": 9
 }

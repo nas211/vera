@@ -73,8 +73,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Install locked frontend dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install locked product dependencies without lifecycle scripts
+        run: npm ci --prefix products-toolchain --ignore-scripts --no-audit --no-fund
+      - name: Audit the scoped product toolchain
+        run: npm audit --prefix products-toolchain --audit-level=low
       - name: Reproduce scoped product bundles and DogeOS copy update
         run: |
           npm run build:products

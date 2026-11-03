@@ -1,9 +1,13 @@
-import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
 import {mkdir,copyFile,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+const require=createRequire(new URL('../products-toolchain/package.json',import.meta.url));
+const {build}=require('esbuild');
+const nodePaths=[fileURLToPath(new URL('../products-toolchain/node_modules',import.meta.url))];
 const output='products-built',prefix='/product-assets/paper-earn-20261103';
 await mkdir(output+'/assets',{recursive:true});
-const built=await build({metafile:true,entryPoints:{paper:'src/paper-entry.jsx','earn-account':'src/earn-entry.jsx'},outdir:output+'/assets',bundle:true,format:'esm',target:['es2022'],minify:true,define:{'process.env.NODE_ENV':'"production"'}});
+const built=await build({nodePaths,metafile:true,entryPoints:{paper:'src/paper-entry.jsx','earn-account':'src/earn-entry.jsx'},outdir:output+'/assets',bundle:true,format:'esm',target:['es2022'],minify:true,define:{'process.env.NODE_ENV':'"production"'}});
 const dependencies=[...new Set(Object.keys(built.metafile.inputs).filter(p=>p.includes('node_modules/')).map(p=>{const parts=p.split('node_modules/').at(-1).split('/');return parts[0].startsWith('@')?parts.slice(0,2).join('/'):parts[0];}))].sort();
 if(!dependencies.includes('react')||!dependencies.includes('react-dom'))throw Error('Missing bundle dependency evidence');
 for(const dependency of dependencies)if(!['react','react-dom','scheduler','@wallet-standard/app','@wallet-standard/base','@wallet-standard/errors','@wallet-standard/features','@wallet-standard/wallet'].includes(dependency))throw Error('Review new product dependency: '+dependency);

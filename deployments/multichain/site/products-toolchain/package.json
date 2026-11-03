@@ -1,0 +1,14 @@
+{
+  "name": "vela-demo-products-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Exact build dependencies for paper and earn; no disabled wallet SDK",
+  "dependencies": {
+    "@wallet-standard/app": "1.1.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

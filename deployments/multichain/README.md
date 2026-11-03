@@ -36,8 +36,10 @@ The owner excludes ZK/privacy products from this project. Backend deployment aut
 
 ## Build and check the new products
 
-From `site`, run `npm ci --ignore-scripts` and `npm run build:products`. The build checks its bundled dependency allowlist and excludes the disabled DogeOS SDK. Run `python3 scripts/prepare-dogeos-portal.py --source deployed-simple-tabs` to reproduce the copy-only portal bundle.
+From `site`, run `npm ci --prefix products-toolchain --ignore-scripts` and `npm run build:products`. The build checks its bundled dependency allowlist and excludes the disabled DogeOS SDK. Run `python3 scripts/prepare-dogeos-portal.py --source deployed-simple-tabs` to reproduce the copy-only portal bundle.
 
 For local browser journeys, start `uvicorn tools.products_browser_fixture:app --host 127.0.0.1 --port 18917` from this backend directory in an isolated environment, then run `npm run test:products` from `site`. The harness uses a new temporary ledger and synthetic market/model/wallet fixtures. `npm run test:public-products` checks public page rendering without real funds or wallet approvals.
 
 The full prepared frontend dependency tree still has SDK-related advisories (15 high, 27 moderate, 62 low at the latest audit). Do not interpret the narrow new-product bundle allowlist or passing backend CI as a complete security audit.
+
+The scoped product toolchain now has its own exact lockfile; a clean install reproduces all nine deployed product assets byte-for-byte and its current npm audit reports zero findings. The larger disabled SDK tree remains separately disclosed above.
