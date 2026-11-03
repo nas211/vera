@@ -1,0 +1,66 @@
+{
+  "observedAtUtc": "2026-11-03T10:52:15Z",
+  "deployment": {
+    "releaseCommit": "77ad84168da9e95101696313f4ba86ca650db929",
+    "deployed": true,
+    "mode": "PAPER",
+    "liveProtectionVerified": false,
+    "realTransactionsSubmitted": 0,
+    "databaseReplaced": false,
+    "backendFingerprint": "b4b1f2248aa688381a4ecdaa3f51a805cf3f3deabb8fc7560a84ece17de52538",
+    "ledgerContinuity": true,
+    "frontendUnchanged": true,
+    "healthHttpsWebSocketVerified": true,
+    "backupsAndHealthTimersInstalled": true,
+    "genuineWalletApprovalVerified": false
+  },
+  "activeRepositoryCommit": "8220665934814d8fe08ab68349770095f32b424d",
+  "publishedCodeCommit": "33e8dfc7c6b371e20b49a99a302c41405a516fbe",
+  "backendTestsPassed": 270,
+  "hostedCiTestsPassed": 55,
+  "ciRun": "https://github.com/nas211/vera/actions/runs/41620836655",
+  "backendRequirementsAudit": "No known vulnerabilities found; not an independent audit or frontend-SDK clearance",
+  "livePaperAcceptance": {
+    "mode": "PAPER",
+    "realFundsMoved": false,
+    "genuineWalletDeviceApproval": false,
+    "forcedTrades": false,
+    "signedAuthentication": true,
+    "newAccountStartsEmpty": true,
+    "depositAndIdempotency": true,
+    "modelStartHttpStatus": 200,
+    "modelPreflightAndStart": true,
+    "stop": true,
+    "simulatedWithdrawal": true,
+    "ledgerHistoryConsistent": true,
+    "reconnectionAndPersistence": true,
+    "qaAccountEmpty": true,
+    "completedAt": 1793702972.5561004
+  },
+  "marketDataFresh": true,
+  "engineReady": true,
+  "modelConfigured": true,
+  "modelConnectionFresh": true,
+  "modelConnectionOk": true,
+  "dogeos": {
+    "chainId": 6281971,
+    "status": "VERIFIED",
+    "readOnly": true,
+    "customerTransactionsEnabled": false
+  },
+  "currentBackup": {
+    "integrity": "ok",
+    "restoreVerified": true,
+    "createdAt": 1793703131.1342585
+  },
+  "whyServicesObserved": 31,
+  "whyServicePidsAndStateUnchanged": true,
+  "servedUiFilesUnchanged": 9,
+  "privacyProduct": "excluded by owner",
+  "remaining": [
+    "Genuine MetaMask/MyDoge device approvals are not verified; MyDoge remains disabled",
+    "Real trading, funded staking and lending remain disabled pending their security, liquidity/custody and owner-authorization gates",
+    "Legacy Vela services remain separate transient units; they were not restarted or migrated",
+    "No independent security audit or live exchange-side protection verified"
+  ]
+}

@@ -1,5 +1,7 @@
 # Vela multichain backend
 
+**Current status:** the backend is deployed on the existing VPS and has passed live paper-mode acceptance. See the [deployment record](docs/DEPLOYMENT-ACCEPTANCE-20261103.md). Real trading and fund transfers remain disabled.
+
 This directory publishes the newer VPS backend and all prepared backend changes from source commit `77ad84168da9e95101696313f4ba86ca650db929`. It coexists with the legacy Vela application at the repository root. It does not replace that application, its database, or any UI files.
 
 The existing runtime directory is `/root/VellaMultichain`; Nginx serves its separately preserved UI and routes API traffic through the existing gateway. Do not start a second engine against that runtime's ledger. This source publication does not deploy or restart any service.

@@ -6,8 +6,8 @@
   "stages": {
     "preparedCode": "isolated branches; active checkouts untouched",
     "tests": "executed locally; fixture and transport limitations recorded separately",
-    "deployment": "blocked: host service/network access unavailable; no new deployment",
-    "liveProtection": "unverified; no live exchange or existing stop changed"
+    "deployment": "deployed and accepted on existing VPS; source fingerprint verified through local backend, gateway and public HTTPS",
+    "liveProtection": "Real trading remains disabled; no live exchange protection claimed"
   },
   "sources": [
     {
@@ -74,8 +74,8 @@
     },
     {
       "id": "wallet_metamask",
-      "status": "implemented",
-      "evidence": "EOA cryptographic fixtures pass; historical October 29 mobile authentication documented; not reverified this turn"
+      "status": "backend_auth_verified_device_pending",
+      "evidence": "Live EOA signature authentication, secure cookie, logout and account recovery passed using a disposable QA wallet; genuine MetaMask/device approval remains unverified"
     },
     {
       "id": "wallet_mydoge",
@@ -89,13 +89,13 @@
     },
     {
       "id": "ai_pipeline",
-      "status": "backend_hardening_prepared",
-      "evidence": "Existing research/review/direction/risk/execution fixtures pass; persistent usage/reservations, bounded workers, session revocation and deterministic protection added; live model connectivity unverified"
+      "status": "live_model_connectivity_verified",
+      "evidence": "Actual configured model preflight and paper start/stop passed with a disposable QA wallet; research/review/direction/execution pipeline covered by local fixtures; no trades forced"
     },
     {
       "id": "lighter_public",
-      "status": "implemented",
-      "evidence": "BTC/ETH/SOL, depth sequencing, freshness, history, funding estimates and reconnect tests; current external connectivity blocked"
+      "status": "live_connectivity_verified",
+      "evidence": "Fresh BTC/ETH/SOL data and public WebSocket stream passed deployment acceptance"
     },
     {
       "id": "lighter_live",
@@ -114,8 +114,8 @@
     },
     {
       "id": "dogeos_new_collateral",
-      "status": "historical_deployment_read_only",
-      "evidence": "newer verified-address manifest for VaultFactory and DogeCollateralVault found; customer transactions disabled; current receipts not rechecked"
+      "status": "verified_read_only",
+      "evidence": "Current public gateway verified DogeOS chain 6281971 and existing contract state; customer transactions disabled"
     },
     {
       "id": "risk",
@@ -124,48 +124,48 @@
     },
     {
       "id": "database_ownership",
-      "status": "repair_prepared",
-      "evidence": "newer app opened/initialized DB before acquiring engine lock; fixed in isolated worktree"
+      "status": "deployed",
+      "evidence": "Ownership acquired after clean stop and before code application; single engine retained; no ledger replacement"
     },
     {
       "id": "start_stop_race",
-      "status": "repair_prepared",
-      "evidence": "pending model preflight revalidates wallet session and permission generation before enabling entries"
+      "status": "deployed",
+      "evidence": "Tested session/generation revalidation and pending-start protection installed; live signed start/stop flow passed"
     },
     {
       "id": "shutdown",
-      "status": "repair_prepared",
-      "evidence": "model worker threads drain before database ownership release"
+      "status": "deployed",
+      "evidence": "Graceful candidate/gateway restart completed successfully; ledger continuity passed"
     },
     {
       "id": "request_limits",
-      "status": "repair_prepared",
-      "evidence": "actual body size limits, JSON object validation, bounded authentication attempts"
+      "status": "deployed",
+      "evidence": "Actual-body, JSON and auth-rate limits installed; live invalid signature and cross-origin rejection checked"
     },
     {
       "id": "service_supervision",
-      "status": "prepared_not_installed",
-      "evidence": "Guarded deployer installs existing-service restart/reboot configuration, daily verified backup and periodic health/disk/backup checks only after host acceptance; systemd unit syntax verified; host service execution denied"
+      "status": "installed_enabled",
+      "evidence": "Candidate/gateway enabled for boot with restart-on-failure; health and backup timers installed, enabled and successful; machine reboot not performed"
     },
     {
       "id": "backups",
-      "status": "tool_prepared_and_rehearsed",
-      "evidence": "Six private consistent backups already restored into disposable databases; automatic daily WAL-aware backup tool and timer prepared and fixture-tested, not installed"
+      "status": "installed_and_verified",
+      "evidence": "Fresh post-deployment and post-acceptance SQLite backups passed integrity and disposable restore checks; daily timer active"
     },
     {
       "id": "security_scan",
       "status": "partial",
-      "evidence": "Malformed input/rate/race/ownership regression tests and source review performed; staged pattern scan and dependency consistency recorded separately; fresh advisory scan and independent audit not performed"
+      "evidence": "Hosted backend requirements audit found no known vulnerabilities; source pattern scans passed. Frontend SDK advisories and independent financial-security review remain outstanding"
     },
     {
       "id": "deployment",
-      "status": "blocked_host_access",
-      "evidence": "systemd/netlink/loopback denied, DNS unavailable; no unsafe proxy/frontend replacement"
+      "status": "deployed_verified_paper",
+      "evidence": "Existing candidate/gateway gracefully restarted; public HTTPS, WebSocket, readiness and source fingerprint passed; ledger retained; UI unchanged"
     },
     {
       "id": "why_isolation",
-      "status": "preserved",
-      "evidence": "no original WHY files, accounts, services or credentials changed; live health cannot be observed"
+      "status": "verified_unchanged",
+      "evidence": "31 observed WHY service PIDs and active states unchanged across deployment; no WHY changes"
     },
     {
       "id": "trading_history_reductions",
@@ -184,24 +184,16 @@
     },
     {
       "id": "backend_release",
-      "status": "prepared",
-      "evidence": "Verified overlay/rollback and guarded application tool with fresh backup, service identity, source fingerprint, ledger continuity, HTTPS/WebSocket acceptance, code-only rollback and operation timers"
+      "status": "deployed_verified",
+      "evidence": "38-file backend overlay applied with fresh verified backup; matching source tree committed locally as 8220665"
     },
     {
       "id": "ci_cd",
-      "status": "workflow_prepared",
-      "evidence": "Pinned backend test and current-advisory audit workflow prepared for existing GitHub repo; hosted execution must be observed separately"
+      "status": "hosted_ci_passed",
+      "evidence": "GitHub run 41620836655: clean installation, 55 backend tests, dependency consistency and backend requirements advisory audit passed"
     }
   ],
   "blockers": [
-    {
-      "id": "host_executor",
-      "requires": "executor with authorized service/process inspection, network sockets and existing host deployment access"
-    },
-    {
-      "id": "external_provider_checks",
-      "requires": "network access for DNS/TLS, DogeOS RPC, public Lighter, dedicated Vela model, package advisories"
-    },
     {
       "id": "wallet_approval",
       "requires": "owner-controlled test wallet and actual MetaMask/MyDoge device/login approvals"
@@ -209,20 +201,28 @@
     {
       "id": "financial_activation",
       "requires": "exact scoped transaction authorization, funding/custody specification, verified liquidity/oracles/rewards and independent security review"
+    },
+    {
+      "id": "frontend_dependency_review",
+      "requires": "Review remaining wallet SDK/transitive advisories; the passing hosted audit covers backend Python requirements only"
     }
   ],
   "scope": {
     "backendOnly": true,
     "uiUxChanged": false,
     "trackedUiFilesCompared": 121,
-    "productionServicesChanged": false,
+    "productionServicesChanged": true,
     "realTransactionsSubmitted": 0,
     "excludedProducts": [
       "ZK and transaction-privacy products, removed from scope by owner"
     ],
-    "scopeCorrection": "Privacy/ZK is excluded, not an outstanding deliverable. Legacy marketing claims are removed separately without changing the current served UI."
+    "scopeCorrection": "Privacy/ZK is excluded, not an outstanding deliverable. Legacy marketing claims are removed separately without changing the current served UI.",
+    "changedServices": [
+      "vela-multichain-candidate",
+      "vela-dogeos-readonly"
+    ]
   },
   "validationRecord": "snapshot/backend-validation-20261103.json",
   "report": "docs/BACKEND-COMPLETION-20261103.md",
-  "latestValidationRecord": "snapshot/backend-operations-validation-20261103.json"
+  "latestValidationRecord": "snapshot/deployment-acceptance-20261103.json"
 }

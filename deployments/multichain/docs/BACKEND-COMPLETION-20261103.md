@@ -1,5 +1,7 @@
 # Vela backend build — 3 November 2026
 
+**Later deployment update:** host access became available and the backend was deployed successfully. [Current acceptance record](DEPLOYMENT-ACCEPTANCE-20261103.md). The build-time access restrictions and prepared-only statements below are historical; the recorded live checks supersede them.
+
 Backend changes are prepared in `codex/vela-completion-20261103`, in the isolated worktree `/root/vela-completion-20261103/multichain`. The active application checkouts, services, database contents, domain routing, contracts and frontend have not been changed. All 121 tracked UI files match the original newer checkout. This release contains no UI/UX edits.
 
 This is a tested backend release candidate, not a claim that the entire platform is production-ready. Deployment and current provider/wallet acceptance remain blocked. Real trading, real lending and funded staking have not been activated. No blockchain transaction or real exchange order was submitted. The $2 or stricter fee-inclusive stop-trigger requirement remains separate from realized losses under slippage, funding, gaps or outages. No live protection was changed or verified.
