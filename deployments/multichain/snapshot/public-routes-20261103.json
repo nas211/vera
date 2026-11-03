@@ -1,0 +1,47 @@
+{
+  "checkedAtUtc": "2026-11-03T11:31:02.722346+00:00",
+  "deployed": true,
+  "change": "308 redirect /trade and /trade/ to /trading, retaining query parameters",
+  "httpChecksPassed": 39,
+  "browserChecksPassed": 20,
+  "browserViewportWidths": [
+    1440,
+    390
+  ],
+  "browserJavaScriptErrors": 0,
+  "brokenAssetRequests": 0,
+  "horizontalOverflow": false,
+  "currentNavigationRoutes": [
+    "/",
+    "/overview",
+    "/vault",
+    "/borrow",
+    "/trading",
+    "/repay",
+    "/how-it-works"
+  ],
+  "securityAndWebSocket": {
+    "marketStream": true,
+    "publicDataOnly": true,
+    "markets": 3,
+    "foreignOriginRejected": true,
+    "unauthenticatedStartRejected": true,
+    "crossOriginStartRejected": true,
+    "dogeosWritesDisabled": true
+  },
+  "continuity": {
+    "uiAssetsUnchanged": true,
+    "changedServiceStates": [],
+    "servicesChecked": 42
+  },
+  "publicRouteMonitorChecks": 22,
+  "publicRouteMonitorEnabled": true,
+  "backendRestarted": false,
+  "databaseModifiedByRepair": false,
+  "realMoneyEnabled": false,
+  "genuineWalletApprovalTestedThisCheck": false,
+  "unavailableHistoricalPages": [
+    "/paper",
+    "/earn"
+  ]
+}

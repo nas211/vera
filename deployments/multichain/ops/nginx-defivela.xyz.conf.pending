@@ -1,0 +1,116 @@
+server {
+    listen 80;
+    server_name defivela.xyz;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name defivela.xyz;
+
+    ssl_certificate /etc/letsencrypt/live/defivela.xyz/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/defivela.xyz/privkey.pem;
+
+    location = / {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /vault {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /vault/ { return 308 /vault; }
+
+    location = /borrow {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /borrow/ { return 308 /borrow; }
+
+    # Public compatibility links open the existing AI Trading screen.
+    location = /trade { return 308 /trading$is_args$args; }
+    location = /trade/ { return 308 /trading$is_args$args; }
+
+    location = /trading {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /trading/ { return 308 /trading; }
+
+    location = /repay {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /repay/ { return 308 /repay; }
+
+    location = /overview {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /overview/ { return 308 /overview; }
+
+    location = /how-it-works {
+        root /var/www/defivela-ui/simple-tabs-20261101T085948Z;
+        try_files /index.html =404;
+        default_type text/html;
+        add_header Cache-Control "no-cache";
+        add_header X-Content-Type-Options nosniff;
+        add_header Referrer-Policy same-origin;
+    }
+
+    location = /how-it-works/ { return 308 /how-it-works; }
+
+    location ^~ /ui-assets/simple-tabs-20261101T085948Z/ {
+        alias /var/www/defivela-ui/simple-tabs-20261101T085948Z/assets/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options nosniff;
+    }
+
+    location ^~ /homepage-assets/home-copy-20261022T232113Z/ {
+        alias /var/www/defivela-home/home-copy-20261022T232113Z/assets/;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options nosniff;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8805;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

@@ -1,0 +1,4 @@
+# Installed as vela-backend-health.service.d/70-public-routes.conf.
+[Service]
+ExecStartPost=/root/VellaMultichain/.venv/bin/python /root/VellaMultichain/tools/check_public_routes.py
+TimeoutStartSec=45
