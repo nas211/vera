@@ -1,0 +1,26 @@
+{
+  "label": "RECORDED DETERMINISTIC TEST \u2014 not live AI trades or account activity",
+  "sourceSha256": "2093bb8222e32ad1160c8ac8cd440b19da242b62ba6c55a78c38d95b51d48bbd",
+  "status": "PASS",
+  "cases": [
+    {
+      "scenario": "target after Stop Trading",
+      "unrealizedPnl": "0.435559",
+      "realizedPnl": "0.907072",
+      "protectiveExit": "target",
+      "stopPreservedPosition": true,
+      "stopRejectedNewEntry": true,
+      "status": "PASS"
+    },
+    {
+      "scenario": "stop after Stop Trading",
+      "unrealizedPnl": "0.364285",
+      "realizedPnl": "-0.510463",
+      "protectiveExit": "stop",
+      "stopPreservedPosition": true,
+      "stopRejectedNewEntry": true,
+      "status": "PASS"
+    }
+  ],
+  "scope": "Existing verified fixture model and market data. No wallet transaction, no Lighter execution or DogeOS settlement."
+}

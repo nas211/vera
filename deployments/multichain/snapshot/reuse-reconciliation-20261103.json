@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "adaptations": {
+    "backend/vela/paper.py": {
+      "sha256": "07d67ab3afa002e7b983d15edb197d06b9674149c0337b20c3821f03ca195275",
+      "introducedInCommit": "9cfdd7339e15de95278adc2bde6e326efe58e144",
+      "reason": "Preserve case-sensitive Solana network-scoped identities in getPosition; keep legacy EVM normalization. Existing VPS change, not introduced by completion work."
+    }
+  }
+}

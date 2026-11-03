@@ -1,0 +1,494 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "99585e0ab2bf6b7cbf5216fe9055944c43f06fe1",
+  "sourceCheckout": "/root/VellaMultichain",
+  "targetRuntime": "/root/VellaMultichain",
+  "publicationDirectory": "deployments/multichain",
+  "allPreparedChangesIncluded": true,
+  "sourceFiles": [
+    {
+      "path": ".gitignore",
+      "sha256": "f78a19144f829840573fd363136d64753be7a0d203c2e16b395f497a1b5f8c05"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "ddeb2c62b23b4c391f3f022d0719de53971a3f179bdf45ad9b709b9fc7b77de4"
+    },
+    {
+      "path": "README.md",
+      "sha256": "8be654a6391ec6096876cde28acc350ed59aa2f0a4c991aeecba67a271ec85d5"
+    },
+    {
+      "path": "backend/autodefi/__init__.py",
+      "sha256": "838819caff950a9eb6371d1e344f64e2bf599590dd32f78b67c17bfc9938be63"
+    },
+    {
+      "path": "backend/autodefi/adapters.py",
+      "sha256": "1c0361c531e5af07b451d567ba61c2e5709635a31790c9c4fc81b1aac27ce3a0"
+    },
+    {
+      "path": "backend/autodefi/api.py",
+      "sha256": "f690d725e08eb6237db35ffa90762948c65e89d54ea950a9b56f38a8ab0add55"
+    },
+    {
+      "path": "backend/autodefi/auth.py",
+      "sha256": "58f4bdb245bfacd7f4915548e0b6cbc340d98b349bdc5a09659af6bc3c88c4f4"
+    },
+    {
+      "path": "backend/autodefi/chain.py",
+      "sha256": "54c18e8f976677815d4950d54a0922bbaa7d95a28f27910c866f45f58761b3da"
+    },
+    {
+      "path": "backend/autodefi/config.py",
+      "sha256": "e790cb6ec35e58396b34cfd5bfe84b762b48f3280910f6b069cd7698a5c64490"
+    },
+    {
+      "path": "backend/autodefi/dogeos_readonly.py",
+      "sha256": "0581a92a2a45642907652821f58cb1a095bfd87e7d06f0c9b22876c8fdea5ff2"
+    },
+    {
+      "path": "backend/autodefi/http_security.py",
+      "sha256": "a5b772d4eed5669db8add3276cdbbd1e584f048a78c7271de753c3f99efe58b5"
+    },
+    {
+      "path": "backend/autodefi/lending.py",
+      "sha256": "31edf9ff59cbfabee53859ba77b608f7a61c170824ad9b8e964347c2b37898c7"
+    },
+    {
+      "path": "backend/autodefi/model_usage.py",
+      "sha256": "f249a4071d255edd34c2f0f19c6e2c5d27afac26d02991c4e4747d074496523e"
+    },
+    {
+      "path": "backend/autodefi/multichain_auth.py",
+      "sha256": "3e45ddf133c4d5ef917a148a46658cbcb3a2bbe3d1eb145961971c5d80153fe0"
+    },
+    {
+      "path": "backend/autodefi/orchestration.py",
+      "sha256": "6570f7155b1274d4da451ec304ebf6791d569f03af7db19e68b6a33b77a9dbf4"
+    },
+    {
+      "path": "backend/autodefi/ownership.py",
+      "sha256": "06a2f922f4c43c52ac0e441fb8a2dcdbec4fa4c8cfe7c3070be0f611d7c87f48"
+    },
+    {
+      "path": "backend/autodefi/real_lending.py",
+      "sha256": "5ec4954d05a66024b87c14a0d8ac6b5f47d347bfd2262efb9de02e26d980c8e2"
+    },
+    {
+      "path": "backend/autodefi/repayment.py",
+      "sha256": "94d9560dcc6ebe991ee81fc978c5dc97057eebd13d7d2e2df72600b11b7606a2"
+    },
+    {
+      "path": "backend/autodefi/risk.py",
+      "sha256": "47227db27f81a9bccdbad1fee24bca0a914ad2c3fe902012214455e18f7f5ab4"
+    },
+    {
+      "path": "backend/autodefi/runtime.py",
+      "sha256": "df133c7757958775b83e2de7932374c3e5cc13548c62e85fed4f0ce96c4f7196"
+    },
+    {
+      "path": "backend/autodefi/simulated_vaults.py",
+      "sha256": "3608c5e6f62d45a51ddaa496bd725fa4def3cb8aa5bc1f5da8f7881f4e2ffb93"
+    },
+    {
+      "path": "backend/autodefi/staking.py",
+      "sha256": "c920f0dcfee39e525faf54098b1bf42ca18752feb830858114e9955ce223e71f"
+    },
+    {
+      "path": "backend/autodefi/store.py",
+      "sha256": "0c106bc7fae0ee2e8d1342db8c89ad353f0d3a6d775356f5efd8fc997f3f28c2"
+    },
+    {
+      "path": "backend/autodefi/trading.py",
+      "sha256": "efafecf76f022be7cef64bdd8dff2ec649f69bbca98210e5bc16678b5a4a714f"
+    },
+    {
+      "path": "backend/autodefi/vaults.py",
+      "sha256": "2cf7856bf88d76d0112e178022cdf4a87f1de15a94add42dff7e717444589b39"
+    },
+    {
+      "path": "backend/vela/__init__.py",
+      "sha256": "8ab3f64c25d88e2ce48f9d8aff6ffe43eec7740e293a5012e0b1c86a79bed478"
+    },
+    {
+      "path": "backend/vela/agents.py",
+      "sha256": "87421d6a1cd17c6c21904d8b13bc7e082f2ef9bcfbc1308622a0b2d2c7c8c70a"
+    },
+    {
+      "path": "backend/vela/db.py",
+      "sha256": "103ed64c02df79ccca65e69ef0a5d14398482382f83b851e3698e0f27ec919e5"
+    },
+    {
+      "path": "backend/vela/lighter/__init__.py",
+      "sha256": "70252378b8ff94f6089407d5ef9b6ac1502ed398f65e1bea32803a17443d5c7a"
+    },
+    {
+      "path": "backend/vela/lighter/config.py",
+      "sha256": "facba6de95de8a1ab7eb00d67cb4c81b6b7ceb70ee3d17ff224e111a9d4fc48b"
+    },
+    {
+      "path": "backend/vela/lighter/engine.py",
+      "sha256": "2619cd579ec60e79895f2137986e36de1dd0903b53106fee50975c8a0056098b"
+    },
+    {
+      "path": "backend/vela/lighter/feed.py",
+      "sha256": "160c8f23b0e5d7d19ba678a44949593bcb975042a4911bd21cdd66ecf36486c0"
+    },
+    {
+      "path": "backend/vela/lighter/monitor.py",
+      "sha256": "7b5080e2bd538a3414f529c43cf312514d436911765c6d74749e2b7409e728f4"
+    },
+    {
+      "path": "backend/vela/paper.py",
+      "sha256": "07d67ab3afa002e7b983d15edb197d06b9674149c0337b20c3821f03ca195275"
+    },
+    {
+      "path": "backend/vela/prices.py",
+      "sha256": "b772670a2e33c5f480df1b5096da9459d2b3455bde6605a9abf848b4c810cb64"
+    },
+    {
+      "path": "backend/vela/reuse.py",
+      "sha256": "55cd3bf47972b4b4e69016bdec71e63d776a00b3912aa7a9f1d1fd1841569d28"
+    },
+    {
+      "path": "backend/vela/settings.py",
+      "sha256": "f850f59d8b6c3838961d9e58b60bcc8236b42711248538e742d5c9e1cf4f0181"
+    },
+    {
+      "path": "components/why-bybit-shadow/wy_signals.py",
+      "sha256": "f17e553ed71854ceaad2750d2f847d39d337348e16451ee328992e8045215245"
+    },
+    {
+      "path": "components/why-discovery/backend/discovery/fees.py",
+      "sha256": "8deffadd1df43f16a30232c49da2a06648647e28f43e2b53080249fad842e8e5"
+    },
+    {
+      "path": "components/why-discovery/backend/discovery/model.py",
+      "sha256": "ff39d403326de523080ca14da8985dc965e76bd07628b7afc21a9c5904921f4c"
+    },
+    {
+      "path": "components/why-discovery/backend/discovery/rules.py",
+      "sha256": "a0f7bb84458539815cf5217ad013911bd81c70be54a5fe5313cc21dd7b55bf7b"
+    },
+    {
+      "path": "components/why-yellow/execution/loss_stop.py",
+      "sha256": "81553021b6d324e25fc9d84a7acdda79ecd95ee27bbfcb90f5e71f70273daccf"
+    },
+    {
+      "path": "config/DogeCollateralVault.abi.json",
+      "sha256": "b364eb86ec554d6242e71f14068048da45f98e8106c9523174fe9017127c7b6e"
+    },
+    {
+      "path": "config/VaultFactory.abi.json",
+      "sha256": "66a55159bc19cae65cb6bacdb878a56ea02fbf703feef551de4cb6cbfc89540e"
+    },
+    {
+      "path": "config/brand.json",
+      "sha256": "37738de2e7746acd7e487f05850950a71a2d5cc709136a6375b36864c20ae2a3"
+    },
+    {
+      "path": "config/dogeos-deployment.json",
+      "sha256": "b72db673926eb25ce172fe428fe84dcfbe67604989998a2b7c369a4ed64a7a2f"
+    },
+    {
+      "path": "config/dogeos-paper-demonstration.json",
+      "sha256": "21c171246aee3c0fb25cb01ec268a136b73a462fb40d352d615b7c6a5174694d"
+    },
+    {
+      "path": "config/dogeos-testnet.json",
+      "sha256": "aee1e2e11916367182836dcc4aaaa9518ca5a66b42acf6fc8cb2466e7e56de27"
+    },
+    {
+      "path": "config/multichain-sources.json",
+      "sha256": "82ce0db950454231680d6994fadc97cc7db358c3d4dfda5a8ad9029a45b65661"
+    },
+    {
+      "path": "config/reuse-manifest.json",
+      "sha256": "72b4d2154e6295ce3ac562e2480742624973f6dcc3a87e403e5e14df664e4605"
+    },
+    {
+      "path": "config/risk.json",
+      "sha256": "73c7b8eb8212d3d99330cfe110e0a1097cd98fea4629f3b3164e62d21cf8664e"
+    },
+    {
+      "path": "contracts/foundry.toml",
+      "sha256": "3be2cf99f3a2e0b694ddb3d38df6e554c005f22c502b020c305fce5d6b397ea3"
+    },
+    {
+      "path": "contracts/package.json",
+      "sha256": "ea9a187aa73b05e8289b830ef7306d0425fc199b1a2eef57a7a1751ec9a2c417"
+    },
+    {
+      "path": "contracts/src/AgentPermissions.sol",
+      "sha256": "e5aeb9f82f94a9689518c06b914818cd9d925f895836893aa5c30552650b60de"
+    },
+    {
+      "path": "contracts/src/DogeCollateralVault.sol",
+      "sha256": "59c7cf79804bce8be21a47bf20f233ba89689c1df68ddb48ec14356ce65bf23b"
+    },
+    {
+      "path": "contracts/src/VaultEvents.sol",
+      "sha256": "30e8ff3aaef517b3d4f2128ef7aa465cfa20524b2376618685cebc5a275da36d"
+    },
+    {
+      "path": "contracts/src/VaultFactory.sol",
+      "sha256": "678c686985b75683379a1b40f33ab91e46e96a0e68b1feed1d82d4feda6fd12f"
+    },
+    {
+      "path": "contracts/test/Vault.t.sol",
+      "sha256": "58b5efb9730da09453a8e57d4900bea312f887c0592ac93c713d1caf1bc321cd"
+    },
+    {
+      "path": "docs/BACKEND-COMPLETION-20261103.md",
+      "sha256": "a4887a2ce5b2ed9846e06fcb7197db50ba38f90562c3ea4d6c17f0ad2a04cb53"
+    },
+    {
+      "path": "docs/MULTICHAIN-ACTIVATION-READINESS.md",
+      "sha256": "2af7958232cde9783eac5334dc11a94f107f66e62c0739214fe0b484d8f8f13c"
+    },
+    {
+      "path": "docs/MULTICHAIN-CONFIGURATION-HANDOFF.md",
+      "sha256": "040e7037413c1636580d1c6e490179a15000e32b0e34775a756aaad1a9d843c3"
+    },
+    {
+      "path": "docs/MULTICHAIN-FINAL-ACTIVATION.md",
+      "sha256": "f9de4066f72bb358e27469957359e7415a4c2166fa02114cd71d75a601761982"
+    },
+    {
+      "path": "docs/PRIVATE-PREVIEW-ACTIVATION.md",
+      "sha256": "eb498e5d164dcd7d6ea997fcfafc3db08509bca1f3288528ae844684de32aa2a"
+    },
+    {
+      "path": "docs/PRODUCTION-REQUIREMENTS.md",
+      "sha256": "04be4b7d079b12559028523531545ecc5152fb065cdef192b81b7c84d5491cf0"
+    },
+    {
+      "path": "docs/STATUS-20261029.md",
+      "sha256": "0c6a71fdb1f4710c71eb1bcf47d476ea6772b78b16429a2b708da79da7fb91df"
+    },
+    {
+      "path": "ops/dogeos-readonly.txt",
+      "sha256": "0dca507c8f515615470cebc23b2bc4d70dafbdc5c13bfe5a489ac08d41ddde56"
+    },
+    {
+      "path": "ops/preview.json",
+      "sha256": "52937e1f260fdc4a90dbef72bf49518efec5090c3ecb8ff3bcee47d395557bb5"
+    },
+    {
+      "path": "ops/production-upstream.conf.pending",
+      "sha256": "1b4a4da5fd008094cf298c14da81bdd89ccddd8def6df3d1a9ca6f4d90e8ec06"
+    },
+    {
+      "path": "ops/vela-backend-reliability.override.conf.pending",
+      "sha256": "af9400307ce49d785f760ba3a998fca0b61f3ba7a0cf00891da97ecb77dc6fce"
+    },
+    {
+      "path": "ops/vela-dogeos-readonly.service",
+      "sha256": "dfe69b55f4a58d63217f54d22a2e059c3cc2b2ffae11f81b54c2d6dc01ce9d29"
+    },
+    {
+      "path": "ops/vela-multichain-candidate.service.pending",
+      "sha256": "9a415bbffafc24ac9860b873c5b6fa4af694250d37e2de139c34ddf04b0f2605"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "03e3ce6b20f0bd3a5d3fcc135727addb41e5fc285afb22b0a40b6ccc35940efe"
+    },
+    {
+      "path": "snapshot/backend-validation-20261103.json",
+      "sha256": "10885f1fb4a55b0a411086e3c00df8afb27ba6ad7c662011eb85e01cc1268515"
+    },
+    {
+      "path": "snapshot/completion-inventory-20261103.json",
+      "sha256": "8f92129be03b25a960ace048cf1ad97b418a16a29d26053d105a7bd6f404297c"
+    },
+    {
+      "path": "snapshot/reuse-reconciliation-20261103.json",
+      "sha256": "f828f024d36f53b38a4ef6bce6eea54d653bb432b04be42724f8edfaa71b006c"
+    },
+    {
+      "path": "tests/conftest.py",
+      "sha256": "2f307eb9b9657869fc3147dbea25480a4ee1ae78dd9b02ff436793ff4be86596"
+    },
+    {
+      "path": "tests/test_activation.py",
+      "sha256": "5bc2e096c3035afbc3f7fab244d068cc3f9ddf30535a9508224e76ded3d309af"
+    },
+    {
+      "path": "tests/test_agent_sessions.py",
+      "sha256": "831497baf9c58c39d73efe8cb7f54413c7fb774d556387c7e2bc90c20e943812"
+    },
+    {
+      "path": "tests/test_api_ai.py",
+      "sha256": "9e43590a6fd66a1942176a65a445988c32a90133b5525b1ccab56cbadc19e64e"
+    },
+    {
+      "path": "tests/test_backend_acceptance.py",
+      "sha256": "b6456977b1cb16c8fa930d91429e278626c20b24235215fcaf31979db759bc04"
+    },
+    {
+      "path": "tests/test_backend_release.py",
+      "sha256": "ab810b7efc0092437dd164ada4eff571f2df2dcfe6ab4640a19ff30dce193e63"
+    },
+    {
+      "path": "tests/test_completion_safety.py",
+      "sha256": "baab7edcfcafff1633b5254570bc72cc3e3381ca9a388533fda2410684d47a18"
+    },
+    {
+      "path": "tests/test_dogeos_readonly.py",
+      "sha256": "8e80722b33e4afd9530cd00d31b320c6db537de47d9450c60ae85e7dd0758512"
+    },
+    {
+      "path": "tests/test_market_feed.py",
+      "sha256": "a5e2675dd4454f06ccfd07f6b7b7a57c4622b06e2f443621b67b0afd889abd85"
+    },
+    {
+      "path": "tests/test_model_configuration.py",
+      "sha256": "7887929f2c08ea4c2d37f8bfddd215e25f7d5e816f4dfff909a321312860dfb2"
+    },
+    {
+      "path": "tests/test_model_usage.py",
+      "sha256": "579c00cde3ede648ffcab18bcefaf82a4684e82d0758d7c82d7218bc8f152d31"
+    },
+    {
+      "path": "tests/test_modular_activation.py",
+      "sha256": "4f7c702861e8de2c97d7d1fdc18a4eabf31a76220ee0752a347ca0d405853318"
+    },
+    {
+      "path": "tests/test_module_api.py",
+      "sha256": "3c8b548bd43cd1e2610487a7f43a9dcb5789a9883ce4fd353294279cdc6b16f4"
+    },
+    {
+      "path": "tests/test_modules.py",
+      "sha256": "98f483ba765b1f690d55a61719ecfb06e2591320690f333fbf9512c835de88f2"
+    },
+    {
+      "path": "tests/test_multichain.py",
+      "sha256": "efb02ba6133d5d1413ecb3ec314b61fa83d25ea0dc52fceb2bad5c05cabb25c9"
+    },
+    {
+      "path": "tests/test_multichain_activation.py",
+      "sha256": "4650c58a6c384d08ced5072fd1ed9eb002394b84d5d4ace97d61fdb3aacc6793"
+    },
+    {
+      "path": "tests/test_multichain_handoff.py",
+      "sha256": "6bfbc5b683cf85e13646c355a9889e4ea82ba17a7e73899ad740758845efc6cb"
+    },
+    {
+      "path": "tests/test_multichain_journeys.py",
+      "sha256": "ea00a92c2273258d3a7fbe47d4c7e1029428b1537a4ef42d66403d78357f8704"
+    },
+    {
+      "path": "tests/test_paper_acceptance.py",
+      "sha256": "9c1f5f47b7e1bc569ef2950556e29872de5ebd69afcdec4702238cf46aa2eedc"
+    },
+    {
+      "path": "tests/test_protocol.py",
+      "sha256": "dd7a24c3baf45ecd9905f08c5a181f1319ff20288f5ce3e0d6c22e4ca9926e69"
+    },
+    {
+      "path": "tests/test_release_candidate.py",
+      "sha256": "dbf11932a6f537a5987393a9b1ed9142020b4b9748dd885a7d92ae9e72dd16ef"
+    },
+    {
+      "path": "tests/test_runtime_errors.py",
+      "sha256": "f714ca4ba2ef0bf37553be47ba636af83cb65f6cd49469ebaf3d0f3667ca8298"
+    },
+    {
+      "path": "tests/test_source_preservation.py",
+      "sha256": "8672fdac121416f55aeadfd9992584bb20a0b403737b20aae888a06f9d3fa6ee"
+    },
+    {
+      "path": "tests/test_staking.py",
+      "sha256": "e776c81ee95ecc6ac0353ad74d9fb3b6193b1055f66b7a65e617bc37ae3fbe81"
+    },
+    {
+      "path": "tests/test_testnet_integration.py",
+      "sha256": "e85f6c6fdec2280ab56f1f5fc75e80b6698d0622de49922b06cc9c8f44fc021b"
+    },
+    {
+      "path": "tests/test_trading_details.py",
+      "sha256": "6b68edc0c80f6d2f28de397d4b1d8d9ee0451e90f27a13fc5663fccc3fba4b51"
+    },
+    {
+      "path": "tools/activate_preview.py",
+      "sha256": "90abcf58040cc65093904f77482ae8adf849616aac20043734dba5be034f7608"
+    },
+    {
+      "path": "tools/backup_state.py",
+      "sha256": "751c13a5794fb5bb65f9cc3b21f80475a04f472af8a258e60a20e2d368e03d5e"
+    },
+    {
+      "path": "tools/build_backend_release.py",
+      "sha256": "de35ca055d348bc68e0c1181ed051bc990398d52f0ad9010bfc9065b38554cd8"
+    },
+    {
+      "path": "tools/check_backend_host.py",
+      "sha256": "dc44387e072f5d815c7393826862e5afcfde2c78d48d1b9a4fa61456313181c8"
+    },
+    {
+      "path": "tools/dogeos_browser_fixture.py",
+      "sha256": "e0aded1feb4318b2b3b4d1768fcc6e7d629b2f5c99f745fd4c12f580fb8950f2"
+    },
+    {
+      "path": "tools/dogeos_readonly.py",
+      "sha256": "7e8277a449ae4abee7149b49b4c496018547ab5b704e1cc7e7d81d2397eb5183"
+    },
+    {
+      "path": "tools/modular_preview.py",
+      "sha256": "a5c685e48b8422f8961d68fddaa073b9bc02a51c17b5dd11db02829c5a9c41f8"
+    },
+    {
+      "path": "tools/multichain_browser_fixture.py",
+      "sha256": "c9827a187f369bd5a2ed4253daaced2832875b4819d5d803f7987e0c7b9d9669"
+    },
+    {
+      "path": "tools/multichain_handoff.py",
+      "sha256": "f522b57bf5e88f5c74a99ec4d42c1c88ba38b0e45b456440fe86ff0d1d4b8a8b"
+    },
+    {
+      "path": "tools/multichain_preview.py",
+      "sha256": "d31124a27a3dde536405259e4092e205485ee77f499f441617e06f620a291477"
+    },
+    {
+      "path": "tools/prepare_contracts.py",
+      "sha256": "125ac4d96a0ca11ac169d05df771d8ba419f215293b7b933d44cf67702d88b6d"
+    },
+    {
+      "path": "tools/rehearse.py",
+      "sha256": "5ff63f32ac60d30966bd17823b22a42e54409a4cbed066d364b2b8ad6230e1ef"
+    },
+    {
+      "path": "tools/restricted_pytest.py",
+      "sha256": "f650c09f546cf7c681628088fef31414092c3927314c50721a4fca85db2ea34d"
+    },
+    {
+      "path": "tools/validate_multichain_host.py",
+      "sha256": "ce52996a230e43af122d7818728adddebc05f82b6c48fab9cf0129f94dda826d"
+    },
+    {
+      "path": "tools/verify_source.py",
+      "sha256": "def00469a762e7fdef9194e85d4fb99e73464393299bba39cc841593b462d101"
+    }
+  ],
+  "frontendChanged": false,
+  "databasesIncluded": false,
+  "secretsIncluded": false,
+  "deployed": false,
+  "liveProtectionVerified": false,
+  "excludedCategories": [
+    "Frontend source/assets remain unchanged at existing paths",
+    "Historical screenshots and generated reports unrelated to this build",
+    "Runtime databases, credentials, backups, installed dependencies"
+  ],
+  "readmeNote": "Top-level README replaced with backend-specific publication instructions; original copied README retained in docs/SOURCE-README.md",
+  "publicationValidation": {
+    "backendTestsPassed": 45,
+    "scope": "Published backend path; synthetic providers and wallets",
+    "originalRootFilesChanged": 0,
+    "preparedChangedFilesByteIdentical": 29,
+    "sourcePatternScanFiles": 851,
+    "sourcePatternFindings": 0,
+    "deploymentBlockedBy": "Failed to connect to bus: Operation not permitted; local HTTP sockets unavailable"
+  }
+}

@@ -1,0 +1,49 @@
+VELA DogeOS read-only integration
+
+The read-only service listens on 127.0.0.1:8805. It forwards the existing
+seven-network application, wallet authentication, demo ledger, AI engine and
+Lighter WebSocket to the unchanged application on 127.0.0.1:8804. It creates no
+database, signing identity, model client or trading worker.
+
+GET /api/dogeos/status verifies the known deployed reference vault through the
+official Chikyu RPC, chain 6281971. GET /api/dogeos/account requires the existing
+authenticated DogeOS session and queries that wallet's own factory registration.
+A different wallet is never shown the reference vault as its own. Snapshots use
+three-confirmation block state, canonical block checks, exact runtime hashes,
+reviewed ABIs, factory mapping/prediction and owner/treasury/attestor getters.
+RPC failures return unavailable data; they never become simulated successes.
+
+Contract observations are not written into the simulated vault or loan ledger.
+The legacy writer's factory and attestor settings remain empty. The gateway
+explicitly rejects DogeOS contract-sync, borrow/cancel, certificate, liquidation,
+settlement and simulated-collateral routes. Direct demo capital allocation,
+demo-equity retirement, trading permissions, Start/Stop and protective paper
+position management continue through the original backend. Real funding and
+live trading stay disabled. Risk configuration is unchanged.
+
+Only /vault gets the additional unbundled JS/CSS panel. The homepage HTML and all
+original compiled assets are unchanged. The MyDoge SDK 4.0.4 provider, registered
+client, native connection and challenge-signing hooks remain unchanged. No
+physical wallet approval is inferred from fixture/browser tests.
+
+Genuine MyDoge approval: open https://defivela.xyz/vault inside the MyDoge mobile
+dApp browser, select DogeOS, connect MyDoge, approve account access and switching
+to chain 6281971, and sign the VELLA authentication-only message. Never approve
+a transaction or spending request for this demonstration. The known reference
+vault owner is 0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB.
+
+The recorded paper-trading demonstration is explicitly a deterministic test,
+not live AI trading, current account activity or DogeOS/Lighter settlement.
+
+Activation evidence and reversible handoff/rollback scripts are referenced by:
+.runtime/current-dogeos-connected
+Rollback restores the previous Nginx upstream 8804 and retains the existing
+application/ledger. It does not use the older 8787 rollback route. No contract
+write or frontend rebuild is required for rollback.
+
+Checks:
+.venv/bin/python -m pytest -q tests/test_dogeos_readonly.py
+cd site && node checks/dogeos-readonly-browser.mjs
+Browser checks reuse tools/dogeos_browser_fixture.py: isolated fixture wallet,
+model and markets, actual ASGI/session/ledger code, and live read-only DogeOS RPC.
+They do not access production user balances or manufacture wallet approval.

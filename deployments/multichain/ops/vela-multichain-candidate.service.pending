@@ -1,0 +1,23 @@
+# PREPARED ONLY. Do not install/start until host acceptance gates are reviewed.
+# Independent candidate: never replaces vela-testnet-api/worker or ports 8787/8802/8803.
+# No EnvironmentFile: the factory reads only the audited model/wallet fields.
+[Unit]
+Description=VELA multichain candidate (PAPER/DEMO only)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/VellaMultichain
+Environment=PYTHONPATH=/root/VellaMultichain:/root/VellaMultichain/backend
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStartPre=/root/VellaMultichain/.venv/bin/python /root/VellaMultichain/tools/multichain_handoff.py --check
+ExecStart=/root/VellaMultichain/.venv/bin/python -m uvicorn tools.multichain_handoff:create_app --factory --host 127.0.0.1 --port 8804 --workers 1 --no-access-log --no-proxy-headers
+Restart=no
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/root/VellaMultichain/.runtime
+
+[Install]
+WantedBy=multi-user.target

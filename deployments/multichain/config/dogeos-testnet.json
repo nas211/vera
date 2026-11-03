@@ -1,0 +1,29 @@
+{
+  "chainId": 6281971,
+  "chainName": "DogeOS Chiky\u016b Testnet",
+  "nativeCurrency": {
+    "name": "DOGE",
+    "symbol": "DOGE",
+    "decimals": 18
+  },
+  "rpcUrls": [
+    "https://rpc.testnet.dogeos.com/"
+  ],
+  "blockExplorerUrls": [
+    "https://dogeos-testnet.l2scan.co"
+  ],
+  "faucetUrl": "https://faucet.testnet.dogeos.com/",
+  "testnet": true,
+  "feeDocs": "https://docs.dogeos.com/en/developers/transaction-fees-on-dogeos",
+  "sources": [
+    "https://docs.dogeos.com/en/developers/developer-quickstart",
+    "https://docs.dogeos.com/en/sdk/guides",
+    "https://docs.dogeos.com/en/developers/native-doge-erc20"
+  ],
+  "verifiedOn": "2026-10-22",
+  "deployment": {
+    "factory": null,
+    "settlementSigner": null,
+    "liquidationTreasury": null
+  }
+}

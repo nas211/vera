@@ -1,0 +1,21 @@
+[Unit]
+Description=VELA DogeOS read-only contract integration
+After=network-online.target vela-multichain-candidate.service
+Requires=vela-multichain-candidate.service
+
+[Service]
+Type=simple
+WorkingDirectory=/root/VellaMultichain
+Environment=PYTHONPATH=/root/VellaMultichain:/root/VellaMultichain/backend
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/root/VellaMultichain/.venv/bin/python -m uvicorn tools.dogeos_readonly:create_app --factory --host 127.0.0.1 --port 8805 --workers 1 --no-access-log --no-proxy-headers
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadOnlyPaths=/root/VellaMultichain
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+{
+  "sourceRepository": "nas211/vera",
+  "sourceCommit": "ad8f98948de4ddcd93150939a8efe57423bcbd63",
+  "files": {
+    "backend/vela/__init__.py": "8ab3f64c25d88e2ce48f9d8aff6ffe43eec7740e293a5012e0b1c86a79bed478",
+    "backend/vela/settings.py": "f850f59d8b6c3838961d9e58b60bcc8236b42711248538e742d5c9e1cf4f0181",
+    "backend/vela/db.py": "103ed64c02df79ccca65e69ef0a5d14398482382f83b851e3698e0f27ec919e5",
+    "backend/vela/agents.py": "87421d6a1cd17c6c21904d8b13bc7e082f2ef9bcfbc1308622a0b2d2c7c8c70a",
+    "backend/vela/reuse.py": "55cd3bf47972b4b4e69016bdec71e63d776a00b3912aa7a9f1d1fd1841569d28",
+    "backend/vela/paper.py": "7b9292f7d1747159422c1f21cad488afa8a66a4c9fda5913c780c97bec4a6e0e",
+    "backend/vela/prices.py": "b772670a2e33c5f480df1b5096da9459d2b3455bde6605a9abf848b4c810cb64",
+    "backend/vela/lighter/__init__.py": "70252378b8ff94f6089407d5ef9b6ac1502ed398f65e1bea32803a17443d5c7a",
+    "backend/vela/lighter/engine.py": "2619cd579ec60e79895f2137986e36de1dd0903b53106fee50975c8a0056098b",
+    "backend/vela/lighter/feed.py": "160c8f23b0e5d7d19ba678a44949593bcb975042a4911bd21cdd66ecf36486c0",
+    "backend/vela/lighter/config.py": "facba6de95de8a1ab7eb00d67cb4c81b6b7ceb70ee3d17ff224e111a9d4fc48b",
+    "backend/vela/lighter/monitor.py": "7b5080e2bd538a3414f529c43cf312514d436911765c6d74749e2b7409e728f4",
+    "components/why-bybit-shadow/wy_signals.py": "f17e553ed71854ceaad2750d2f847d39d337348e16451ee328992e8045215245",
+    "components/why-yellow/execution/loss_stop.py": "81553021b6d324e25fc9d84a7acdda79ecd95ee27bbfcb90f5e71f70273daccf",
+    "components/why-discovery/backend/discovery/rules.py": "a0f7bb84458539815cf5217ad013911bd81c70be54a5fe5313cc21dd7b55bf7b",
+    "components/why-discovery/backend/discovery/model.py": "ff39d403326de523080ca14da8985dc965e76bd07628b7afc21a9c5904921f4c",
+    "components/why-discovery/backend/discovery/fees.py": "8deffadd1df43f16a30232c49da2a06648647e28f43e2b53080249fad842e8e5"
+  }
+}

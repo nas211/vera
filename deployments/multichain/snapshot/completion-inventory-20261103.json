@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-03",
+  "project": "Vela",
+  "canonicalOrigin": "https://defivela.xyz",
+  "stages": {
+    "preparedCode": "isolated branches; active checkouts untouched",
+    "tests": "executed locally; fixture and transport limitations recorded separately",
+    "deployment": "blocked: host service/network access unavailable; no new deployment",
+    "liveProtection": "unverified; no live exchange or existing stop changed"
+  },
+  "sources": [
+    {
+      "component": "legacy API, portal, paper desk, V1/V2",
+      "path": "/root/Vera",
+      "localHead": "ad8f98948de4ddcd93150939a8efe57423bcbd63",
+      "remoteHead": "eb7462023558cc4882ad25de62b61c95f9de0d42",
+      "comparison": "all 733 tracked paths, modes and blob hashes match GitHub main; two empty untracked files preserved"
+    },
+    {
+      "component": "newer domain application",
+      "path": "/root/VellaMultichain",
+      "head": "dff777b",
+      "branch": "feature/vella-multichain",
+      "authority": "VPS Nginx/service files reference this application; live service health not observable"
+    },
+    {
+      "component": "current frontend per Nginx",
+      "path": "/var/www/defivela-ui/simple-tabs-20261101T085948Z",
+      "authority": "matches November 1 deployment history; live HTTP unavailable"
+    },
+    {
+      "component": "existing Sites project",
+      "projectId": "appgprj_6ad757d1f93c8191bc736d87ada530be",
+      "savedVersion": 10,
+      "providerDomainStatus": "active",
+      "providerTlsStatus": "active",
+      "authority": "provider metadata only; conflicts with newer VPS delivery history; must not republish old source"
+    }
+  ],
+  "recovery": {
+    "directory": "/root/vela-completion-20261103/recovery",
+    "codeBundlesVerified": true,
+    "databasesVerified": 6,
+    "method": "SQLite online backup with pinned read transaction; integrity and isolated restore/schema/count verification",
+    "restoredInPlace": false,
+    "productionEngineStarted": false
+  },
+  "features": [
+    {
+      "id": "homepage",
+      "status": "implemented_newer_source",
+      "evidence": "November 1 frontend preserved; browser verification blocked by sockets"
+    },
+    {
+      "id": "trade",
+      "status": "implemented_paper_only",
+      "evidence": "wallet authentication, zero initial account, demo allocations, permissions, AI start/stop, account history; legacy /trade and newer /trading need compatibility"
+    },
+    {
+      "id": "paper",
+      "status": "implemented_legacy",
+      "evidence": "manual orders, partial closes, sequenced feed, risk accounting; newer app lacks a direct independent desk"
+    },
+    {
+      "id": "earn_staking",
+      "status": "backend_demo_prepared_disabled",
+      "evidence": "New opt-in existing-ledger demo staking deposit/withdraw/accrual/claim tests; disabled by default; no funded reward product or staking contract"
+    },
+    {
+      "id": "lending",
+      "status": "implemented_demo_only",
+      "evidence": "newer shared ledger, collateral, LTV/health, accrual, liquidation, repayment and isolation covered by tests; real lending disabled"
+    },
+    {
+      "id": "privacy",
+      "status": "missing",
+      "evidence": "public wallet/contract/account links; no circuits, trusted setup, relayer or verification deployment; must not advertise privacy"
+    },
+    {
+      "id": "wallet_metamask",
+      "status": "implemented",
+      "evidence": "EOA cryptographic fixtures pass; historical October 29 mobile authentication documented; not reverified this turn"
+    },
+    {
+      "id": "wallet_mydoge",
+      "status": "intentionally_disabled",
+      "evidence": "latest owner history disabled MyDoge; SDK/native/mobile/email/Google approvals cannot be verified here"
+    },
+    {
+      "id": "contract_wallets",
+      "status": "unsupported",
+      "evidence": "EIP-1271 not implemented; no verification RPC available"
+    },
+    {
+      "id": "ai_pipeline",
+      "status": "backend_hardening_prepared",
+      "evidence": "Existing research/review/direction/risk/execution fixtures pass; persistent usage/reservations, bounded workers, session revocation and deterministic protection added; live model connectivity unverified"
+    },
+    {
+      "id": "lighter_public",
+      "status": "implemented",
+      "evidence": "BTC/ETH/SOL, depth sequencing, freshness, history, funding estimates and reconnect tests; current external connectivity blocked"
+    },
+    {
+      "id": "lighter_live",
+      "status": "intentionally_disabled",
+      "evidence": "no authenticated execution/funding/custody integration; supported bridge not established; explicit approval and security gates remain"
+    },
+    {
+      "id": "dogeos_v1",
+      "status": "historical_deployment_paused",
+      "evidence": "testnet vault source and historical receipts preserved; current RPC unavailable"
+    },
+    {
+      "id": "dogeos_v2",
+      "status": "prepared_not_deployed",
+      "evidence": "local contracts and tests retained; no transaction authorized or sent"
+    },
+    {
+      "id": "dogeos_new_collateral",
+      "status": "historical_deployment_read_only",
+      "evidence": "newer verified-address manifest for VaultFactory and DogeCollateralVault found; customer transactions disabled; current receipts not rechecked"
+    },
+    {
+      "id": "risk",
+      "status": "backend_hardening_prepared",
+      "evidence": "Universal fee-inclusive $2 or stricter stop-trigger budget; lowered permission reconciles existing long/short/partial positions across restart; no live protection changed"
+    },
+    {
+      "id": "database_ownership",
+      "status": "repair_prepared",
+      "evidence": "newer app opened/initialized DB before acquiring engine lock; fixed in isolated worktree"
+    },
+    {
+      "id": "start_stop_race",
+      "status": "repair_prepared",
+      "evidence": "pending model preflight revalidates wallet session and permission generation before enabling entries"
+    },
+    {
+      "id": "shutdown",
+      "status": "repair_prepared",
+      "evidence": "model worker threads drain before database ownership release"
+    },
+    {
+      "id": "request_limits",
+      "status": "repair_prepared",
+      "evidence": "actual body size limits, JSON object validation, bounded authentication attempts"
+    },
+    {
+      "id": "service_supervision",
+      "status": "prepared_not_installed",
+      "evidence": "Background task supervision and readiness tested; additive restart drop-in prepared; candidate Restart=no and legacy transient units remain unchanged"
+    },
+    {
+      "id": "backups",
+      "status": "tool_prepared_and_rehearsed",
+      "evidence": "private consistent backups and isolated restore verification; scheduling/install blocked"
+    },
+    {
+      "id": "security_scan",
+      "status": "partial",
+      "evidence": "Malformed input/rate/race/ownership regression tests and source review performed; staged pattern scan and dependency consistency recorded separately; fresh advisory scan and independent audit not performed"
+    },
+    {
+      "id": "deployment",
+      "status": "blocked_host_access",
+      "evidence": "systemd/netlink/loopback denied, DNS unavailable; no unsafe proxy/frontend replacement"
+    },
+    {
+      "id": "why_isolation",
+      "status": "preserved",
+      "evidence": "no original WHY files, accounts, services or credentials changed; live health cannot be observed"
+    },
+    {
+      "id": "trading_history_reductions",
+      "status": "backend_prepared",
+      "evidence": "Authenticated idempotent partial/full close and cancellation, paginated scoped history, persisted fresh equity observations; no UI changes"
+    },
+    {
+      "id": "model_usage",
+      "status": "backend_prepared",
+      "evidence": "Persistent UTC-day quotas and token reservations, provider usage when observed, no invented charges; per-ledger scope"
+    },
+    {
+      "id": "source_preservation",
+      "status": "verified",
+      "evidence": "17 original module hashes and one existing Solana normalization adaptation verified separately"
+    },
+    {
+      "id": "backend_release",
+      "status": "prepared",
+      "evidence": "Backend-only committed-source overlay plus code rollback and hash verification; refuses frontend/database/secret-file paths and newer target files"
+    },
+    {
+      "id": "ci_cd",
+      "status": "partial",
+      "evidence": "Local suites executed; authoritative newer repo has no remote, network installation and hosted CI execution unavailable"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "host_executor",
+      "requires": "executor with authorized service/process inspection, network sockets and existing host deployment access"
+    },
+    {
+      "id": "external_provider_checks",
+      "requires": "network access for DNS/TLS, DogeOS RPC, public Lighter, dedicated Vela model, package advisories"
+    },
+    {
+      "id": "wallet_approval",
+      "requires": "owner-controlled test wallet and actual MetaMask/MyDoge device/login approvals"
+    },
+    {
+      "id": "financial_activation",
+      "requires": "exact scoped transaction authorization, funding/custody specification, verified liquidity/oracles/rewards and independent security review"
+    },
+    {
+      "id": "privacy_design",
+      "requires": "selected maintained proof system/circuit, threat model, audited implementation and verification infrastructure"
+    }
+  ],
+  "scope": {
+    "backendOnly": true,
+    "uiUxChanged": false,
+    "trackedUiFilesCompared": 121,
+    "productionServicesChanged": false,
+    "realTransactionsSubmitted": 0
+  },
+  "validationRecord": "snapshot/backend-validation-20261103.json",
+  "report": "docs/BACKEND-COMPLETION-20261103.md"
+}

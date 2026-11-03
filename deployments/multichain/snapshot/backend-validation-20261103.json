@@ -1,0 +1,94 @@
+{
+  "observedAt": "2026-11-03",
+  "scope": "backend only; fixture validation and offline contract tests",
+  "backendSuite": {
+    "artifact": "/root/vela-completion-20261103/backend-final.xml",
+    "tests": 259,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "releaseGuardSuite": {
+    "artifact": "/root/vela-completion-20261103/release-final.xml",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "distinctBackendTests": 260,
+  "legacyBackendSuite": {
+    "artifact": "/root/vela-completion-20261103/vera-baseline.xml",
+    "tests": 140,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "legacyExecutionRisk": {
+    "tests": 41,
+    "failures": 0,
+    "artifact": "/root/vela-completion-20261103/legacy-risk.log"
+  },
+  "contracts": [
+    {
+      "component": "legacy V1/V2",
+      "tests": 26,
+      "failures": 0,
+      "artifact": "/root/vela-completion-20261103/legacy-contracts.log"
+    },
+    {
+      "component": "newer collateral vault",
+      "tests": 21,
+      "failures": 0,
+      "artifact": "/root/vela-completion-20261103/contracts-baseline.log"
+    }
+  ],
+  "checks": {
+    "pythonCompile": true,
+    "gitDiffCheck": true,
+    "installedPythonDependencyConsistency": true,
+    "sourcePreservation": true,
+    "trackedUiFilesCompared": 121,
+    "uiChanges": [],
+    "servedUiMatchesPreservedArchive": true,
+    "servedUiFilesCompared": 9
+  },
+  "sourcePatternScan": {
+    "staged_files": 346,
+    "findings": [],
+    "supplied_secret_checked": false,
+    "scope": "Staged source only; patterns are not a security audit"
+  },
+  "recovery": {
+    "consistentDatabasesVerified": 6,
+    "privateManifest": "/root/vela-completion-20261103/recovery/manifest.json",
+    "restorationIntoDisposableDatabases": true,
+    "productionRestore": false
+  },
+  "execution": {
+    "prepared": true,
+    "deployed": false,
+    "liveProtectionVerified": false,
+    "realTradingEnabled": false,
+    "realTransactionsSubmitted": 0,
+    "productionDatabaseMigration": false
+  },
+  "limits": [
+    "Market/model/chain/wallet fixtures are not live provider validation",
+    "Local EVM RPC tests excluded by socket denial",
+    "No genuine wallet/device approvals performed",
+    "Current dependency advisories not available through blocked DNS",
+    "No independent security audit",
+    "No service restart, HTTPS/DNS or external provider acceptance"
+  ],
+  "warnings": [
+    "websockets.legacy deprecation",
+    "Legacy in-process test collection warnings"
+  ],
+  "originalCheckouts": {
+    "Vera": [
+      "?? curl",
+      "?? systemctl"
+    ],
+    "VellaMultichain": []
+  }
+}

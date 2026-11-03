@@ -1,0 +1,13 @@
+# PREPARED ONLY. Apply only to the existing vela-multichain-candidate unit
+# after host ownership, current backup, code rollback and acceptance checks.
+# Does not change ExecStart, database, credentials, port, frontend or Nginx.
+[Service]
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=120s
+UMask=0077
+NoNewPrivileges=true
+
+[Unit]
+StartLimitIntervalSec=300
+StartLimitBurst=5

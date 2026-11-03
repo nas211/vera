@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-22",
+  "robinhood": {
+    "officialPublicTestnet": true,
+    "chainId": 46630,
+    "rpc": "https://rpc.testnet.chain.robinhood.com",
+    "explorer": "https://explorer.testnet.chain.robinhood.com",
+    "walletCompatibility": "EVM wallets; genuine wallet flow not exercised",
+    "source": "https://docs.robinhood.com/chain/add-network-to-wallet/",
+    "verification": "Official documentation; direct RPC reachability not yet verified from this environment"
+  },
+  "sources": [
+    "https://docs.phantom.com/solana/signing-a-message",
+    "https://docs.base.org/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId",
+    "https://docs.bnbchain.org/bnb-smart-chain/developers/wallet-configuration/",
+    "https://docs.arbitrum.io/chain-info"
+  ],
+  "collateralPrices": "Fixed illustrative research values, not current market quotes",
+  "wrappedTokens": "WETH/WBNB simulated instruments only; no token contract addresses or transfers"
+}

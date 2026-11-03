@@ -1,0 +1,49 @@
+{
+  "chainId": 6281971,
+  "roles": {
+    "deployer": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+    "vaultOwner": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+    "liquidationTreasury": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+    "settlementAttestor": "0x519d809a40fff13CD3c820aE5Ae542152eFfac70"
+  },
+  "contracts": {
+    "VaultFactory": {
+      "address": "0xD6644a0C4233257b091D669142A7A8db3F2B7C3a",
+      "transactionHash": "0x624fa20c8fbaadb67f1690929f0b9668ab2cac963828ac04482ff6e1850b3106",
+      "nonce": 100,
+      "blockNumber": 8817771,
+      "receiptStatus": 1,
+      "gasUsed": 1989925,
+      "effectiveGasPriceWei": 15680108,
+      "executionFeeWei": 31202238911900,
+      "dataFinalityFeeWei": 636224854157522281,
+      "actualSpentWei": 636256056396434181,
+      "actualSpentTestDOGE": "0.636256056396434181",
+      "runtimeKeccak256": "0xdc3be7c02ff45de40651a05e5dfa644f2cd71a8699861e73d5433f173ed6875d",
+      "sourceVerified": true
+    },
+    "DogeCollateralVault": {
+      "address": "0x533beF9B9453914b584241F53aBA40f106Ac3125",
+      "transactionHash": "0x50e29f6ddd3d090e4d511f5a0ab13851d8675fa590585b292a6b183b4ac827f3",
+      "nonce": 101,
+      "blockNumber": 8817780,
+      "receiptStatus": 1,
+      "gasUsed": 1629975,
+      "effectiveGasPriceWei": 15680108,
+      "executionFeeWei": 25558184037300,
+      "dataFinalityFeeWei": 7603608218842834,
+      "actualSpentWei": 7629166402880134,
+      "actualSpentTestDOGE": "0.007629166402880134",
+      "runtimeKeccak256": "0x0b0ddda5b7bc0a31eedcd78a339c12fe73a160da4b1744caf5022b37b39f7ca8",
+      "sourceVerified": true
+    }
+  },
+  "rpc": "https://rpc.testnet.dogeos.com/",
+  "explorer": "https://dogeos-testnet.l2scan.co",
+  "evidence": "/root/VellaMultichain/.runtime/releases/dogeos-funded-20261022T222348Z",
+  "customerTransactionsEnabled": false,
+  "abiSha256": {
+    "VaultFactory": "66a55159bc19cae65cb6bacdb878a56ea02fbf703feef551de4cb6cbfc89540e",
+    "DogeCollateralVault": "b364eb86ec554d6242e71f14068048da45f98e8106c9523174fe9017127c7b6e"
+  }
+}

@@ -1,0 +1,2 @@
+Project: VELLA. Repository: /root/VeraProtocol.
+Work only in this independent repository. /root/Vera is read-only. Never copy credentials, databases or service configuration from Vela. PAPER execution and DEMO lending only. DogeOS writes require explicit testnet deployment authorization. Every position must retain the stricter of its existing risk limit and a $2 fee-inclusive stop-trigger budget; this is not a realized-loss guarantee. No production deployment.

@@ -1,0 +1,30 @@
+# Vela multichain backend
+
+This directory publishes the newer VPS backend and all prepared backend changes from source commit `99585e0ab2bf6b7cbf5216fe9055944c43f06fe1`. It coexists with the legacy Vela application at the repository root. It does not replace that application, its database, or any UI files.
+
+The existing runtime directory is `/root/VellaMultichain`; Nginx serves its separately preserved UI and routes API traffic through the existing gateway. Do not start a second engine against that runtime's ledger. This source publication does not deploy or restart any service.
+
+Included: FastAPI backend, reused pure risk/agent/feed modules, contract source and tests, configuration schemas, backend tests, operational tools, pending service configuration and validation records. All 29 prepared changed/new files are included verbatim. The original checkout's README is retained as [source history](docs/SOURCE-README.md); historical deployment statements there are not current acceptance evidence.
+
+Frontend source/build outputs, customer databases, environment files, private recovery copies and installed dependencies are excluded. Backend tests that inspect preserved frontend bundles require those original build artifacts; this publication intentionally does not generate or replace them. The full suite was executed against the preserved artifacts in the isolated VPS worktree, as recorded in [validation](snapshot/backend-validation-20261103.json).
+
+Start with the [backend implementation and deployment report](docs/BACKEND-COMPLETION-20261103.md), [implementation inventory](snapshot/completion-inventory-20261103.json), and [source publication manifest](snapshot/publication-20261103.json). The manifest records the exact original source hashes. Its `README.md` hash refers to `docs/SOURCE-README.md`; this entrypoint explains the additive publication layout.
+
+## Run backend checks
+
+Use an isolated dependency environment with `requirements.txt`, never a WHY environment. With this directory as the working directory:
+
+```bash
+PYTHONPATH=backend python -m pytest tests/test_completion_safety.py \
+  tests/test_agent_sessions.py tests/test_model_usage.py tests/test_staking.py \
+  tests/test_trading_details.py tests/test_backend_acceptance.py \
+  tests/test_backend_release.py tests/test_source_preservation.py -q
+```
+
+The tests use synthetic wallet keys, market data, model responses and temporary ledgers. They do not prove genuine wallet approvals, live market/provider connectivity or exchange-side protection. `tools/restricted_pytest.py` provides a selector heartbeat for restricted test executors; it does not bypass test assertions.
+
+## Deploy the existing backend
+
+Use the verified 29-file backend overlay and matching code rollback from `/root/vela-completion-20261103/release`, following the report's preflight, fresh backup, ownership, graceful restart and acceptance sequence. This GitHub copy provides the source of every overlay file and its unchanged backend dependencies. The release builder's base reference belongs to the original multichain repository history, not this additive import commit; do not attempt to resolve that base in the legacy repository history.
+
+Publication does not authorize enabling real trading, real lending, funded staking, chain writes or a new contract deployment. The fee-inclusive per-position stop-trigger budget remains $2 or stricter; it is not a guarantee against slippage, gaps or funding. Live protection remains unverified. Demo staking remains disabled by default. No UI/UX change is included.

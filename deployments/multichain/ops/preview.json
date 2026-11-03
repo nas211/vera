@@ -1,0 +1,11 @@
+{
+  "project": "VELLA",
+  "origin": "https://defivela.xyz",
+  "listenHost": "127.0.0.1",
+  "listenPort": 8802,
+  "environmentFile": ".runtime/preview.env",
+  "certificate": "/etc/letsencrypt/live/defivela.xyz/fullchain.pem",
+  "certificateKey": "/etc/letsencrypt/live/defivela.xyz/privkey.pem",
+  "releaseManifest": "snapshot/vella-release.json",
+  "publicRoutingChanged": false
+}
