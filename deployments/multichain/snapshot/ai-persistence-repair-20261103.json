@@ -1,0 +1,30 @@
+{
+  "checkedAtUtc": "2026-11-03T11:18:11.772837+00:00",
+  "sourceCommit": "1183c798f1a8eb52c3ff6b161582666ac9c2a96d",
+  "githubCodeCommit": "a81dd229e03d2d0e067e7c947b300d72bc55b646",
+  "backendFingerprint": "a2aa0edc3cde19ca72987a74a2b1a53f586ba6743ad969374ce7d8d1ae0c265a",
+  "deployed": true,
+  "mode": "PAPER",
+  "localTestsPassed": 274,
+  "ciRun": "https://github.com/nas211/vera/actions/runs/41626187434",
+  "ciConclusion": "success",
+  "decisionStagesPersisted": [
+    "direction",
+    "research",
+    "review"
+  ],
+  "filledAiPaperOrdersSinceRepair": 1,
+  "riskBudgetVerified": true,
+  "openPositionsChecked": 1,
+  "runtimeError": "",
+  "ledgerContinuity": true,
+  "backupRestoreVerified": true,
+  "frontendUnchanged": true,
+  "whyServicesUnchanged": 35,
+  "healthMonitoringEnabled": true,
+  "realFunding": false,
+  "liveEnabled": false,
+  "liveProtectionVerified": false,
+  "postRepairModelLoopFailures": 0,
+  "firstFilledPaperOrderCreatedAt": "2026-11-03T12:16:35.116616+01:00"
+}
