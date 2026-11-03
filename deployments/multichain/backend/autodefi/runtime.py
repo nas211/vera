@@ -1,6 +1,6 @@
 import asyncio,fcntl,time,json
 from contextlib import suppress
-from vela.db import connect,transaction,put,get
+from vela.db import connect,transaction,put,get,log
 from vela.lighter import monitor
 from .trading import GovernedPaper,agents_for
 from .lending import Lending
@@ -69,12 +69,20 @@ class Runtime:
             monitor.review_position(db,self.model)
         finally:db.close()
     async def model_loop(self):
+        delay=5
         while True:
             try:
                 await self.run_blocking(self.model_tick)
                 self.errors.pop('model',None)
-            except Exception:self.errors['model']='Model step unavailable; no unapproved entries'
-            await asyncio.sleep(5)
+                delay=5
+            except Exception as exc:
+                self.errors['model']='Model step unavailable; no unapproved entries'
+                # Do not repeatedly spend model budget when persistence fails.
+                # Log only the exception class, never provider/request contents.
+                delay=min(60,delay*2)
+                with suppress(Exception):
+                    log(self.db,'runtime','model_step_failed','warning',error=type(exc).__name__,retrySeconds=delay)
+            await asyncio.sleep(delay)
     async def chain_loop(self):
         while True:
             failed=False

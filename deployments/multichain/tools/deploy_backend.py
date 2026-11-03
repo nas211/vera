@@ -89,8 +89,9 @@ def assert_continuity(before, after):
 
 
 class Host:
-    def __init__(self, root):
+    def __init__(self, root, repair_model_error=False):
         self.root = root
+        self.repair_model_error = repair_model_error
         self.config_changes = []
         self.enabled = []
 
@@ -109,14 +110,20 @@ class Host:
         with urllib.request.urlopen(url, timeout=10) as response:
             return json.loads(response.read(65536))
 
-    def health(self, expected=None, ready=False):
+    def health(self, expected=None, ready=False, repair_model_error=False):
         urls = ['http://127.0.0.1:8804/api/'+('ready' if ready else 'health'),
                 'http://127.0.0.1:8805/api/health', 'https://defivela.xyz/api/health']
         for url in urls:
             state = self.fetch(url)
+            runtime_error = state.get('runtimeError')
+            # A known failed model loop must be repairable. This exception is
+            # explicit, preflight-only and cannot relax post-deploy acceptance.
+            if (repair_model_error and not expected and not ready and
+                    runtime_error == 'Model step unavailable; no unapproved entries'):
+                runtime_error = ''
             if (state.get('mode') != 'PAPER' or state.get('lending') != 'DEMO' or
                     state.get('liveEnabled') is not False or state.get('realFunding') is not False or
-                    state.get('marketData') is not True or state.get('runtimeError')):
+                    state.get('marketData') is not True or runtime_error):
                 raise RuntimeError('Existing paper-only health/market acceptance failed')
             if expected and (state.get('sourceFingerprint') != expected or state.get('engineReady') is not True):
                 raise RuntimeError('Published endpoint is not serving the expected healthy backend source')
@@ -133,7 +140,7 @@ class Host:
         if subprocess.run(['git', '-C', str(self.root), 'diff', '--quiet', 'HEAD', '--',
                            'backend', 'components', 'config', 'tools', 'ops']).returncode:
             raise RuntimeError('Preserve unpublished target backend changes; reconcile first')
-        self.health()
+        self.health(repair_model_error=self.repair_model_error)
 
     def ui_state(self):
         # Observe existing Nginx roots; do not alter routing or static files.
@@ -294,12 +301,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--release', required=True, type=Path)
     parser.add_argument('--apply', action='store_true')
+    parser.add_argument('--repair-model-error', action='store_true',
+                        help='Allow only the known model-loop error before repair; require healthy acceptance afterward')
     args = parser.parse_args()
     os.umask(0o077)
     if os.geteuid() != 0:raise SystemExit('Existing root-owned Vela service access is required')
     recovery = TARGET/'.runtime/deployments'/time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
     try:
-        print(json.dumps(deploy(args.release, TARGET, recovery, apply=args.apply)))
+        print(json.dumps(deploy(args.release, TARGET, recovery,
+                               host=Host(TARGET, repair_model_error=args.repair_model_error), apply=args.apply)))
     except Exception as error:
         print(json.dumps(dict(deployed=False, error=str(error), errorType=type(error).__name__,
                               recovery=str(recovery), liveProtectionVerified=False)))

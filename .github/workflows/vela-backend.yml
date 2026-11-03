@@ -37,7 +37,8 @@ jobs:
         run: >-
           python -m pytest
           tests/test_completion_safety.py tests/test_agent_sessions.py
-          tests/test_model_usage.py tests/test_staking.py
+          tests/test_model_usage.py tests/test_model_concurrency.py tests/test_runtime_errors.py
+          tests/test_staking.py
           tests/test_trading_details.py tests/test_backend_acceptance.py
           tests/test_backend_release.py tests/test_source_preservation.py
           tests/test_backend_deployment.py

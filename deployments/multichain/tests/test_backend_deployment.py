@@ -10,7 +10,7 @@ import httpx
 
 from autodefi.build import fingerprint
 from tools.build_backend_release import build
-from tools.deploy_backend import deploy, ledger_state, source_fingerprint
+from tools.deploy_backend import Host, deploy, ledger_state, source_fingerprint
 from tools.operate_backend import check, backup
 from test_backend_release import command, commit
 
@@ -153,9 +153,33 @@ def test_operations_health_detects_stale_backup_and_unhealthy_market(release, mo
     result = backup(root)
     assert result['restoreVerified'] and result['integrity'] == 'ok'
     assert check(root, fetch=fetch)['healthy']
+    state['runtimeError'] = 'Model step unavailable; no unapproved entries'
+    assert not check(root, fetch=fetch)['healthy']
+    state['runtimeError'] = ''
+    assert check(root, fetch=fetch)['healthy']
     assert not check(root, now=10**12, fetch=fetch)['healthy']
     state['marketData'] = False
     assert not check(root, fetch=fetch)['healthy']
+
+
+def test_model_repair_exception_is_explicit_preflight_only_and_narrow(tmp_path):
+    state = dict(mode='PAPER', lending='DEMO', liveEnabled=False, realFunding=False,
+                 marketData=True, engineReady=True, sourceFingerprint='fixture',
+                 runtimeError='Model step unavailable; no unapproved entries')
+    host = Host(tmp_path, repair_model_error=True)
+    host.fetch = lambda _: state
+    with pytest.raises(RuntimeError, match='acceptance failed'):host.health()
+    host.health(repair_model_error=True)
+    with pytest.raises(RuntimeError, match='acceptance failed'):
+        host.health(expected='fixture', repair_model_error=True)
+    with pytest.raises(RuntimeError, match='acceptance failed'):
+        host.health(ready=True, repair_model_error=True)
+    for field, value in [('runtimeError', 'Runtime step failed: OperationalError'),
+                         ('runtimeError', 'Model step unavailable; no unapproved entries; chain failure'),
+                         ('mode', 'LIVE'), ('realFunding', True), ('marketData', False)]:
+        old = state[field];state[field] = value
+        with pytest.raises(RuntimeError, match='acceptance failed'):host.health(repair_model_error=True)
+        state[field] = old
 
 
 def test_gateway_rejects_huge_length_without_forwarding_or_integer_error():

@@ -172,7 +172,11 @@ class Agents:
         now = time.time()
         if now - get(self.db, "ai-last-call", 0) < 5:
             return
-        for user in self.db.execute("SELECT * FROM users WHERE status='active' AND strategy IN (1,2,3)"):
+        # Exhaust the cursor before model HTTP or usage metering writes through
+        # another connection. A live WAL read snapshot cannot be upgraded after
+        # that commit (SQLITE_BUSY_SNAPSHOT), even with a busy timeout.
+        users = self.db.execute("SELECT * FROM users WHERE status='active' AND strategy IN (1,2,3)").fetchall()
+        for user in users:
             if self.eligible is not None and not self.eligible(user):
                 continue
             key = "ai-stage:" + user["address"]
