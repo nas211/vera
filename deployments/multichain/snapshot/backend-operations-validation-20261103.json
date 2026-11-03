@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-03",
+  "backendTestsPassed": 270,
+  "failures": 0,
+  "errors": 0,
+  "scope": "Local fixtures; no host service execution",
+  "unitSyntaxVerified": true,
+  "sourceFingerprintImplemented": true,
+  "backupAndHealthTimers": "prepared, not installed",
+  "privacyProduct": "excluded by owner",
+  "deployed": false,
+  "liveProtectionVerified": false,
+  "hostPermissionRecheck": "systemctl: Failed to connect to bus: Operation not permitted; escalation policy sandbox_approval=false",
+  "junit": "/root/vela-completion-20261103/operations-final.xml"
+}

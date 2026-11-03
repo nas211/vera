@@ -161,7 +161,7 @@ model needs separate `VELA_MODEL` and `VELA_MODEL_KEY` settings; its disconnecte
 state is shown in the app. When configured, model review is required and cannot
 be bypassed by a rule fallback. Pyth now requires `VELA_PYTH_API_KEY`; Binance fallback
 supports the four crypto markets meanwhile, and XAU stays unavailable.
-Lending & Borrowing, staking contracts and the requested ZK privacy layer remain future work. The Staking calculator uses assumed APY.
+Lending & Borrowing and staking contracts remain future work. The Staking calculator uses assumed APY.
 Existing referral rewards are historical WHY mechanisms, not DOGE rewards.
 No APY or returns are promised by this repository.
 

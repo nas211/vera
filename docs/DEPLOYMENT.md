@@ -136,7 +136,7 @@ The check is excluded from strategy leaderboard returns.
   login service, not this frontend; it was not changed or truncated.
 - Pyth requires its own API key. Binance public crypto fallback is working;
   XAU remains unavailable. No missing price is fabricated.
-- Lending/Borrowing, real staking, yield payouts and ZK privacy remain unimplemented.
+- Lending/Borrowing, real staking and yield payouts remain unimplemented.
   `/earn` is an illustrative calculator. Current blockchain records are public.
 - The API uses a temporary Cloudflare Quick Tunnel. Transient Vela services and
   runtime secrets require reinitialization after a host reboot. No secret was

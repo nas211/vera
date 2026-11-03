@@ -166,8 +166,7 @@ Staking opens its own page at `/earn` (static source `dist/earn.html`).
 The hero Start earning button and Staking navigation go there. It contains the
 APY/rewards calculator; deposits are not implemented. The homepage retains a
 product teaser. `node checks/earn.cjs` checks that page and its calculator.
-The requested ZK privacy layer remains a planned feature, not an enabled shield:
-current vault transactions are public. There are no separate Earn/Bonus/APY
+Current vault transactions are public. There are no separate Earn/Bonus/APY
 products or four-box opening row. The main CTA says Start earning. Visible
 paper-trading banners were removed at the owner's request. The portfolio
 explains simulated execution and TUSDC accounting in its details.

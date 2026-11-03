@@ -2,7 +2,7 @@
 
 Backend changes are prepared in `codex/vela-completion-20261103`, in the isolated worktree `/root/vela-completion-20261103/multichain`. The active application checkouts, services, database contents, domain routing, contracts and frontend have not been changed. All 121 tracked UI files match the original newer checkout. This release contains no UI/UX edits.
 
-This is a tested backend release candidate, not a claim that the entire platform is production-ready. Deployment and current provider/wallet acceptance remain blocked. Real trading, real lending, funded staking and ZK privacy have not been activated. No blockchain transaction or real exchange order was submitted. The $2 or stricter fee-inclusive stop-trigger requirement remains separate from realized losses under slippage, funding, gaps or outages. No live protection was changed or verified.
+This is a tested backend release candidate, not a claim that the entire platform is production-ready. Deployment and current provider/wallet acceptance remain blocked. Real trading, real lending and funded staking have not been activated. No blockchain transaction or real exchange order was submitted. The $2 or stricter fee-inclusive stop-trigger requirement remains separate from realized losses under slippage, funding, gaps or outages. No live protection was changed or verified.
 
 ## Authoritative sources and preservation
 
@@ -85,6 +85,26 @@ Database recovery, if ever required for actual corruption, must be a separate op
 
 The inventory records every remaining area rather than treating test fixtures as production acceptance. Host access is required to deploy, install persistent supervision/backups/monitoring and verify current provider connections. Fresh dependency advisories, a clean installation and full CI on the authoritative newer repository are pending; that repository currently has no remote. Real MetaMask/MyDoge approvals require an authorized wallet/device; EIP-1271 is unsupported. MyDoge remains intentionally disabled in the existing product.
 
-Live Lighter execution lacks verified authenticated funding/custody/reconciliation and owner authorization. There is no invented DogeOS-to-Lighter bridge. DogeOS V1/V2 and the newer collateral contracts were not redeployed or funded; historical addresses and chain 6281971 were inspected, but current chain state/fees/receipts could not be queried. V2 cannot be assumed to recover V1 funds. Real lending/staking still require supported liquidity, rewards/oracles, custody and independent review. ZK privacy has no selected verified circuit, proof system, verifier deployment or relayer and is not implemented. None of these financial/privacy products are represented as complete by this backend build.
+Live Lighter execution lacks verified authenticated funding/custody/reconciliation and owner authorization. There is no invented DogeOS-to-Lighter bridge. DogeOS V1/V2 and the newer collateral contracts were not redeployed or funded; historical addresses and chain 6281971 were inspected, but current chain state/fees/receipts could not be queried. V2 cannot be assumed to recover V1 funds. Real lending/staking still require supported liquidity, rewards/oracles, custody and independent review. None of these financial products are represented as complete by this backend build.
 
 Reference checks: [DogeOS developer quickstart](https://docs.dogeos.com/en/developers/developer-quickstart), [Lighter funding documentation](https://docs.lighter.xyz/trading/funding), and [OpenAI token counting](https://developers.openai.com/api/docs/guides/token-counting). Provider documentation is not evidence of this deployment's connectivity, costs or execution.
+
+Scope correction: the owner removed ZK and transaction-privacy products from this project. They are excluded from the inventory and are not deployment blockers.
+
+## Backend operations follow-up
+
+The updated backend suite passes **270 tests**. A guarded deployment tool now verifies the existing service identities, unchanged target source, paper-only health, fresh market data and an idle paper ledger before making changes. It creates a fresh WAL-aware backup, gracefully stops only the existing candidate and gateway, acquires the same ledger ownership lock, applies the verified backend overlay and starts the existing services. It checks the running source fingerprint through the backend, gateway and public HTTPS endpoint, public WebSocket streaming, unchanged served UI files and ledger continuity. Acceptance failure restores code while retaining the current ledger, including activity recorded after startup. Synthetic failure tests verify these paths; they are not a claim that host restart acceptance ran.
+
+After acceptance, the tool installs the prepared restart policy, enables the existing backend/gateway units for reboot, and installs daily verified backups plus periodic health, disk-space and backup-freshness checks. The monitoring services write bounded journald output and never send external messages. Their unit syntax passes `systemd-analyze verify`. Existing recovery copies are not pruned automatically; low disk space produces a failure for operator attention.
+
+From an actual host shell with access to systemd and networking, the reviewed command is:
+
+```bash
+/root/VellaMultichain/.venv/bin/python \
+  /root/vela-completion-20261103/multichain/tools/deploy_backend.py \
+  --release /root/vela-completion-20261103/release-v2 --apply
+```
+
+Omit `--apply` for a preflight-only run. The tool refuses to deploy over a different/unpublished backend, open positions or pending orders; it does not close customer positions or change permissions to force a deployment. It does not modify the UI, Nginx, credentials, legacy Vela services, WHY, financial contracts or live-trading gates. Real wallet approvals and live exchange protection are not asserted by its successful result.
+
+The GitHub publication includes a backend test workflow and a separate current-advisory dependency audit, with GitHub Actions pinned to verified commit SHAs and read-only repository permissions. A workflow definition is not a successful hosted run; consult the actual run before claiming CI or advisory clearance. Host execution remains blocked in this agent runner: `systemctl` returns `Operation not permitted`, and sandbox escalation is explicitly disabled by the execution policy even after the owner's permission-change message.

@@ -24,9 +24,11 @@ from .simulated_vaults import SimulatedVaults
 from .ownership import OwnedDatabase
 from .http_security import RequestLimits
 from .staking import DemoStaking
+from .build import fingerprint
 
 def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     config=config or Config.from_env()
+    source_fingerprint=fingerprint()
     # Validate the release candidate through the same ASGI routes without
     # replacing the directory used by the running preview.
     if frontend is not None and (frontend!='candidate' or not config.multichain):raise ValueError('Isolated multichain candidate required')
@@ -102,7 +104,7 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         connection=get(db,'ai-connection')
         if connection:connection=dict(connection,fresh=bool(connection.get('ok')) and 0<=time.time()-connection.get('at',0)<=300)
         usage=getattr(getattr(model,'opener',None),'ledger',None)
-        return dict(mode='PAPER',lending='DEMO',liveEnabled=False,realFunding=False,modelConfigured=model.ready,modelConnection=connection,
+        return dict(mode='PAPER',lending='DEMO',liveEnabled=False,realFunding=False,sourceFingerprint=source_fingerprint,modelConfigured=model.ready,modelConnection=connection,
             modelUsage=usage.summary() if usage else None,
             engineReady=bool(runtime.last_cycle) and 0<=time.time()-runtime.last_cycle<3,
             backgroundTasks=[dict(name=t.get_name(),running=not t.done()) for t in runtime.tasks],

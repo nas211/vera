@@ -41,7 +41,7 @@
 
   const featureText = {
     trade: ["YOU SET THE DIRECTION.", "Intelligence behind<br>every decision.", "Explore a trading flow that brings market research, strategy review, and risk controls into one clear view.", "Simulated trades. MetaMask connection available."],
-    earn: ["STAKING / REWARDS & APY", "More potential.<br>One place to stake.", "Explore staking rewards with a DOGE balance, an assumed APY and a time horizon. ZK privacy is planned as an additional layer, not a separate product.", "Staking is in development. Current transactions remain public."],
+    earn: ["STAKING / REWARDS & APY", "More potential.<br>One place to stake.", "Explore staking rewards with a DOGE balance, an assumed APY and a time horizon.", "Staking is in development. Current transactions remain public."],
     lending: ["SUPPLY. BORROW. COMING SOON.", "Your assets.<br>More possibilities.", "Supply liquidity to a pool or borrow against collateral. Lending is a separate product planned for Vela, with its own risk controls and market terms.", "Coming soon. No deposits or borrowing are open."]
   };
   function selectTab(name, focus = false) {

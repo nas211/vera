@@ -76,7 +76,7 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
             if request.headers.get('origin') != ORIGIN or request.headers.get('x-adp-client') != 'web':
                 return JSONResponse({'error': 'Same-origin request required'}, status_code=403)
             length = request.headers.get('content-length', '0')
-            if not length.isdigit() or int(length) > 16384:
+            if len(length) > 16 or not length.isdigit() or int(length) > 16384:
                 return JSONResponse({'error': 'Request too large'}, status_code=413)
             if selected == 'dogeos' and (path in BLOCKED or path.startswith('/api/simulated-vault/')):
                 return JSONResponse({'error': 'DogeOS contracts are read-only. Use demo trading capital; customer contract transactions are disabled.'}, status_code=403)

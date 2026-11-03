@@ -1,0 +1,22 @@
+[Unit]
+Description=Verified private Vela paper-ledger backup
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/VellaMultichain
+ExecStart=/root/VellaMultichain/.venv/bin/python /root/VellaMultichain/tools/operate_backend.py backup
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/root/VellaMultichain/.runtime/backups
+TimeoutStartSec=180
+MemoryMax=512M
+CPUQuota=25%
+LogRateLimitIntervalSec=60
+LogRateLimitBurst=10

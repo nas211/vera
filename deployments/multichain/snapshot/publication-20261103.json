@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "99585e0ab2bf6b7cbf5216fe9055944c43f06fe1",
+  "sourceCommit": "77ad84168da9e95101696313f4ba86ca650db929",
   "sourceCheckout": "/root/VellaMultichain",
   "targetRuntime": "/root/VellaMultichain",
   "publicationDirectory": "deployments/multichain",
@@ -28,11 +28,15 @@
     },
     {
       "path": "backend/autodefi/api.py",
-      "sha256": "f690d725e08eb6237db35ffa90762948c65e89d54ea950a9b56f38a8ab0add55"
+      "sha256": "abcd68972fb8e955cb5906cd4196d7e85528522d81b2bab4f642aac4cc11a0f7"
     },
     {
       "path": "backend/autodefi/auth.py",
       "sha256": "58f4bdb245bfacd7f4915548e0b6cbc340d98b349bdc5a09659af6bc3c88c4f4"
+    },
+    {
+      "path": "backend/autodefi/build.py",
+      "sha256": "a839ebb30d6bcf3d1738e93442b5ce4c2f70e3085120d24528a599c131a75448"
     },
     {
       "path": "backend/autodefi/chain.py",
@@ -240,7 +244,7 @@
     },
     {
       "path": "docs/BACKEND-COMPLETION-20261103.md",
-      "sha256": "a4887a2ce5b2ed9846e06fcb7197db50ba38f90562c3ea4d6c17f0ad2a04cb53"
+      "sha256": "aaa25a57d85c127ca2c7be873d9c06f924cb892315d4abcb5edf7d88bd097232"
     },
     {
       "path": "docs/MULTICHAIN-ACTIVATION-READINESS.md",
@@ -279,6 +283,22 @@
       "sha256": "1b4a4da5fd008094cf298c14da81bdd89ccddd8def6df3d1a9ca6f4d90e8ec06"
     },
     {
+      "path": "ops/vela-backend-backup.service.pending",
+      "sha256": "7409ae196caa19d54afb6d5e274765f634fe3f34785ce181e6f642671e5b3167"
+    },
+    {
+      "path": "ops/vela-backend-backup.timer.pending",
+      "sha256": "51c19701b440055faa73c54e742f62f5d6fce17d04ae07e145fa607a4b466eda"
+    },
+    {
+      "path": "ops/vela-backend-health.service.pending",
+      "sha256": "513ff7aa6766d14ae40e253b035f4da4a90fd711ff7f8ff083b996ef365b8cb0"
+    },
+    {
+      "path": "ops/vela-backend-health.timer.pending",
+      "sha256": "a65af61ea30ba25c5ee97b0d4004574f854a2af93320da8d9f67c696478db92a"
+    },
+    {
       "path": "ops/vela-backend-reliability.override.conf.pending",
       "sha256": "af9400307ce49d785f760ba3a998fca0b61f3ba7a0cf00891da97ecb77dc6fce"
     },
@@ -295,12 +315,16 @@
       "sha256": "03e3ce6b20f0bd3a5d3fcc135727addb41e5fc285afb22b0a40b6ccc35940efe"
     },
     {
+      "path": "snapshot/backend-operations-validation-20261103.json",
+      "sha256": "6da4c04523ff11e0a07d127dc69a9a705ed63232d282ffaf19b78151bd9a10e1"
+    },
+    {
       "path": "snapshot/backend-validation-20261103.json",
       "sha256": "10885f1fb4a55b0a411086e3c00df8afb27ba6ad7c662011eb85e01cc1268515"
     },
     {
       "path": "snapshot/completion-inventory-20261103.json",
-      "sha256": "8f92129be03b25a960ace048cf1ad97b418a16a29d26053d105a7bd6f404297c"
+      "sha256": "def8fc5fb5bccbac62b37ac44b3d3cde17d8fd32fbae9dc35d723678c741f56f"
     },
     {
       "path": "snapshot/reuse-reconciliation-20261103.json",
@@ -325,6 +349,10 @@
     {
       "path": "tests/test_backend_acceptance.py",
       "sha256": "b6456977b1cb16c8fa930d91429e278626c20b24235215fcaf31979db759bc04"
+    },
+    {
+      "path": "tests/test_backend_deployment.py",
+      "sha256": "e25105cf9820a62bb1a2c383ba286961e5ac1b6d134db351c013c78a07cba09e"
     },
     {
       "path": "tests/test_backend_release.py",
@@ -427,12 +455,16 @@
       "sha256": "dc44387e072f5d815c7393826862e5afcfde2c78d48d1b9a4fa61456313181c8"
     },
     {
+      "path": "tools/deploy_backend.py",
+      "sha256": "3bd6d7f7f3caff0a3d2bde377424d8f8a5b7dd508331875b3896877b25d360d1"
+    },
+    {
       "path": "tools/dogeos_browser_fixture.py",
       "sha256": "e0aded1feb4318b2b3b4d1768fcc6e7d629b2f5c99f745fd4c12f580fb8950f2"
     },
     {
       "path": "tools/dogeos_readonly.py",
-      "sha256": "7e8277a449ae4abee7149b49b4c496018547ab5b704e1cc7e7d81d2397eb5183"
+      "sha256": "883e509adac582cba7c642545ec563bca72d8085dc017656a5f8c39beafbbff6"
     },
     {
       "path": "tools/modular_preview.py",
@@ -449,6 +481,10 @@
     {
       "path": "tools/multichain_preview.py",
       "sha256": "d31124a27a3dde536405259e4092e205485ee77f499f441617e06f620a291477"
+    },
+    {
+      "path": "tools/operate_backend.py",
+      "sha256": "a84fea08f015b3f6c431122dcfa146c4e0ba0bc337afa12642e4d4db502848ca"
     },
     {
       "path": "tools/prepare_contracts.py",
@@ -483,12 +519,14 @@
   ],
   "readmeNote": "Top-level README replaced with backend-specific publication instructions; original copied README retained in docs/SOURCE-README.md",
   "publicationValidation": {
-    "backendTestsPassed": 45,
-    "scope": "Published backend path; synthetic providers and wallets",
+    "backendTestsPassed": 270,
+    "scope": "Updated authoritative backend; isolated fixture suite, no live provider claims",
     "originalRootFilesChanged": 0,
-    "preparedChangedFilesByteIdentical": 29,
+    "preparedChangedFilesByteIdentical": 38,
     "sourcePatternScanFiles": 851,
     "sourcePatternFindings": 0,
     "deploymentBlockedBy": "Failed to connect to bus: Operation not permitted; local HTTP sockets unavailable"
-  }
+  },
+  "previousSourceCommit": "99585e0ab2bf6b7cbf5216fe9055944c43f06fe1",
+  "scopeCorrection": "ZK/transaction-privacy products excluded; legacy privacy marketing copy removed separately, with no current UI layout/style change"
 }

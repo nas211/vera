@@ -1,0 +1,20 @@
+[Unit]
+Description=Read-only Vela health, disk and backup freshness checks
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/VellaMultichain
+ExecStart=/root/VellaMultichain/.venv/bin/python /root/VellaMultichain/tools/operate_backend.py check
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+TimeoutStartSec=30
+MemoryMax=128M
+LogRateLimitIntervalSec=60
+LogRateLimitBurst=10

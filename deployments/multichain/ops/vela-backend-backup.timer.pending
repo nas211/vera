@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Vela verified backup
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+RandomizedDelaySec=15m
+Persistent=true
+Unit=vela-backend-backup.service
+
+[Install]
+WantedBy=timers.target

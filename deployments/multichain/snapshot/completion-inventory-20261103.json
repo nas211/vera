@@ -73,11 +73,6 @@
       "evidence": "newer shared ledger, collateral, LTV/health, accrual, liquidation, repayment and isolation covered by tests; real lending disabled"
     },
     {
-      "id": "privacy",
-      "status": "missing",
-      "evidence": "public wallet/contract/account links; no circuits, trusted setup, relayer or verification deployment; must not advertise privacy"
-    },
-    {
       "id": "wallet_metamask",
       "status": "implemented",
       "evidence": "EOA cryptographic fixtures pass; historical October 29 mobile authentication documented; not reverified this turn"
@@ -150,12 +145,12 @@
     {
       "id": "service_supervision",
       "status": "prepared_not_installed",
-      "evidence": "Background task supervision and readiness tested; additive restart drop-in prepared; candidate Restart=no and legacy transient units remain unchanged"
+      "evidence": "Guarded deployer installs existing-service restart/reboot configuration, daily verified backup and periodic health/disk/backup checks only after host acceptance; systemd unit syntax verified; host service execution denied"
     },
     {
       "id": "backups",
       "status": "tool_prepared_and_rehearsed",
-      "evidence": "private consistent backups and isolated restore verification; scheduling/install blocked"
+      "evidence": "Six private consistent backups already restored into disposable databases; automatic daily WAL-aware backup tool and timer prepared and fixture-tested, not installed"
     },
     {
       "id": "security_scan",
@@ -190,12 +185,12 @@
     {
       "id": "backend_release",
       "status": "prepared",
-      "evidence": "Backend-only committed-source overlay plus code rollback and hash verification; refuses frontend/database/secret-file paths and newer target files"
+      "evidence": "Verified overlay/rollback and guarded application tool with fresh backup, service identity, source fingerprint, ledger continuity, HTTPS/WebSocket acceptance, code-only rollback and operation timers"
     },
     {
       "id": "ci_cd",
-      "status": "partial",
-      "evidence": "Local suites executed; authoritative newer repo has no remote, network installation and hosted CI execution unavailable"
+      "status": "workflow_prepared",
+      "evidence": "Pinned backend test and current-advisory audit workflow prepared for existing GitHub repo; hosted execution must be observed separately"
     }
   ],
   "blockers": [
@@ -214,10 +209,6 @@
     {
       "id": "financial_activation",
       "requires": "exact scoped transaction authorization, funding/custody specification, verified liquidity/oracles/rewards and independent security review"
-    },
-    {
-      "id": "privacy_design",
-      "requires": "selected maintained proof system/circuit, threat model, audited implementation and verification infrastructure"
     }
   ],
   "scope": {
@@ -225,8 +216,13 @@
     "uiUxChanged": false,
     "trackedUiFilesCompared": 121,
     "productionServicesChanged": false,
-    "realTransactionsSubmitted": 0
+    "realTransactionsSubmitted": 0,
+    "excludedProducts": [
+      "ZK and transaction-privacy products, removed from scope by owner"
+    ],
+    "scopeCorrection": "Privacy/ZK is excluded, not an outstanding deliverable. Legacy marketing claims are removed separately without changing the current served UI."
   },
   "validationRecord": "snapshot/backend-validation-20261103.json",
-  "report": "docs/BACKEND-COMPLETION-20261103.md"
+  "report": "docs/BACKEND-COMPLETION-20261103.md",
+  "latestValidationRecord": "snapshot/backend-operations-validation-20261103.json"
 }
