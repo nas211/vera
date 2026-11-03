@@ -128,6 +128,24 @@ def test_second_ledger_owner_prevents_overlay_after_service_stop(release):
         assert host.events == ['preflight', 'stop', 'start']
 
 
+def test_explicit_paper_restart_preserves_open_exposure_but_not_pending_orders(release):
+    folder,target,recovery,path=release
+    with sqlite3.connect(path) as db:db.execute("INSERT INTO positions VALUES ('existing-position')")
+    before=ledger_state(path)
+    result=deploy(folder,target,recovery,host=FakeHost(target),apply=True,preserve_paper_positions=True)
+    assert result['existingPaperPositionsPreservedDuringOverlay']==1
+    assert ledger_state(path)==before
+
+
+def test_explicit_paper_restart_still_rejects_pending_orders(release):
+    folder,target,recovery,path=release
+    with sqlite3.connect(path) as db:db.execute("INSERT INTO paper_orders VALUES ('pending')")
+    host=FakeHost(target)
+    with pytest.raises(RuntimeError,match='idle paper ledger'):
+        deploy(folder,target,recovery,host=host,apply=True,preserve_paper_positions=True)
+    assert host.events==['preflight'] and not recovery.exists()
+
+
 def test_preflight_only_never_creates_backup_or_changes_service(release):
     folder, target, recovery, _ = release
     host = FakeHost(target)

@@ -25,6 +25,7 @@ from .ownership import OwnedDatabase
 from .http_security import RequestLimits
 from .staking import DemoStaking
 from .build import fingerprint
+from .paper_desk import attach as attach_paper_desk
 
 def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     config=config or Config.from_env()
@@ -60,6 +61,7 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     app=FastAPI(title='VELLA — Autonomous DeFi Trading Protocol',lifespan=lifespan)
     app.add_middleware(RequestLimits)
     app.state.db=db;app.state.paper=paper;app.state.runtime=runtime;app.state.auth=auth
+    attach_paper_desk(app,db,paper,runtime,model,config.origin)
     @app.middleware('http')
     async def security(request,call_next):
         if request.method not in ('GET','HEAD','OPTIONS'):
@@ -95,7 +97,7 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
             chains=[a.public(config) for a in CHAINS.values()] if config.multichain else [],
             brand=json.loads((ROOT/'config/brand.json').read_text()),network=json.loads((ROOT/'config/dogeos-testnet.json').read_text()) if selected.id=='dogeos' else descriptor['network'],
             risk=RISK,factory=config.factory or None,myDogeClientId=config.client_id,walletConnectProjectId=config.walletconnect_project_id,mode='PAPER',lending='DEMO',liveEnabled=False,realFunding=False,
-            modelConfigured=model.ready,networkEnabled=config.network_enabled,attestorConfigured=bool(config.attestor_key),
+            modelConfigured=model.ready,networkEnabled=config.network_enabled,attestorConfigured=bool(config.attestor_key),demoStakingEnabled=config.demo_staking,
             abis={n:json.loads((ROOT/'config'/f'{n}.abi.json').read_text()) for n in ('VaultFactory','DogeCollateralVault')})
     @app.get('/api/health')
     async def health():

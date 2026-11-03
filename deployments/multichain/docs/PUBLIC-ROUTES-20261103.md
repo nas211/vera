@@ -11,7 +11,7 @@ Verification against the public HTTPS deployment:
 - Public WebSocket market streaming passed with three markets and no private data. Foreign-origin WebSockets and writes were rejected; anonymous Start returned 401; DogeOS writes remained disabled.
 - The existing health timer now also runs `tools/check_public_routes.py`, covering 22 public route and API boundary cases every two minutes. Both its service run and a direct invocation passed. The monitor is read-only and logs failures; it does not restart trading or send external alerts.
 
-The historical `/paper` and `/earn` URLs still return 404. They are not current navigation destinations and corresponding standalone screens are not implemented in this deployed UI. They have not been aliased to unrelated products or reported as working.
+**Subsequent completion:** `/paper` and `/earn` now serve their own working demo products. The read-only route monitor now covers 26 cases. See [paper, earn and DogeOS acceptance](PAPER-EARN-20261103.md) for the later deployment; the preceding measurements describe the initial route repair.
 
 Tracked deployment artifacts:
 

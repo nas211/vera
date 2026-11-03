@@ -1,0 +1,179 @@
+{
+  "date": "2026-11-03",
+  "preparedCode": true,
+  "backendTests": {
+    "passed": 283,
+    "failed": 0,
+    "warnings": 3
+  },
+  "localBrowser": {
+    "results": [
+      {
+        "width": 1440,
+        "paperManualFill": true,
+        "partialAndFullClose": true,
+        "historyPersistence": true,
+        "reconnection": true,
+        "stakingDepositClaimWithdraw": true,
+        "walletReconnect": true,
+        "networkChoices": 7,
+        "noOverflow": true,
+        "realWalletApproval": false
+      },
+      {
+        "width": 390,
+        "paperManualFill": true,
+        "partialAndFullClose": true,
+        "historyPersistence": true,
+        "reconnection": true,
+        "stakingDepositClaimWithdraw": true,
+        "walletReconnect": true,
+        "networkChoices": 7,
+        "noOverflow": true,
+        "realWalletApproval": false
+      }
+    ],
+    "scope": "Local fixture E2E; no real wallet approvals or funds"
+  },
+  "publicBrowser": {
+    "passed": true,
+    "results": [
+      {
+        "route": "/",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/vault",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/borrow",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/trade",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/paper",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/earn",
+        "width": 1440,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/vault",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/borrow",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/trade",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/paper",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      },
+      {
+        "route": "/earn",
+        "width": 390,
+        "httpStatus": 200,
+        "noOverflow": true
+      }
+    ],
+    "realWalletDeviceApproval": false
+  },
+  "publicAcceptance": {
+    "mode": "PAPER/DEMO",
+    "realFundsMoved": false,
+    "genuineWalletDeviceApproval": false,
+    "paper": {
+      "longAndShortFills": true,
+      "idempotentOrders": true,
+      "partialAndFullClose": true,
+      "limitCancellation": true,
+      "stricterFeeInclusiveBudgetVerified": true,
+      "historyPersists": true,
+      "qaPositionsClosed": true,
+      "qaAiDisabled": true
+    },
+    "staking": {
+      "signedAuthentication": true,
+      "depositClaimWithdraw": true,
+      "idempotentMutations": true,
+      "rewardExcludedFromTradingPnl": true,
+      "historyAndReconnect": true,
+      "qaPrincipalAndBalanceEmpty": true
+    },
+    "bothPublicStreams": true,
+    "originalHomepageAndAssetsUnchanged": true,
+    "completedAt": 1793707339.0815284
+  },
+  "routeMonitor": {
+    "checked": 26,
+    "passed": true,
+    "intervalSeconds": 120
+  },
+  "deployment": {
+    "backend": true,
+    "products": true,
+    "portalCopyOnly": true,
+    "backendFingerprint": "36abca0add647dbb3da524b03f90249d39dfdd65908048900c6811fa1311437e",
+    "preservedPositionsDuringOverlay": 1,
+    "ledgerReplaced": false,
+    "homepageFilesUnchanged": 9,
+    "otherServicePidStateChanges": 0
+  },
+  "security": {
+    "npmAudit": {
+      "info": 0,
+      "low": 62,
+      "moderate": 27,
+      "high": 15,
+      "critical": 0,
+      "total": 104
+    },
+    "sdkEnabled": false,
+    "independentAudit": false,
+    "notes": "Full prepared frontend dependency tree includes existing disabled SDK; new products bundle only React, React DOM, scheduler and wallet-standard app. No SDK in the new products.",
+    "newProductBundledDependencies": [
+      "@wallet-standard/app",
+      "react",
+      "react-dom",
+      "scheduler"
+    ]
+  },
+  "liveProtectionVerified": false,
+  "realFundsMoved": false,
+  "zkPrivacyInScope": false
+}

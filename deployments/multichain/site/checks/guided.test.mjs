@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {TABS,readTab,saveTab,preferenceKey,nextStep,bindTabHistory,selectTab} from '../src/guided-state.js';
+import {tutorials,duration} from '../src/tutorials.js';
+const alice='0xAa',bob='0xBb';
+const store=()=>{const map=new Map();return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v),map};};
+const config={factory:'configured',modelConfigured:true};
+const account=()=>({vault:{loanState:2,paused:false,limits:{expiresAt:'200'}},health:{collateral:'10000',withdrawableDoge:'0',loan:{state:'ACTIVE'}},paper:{preferences:{autonomous:false}}});
+test('tab preference survives reload and is isolated by wallet, case-insensitively',()=>{const s=store();saveTab(alice,'borrow',s);assert.equal(readTab('0xaa','',s),'borrow');assert.equal(readTab(bob,'',s),'overview');assert.deepEqual([...s.map.keys()],[preferenceKey(alice,'tab')]);});
+test('valid hashes restore tab on browser history; unknown hashes cannot become a panel',()=>{const s=store();saveTab(alice,'vault',s);assert.equal(readTab(alice,'#trading',s),'trading');assert.equal(readTab(alice,'#javascript:bad',s),'vault');saveTab(alice,'not-a-tab',s);assert.equal(readTab(alice,'',s),'vault');});
+test('storage restrictions never block navigation or default onboarding',()=>{const s={getItem(){throw Error('denied');},setItem(){throw Error('denied');}};assert.equal(readTab(alice,'',s),'overview');assert.equal(readTab(alice,'#settle',s),'agent');assert.doesNotThrow(()=>saveTab(alice,'vault',s));});
+test('a new account gets create-vault guidance; missing deployment is explicit',()=>{const d=account();d.vault=null;assert.equal(nextStep(d,config,1000).tab,'vault');assert.match(nextStep(d,{...config,factory:''},1000).text,/pending/);});
+test('empty collateral advances to deposit, then borrowing, then agent authorization',()=>{const d=account();d.health.loan=null;d.health.collateral='0';assert.equal(nextStep(d,config,1000).tab,'vault');d.health.collateral='10000';assert.equal(nextStep(d,config,1000).tab,'borrow');d.health.loan={state:'ACTIVE'};d.vault.limits.expiresAt='0';assert.equal(nextStep(d,config,1000).tab,'vault');});
+test('expired permissions cannot be described as trading-ready',()=>{const d=account();assert.equal(nextStep(d,config,201000).tab,'vault');assert.equal(nextStep(d,config,199000).tab,'trading');});
+test('pending borrowing directs to recovery, never another loan',()=>{const d=account();d.vault.loanState=1;assert.match(nextStep(d,config,1000).label,/pending/);assert.equal(nextStep(d,config,1000).tab,'borrow');});
+test('paused vault directs to its safety controls',()=>{const d=account();d.vault.paused=true;assert.match(nextStep(d,config,1000).title,/paused/);assert.equal(nextStep(d,config,1000).tab,'vault');});
+test('settlement and default states direct to review without claiming collateral unlocked',()=>{for(const state of ['CLOSING','SHORTFALL','AWAITING_CHAIN','DEFAULT_PENDING','DEFAULTED']){const d=account();d.health.loan.state=state;assert.equal(nextStep(d,config,1000).tab,'agent',state);assert.doesNotMatch(nextStep(d,config,1000).title,/eligible DOGE is ready/);}});
+test('confirmed repayment with eligible collateral directs to withdrawal',()=>{const d=account();d.health.loan.state='REPAID';d.health.withdrawableDoge='10000';assert.equal(nextStep(d,config,1000).tab,'agent');assert.match(nextStep(d,config,1000).title,/eligible DOGE is ready/);});
+test('AI guidance distinguishes configured model from active entries',()=>{const d=account();assert.match(nextStep(d,{...config,modelConfigured:false},1000).text,/connection is required/);d.paper.preferences.autonomous=true;assert.match(nextStep(d,config,1000).text,/may choose to wait/);});
+test('every tab has a 30–60 second storyboard with real narration and no fake media',()=>{for(const [id] of TABS)assert.ok(tutorials[id]);assert.ok(tutorials.settle);for(const tutorial of Object.values(tutorials)){assert.ok(duration(tutorial)>=30&&duration(tutorial)<=60);assert.ok(tutorial.steps.every(s=>s.title&&s.narration&&s.labels.length>1&&s.visual&&s.seconds>0));assert.equal(tutorial.media,undefined);}});
+test('walkthroughs distinguish debt, off-chain control, testnet confirmations and stop-trigger limits',()=>{assert.match(tutorials.vault.steps.map(s=>s.narration).join(' '),/separate backend checks/);assert.match(tutorials.borrow.steps.map(s=>s.narration).join(' '),/Interest|interest/);assert.match(tutorials.trading.steps.map(s=>s.narration).join(' '),/Slippage and funding can cause larger realized losses/);assert.match(tutorials.settle.steps.map(s=>s.narration).join(' '),/unpaid debt stays recorded/);assert.match(tutorials.settle.steps.at(-1).narration,/separate wallet signature/);});
+
+test('history back/forward restores the original tab independently of persisted preference',()=>{
+ const entries=[''];let cursor=0,active='overview';const handlers=new Map();
+ const host={location:{hash:''},history:{state:null,replaceState(_state,_title,hash){entries[cursor]=hash;host.location.hash=hash;},pushState(_state,_title,hash){entries.splice(++cursor);entries[cursor]=hash;host.location.hash=hash;}},addEventListener:(event,fn)=>handlers.set(event,fn),removeEventListener:event=>handlers.delete(event)};
+ const stop=bindTabHistory(host,'overview',tab=>active=tab);
+ assert.equal(host.location.hash,'#overview');
+ selectTab('borrow',host,tab=>active=tab);selectTab('borrow',host,tab=>active=tab);
+ assert.equal(entries.length,2);assert.equal(active,'borrow');
+ host.location.hash=entries[--cursor];handlers.get('popstate')();assert.equal(active,'overview');
+ host.location.hash=entries[++cursor];handlers.get('popstate')();assert.equal(active,'borrow');
+ selectTab('invalid',host,tab=>active=tab);assert.equal(entries.length,2);assert.equal(active,'borrow');
+ host.location.hash='#trading';handlers.get('hashchange')();assert.equal(active,'trading');
+ stop();assert.equal(handlers.size,0);
+});

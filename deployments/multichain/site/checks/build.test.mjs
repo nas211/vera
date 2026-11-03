@@ -1,0 +1,35 @@
+import {mkdtemp,mkdir,readFile,writeFile,copyFile,symlink,rm,access} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const fixture=await mkdtemp('checks/.test-build-');
+try{
+ const root=path.resolve(fixture),site=path.join(root,'site');
+ await mkdir(path.join(root,'config'),{recursive:true});
+ await mkdir(path.join(site,'scripts'),{recursive:true});
+ await mkdir(path.join(site,'src'),{recursive:true});
+ await mkdir(path.join(site,'prepared/assets'),{recursive:true});
+ await writeFile(path.join(root,'config/brand.json'),JSON.stringify({name:'VELLA'}));
+ await symlink(path.resolve('node_modules'),path.join(site,'node_modules'),'dir');
+ await copyFile('scripts/build.mjs',path.join(site,'scripts/build.mjs'));
+ await mkdir(path.join(site,'dist'),{recursive:true});
+ await writeFile(path.join(site,'dist/index.html'),'RUNNING PREVIEW');
+ await writeFile(path.join(site,'prepared/index.html'),'EXISTING WORKING PREVIEW');
+ await writeFile(path.join(site,'prepared/build-manifest.json'),'EXISTING MANIFEST');
+ await writeFile(path.join(site,'prepared/assets/old-client.js'),'PREVIOUS SESSION ASSET');
+ await writeFile(path.join(site,'src/app.jsx'),'import "./not-present.jsx";');
+ const run=()=>spawnSync(process.execPath,['scripts/build.mjs'],{cwd:site,encoding:'utf8',timeout:30000});
+ const failed=run();assert.notEqual(failed.status,0);
+ assert.equal(await readFile(path.join(site,'prepared/index.html'),'utf8'),'EXISTING WORKING PREVIEW');
+ assert.equal(await readFile(path.join(site,'prepared/build-manifest.json'),'utf8'),'EXISTING MANIFEST');
+ assert.equal(await readFile(path.join(site,'prepared/assets/old-client.js'),'utf8'),'PREVIOUS SESSION ASSET');
+ await writeFile(path.join(site,'src/style.css'),'body{color:#fff}');
+ await writeFile(path.join(site,'src/app.jsx'),'import "./style.css"; document.body.dataset.app="VELLA";');
+ const success=run();assert.equal(success.status,0,success.stderr);
+ const manifest=JSON.parse(await readFile(path.join(site,'prepared/build-manifest.json'),'utf8'));
+ for(const output of manifest.outputs)await access(path.join(site,output));
+ assert.match(await readFile(path.join(site,'prepared/index.html'),'utf8'),/src="\/assets\/app-/);
+ assert.equal(await readFile(path.join(site,'prepared/assets/old-client.js'),'utf8'),'PREVIOUS SESSION ASSET');
+ assert.equal(await readFile(path.join(site,'dist/index.html'),'utf8'),'RUNNING PREVIEW');
+ console.log('PASS: failed compilation preserves current HTML/manifest/assets; successful publication resolves assets and preserves previous sessions. Isolated filesystem fixture only.');
+}finally{await rm(fixture,{recursive:true,force:true});}

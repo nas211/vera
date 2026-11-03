@@ -71,14 +71,16 @@ def ledger_state(path):
         identities = {digest((str(row[0])+':'+str(row[1])).encode()) for row in db.execute('SELECT address,session FROM users')}
         positions = db.execute('SELECT COUNT(*) FROM positions').fetchone()[0]
         pending = db.execute("SELECT COUNT(*) FROM paper_orders WHERE status='pending'").fetchone()[0]
+        exposure = [db.execute('SELECT * FROM '+table+' ORDER BY rowid').fetchall()
+                    for table in ('positions','paper_orders')]
         return dict(inode=(info.st_dev, info.st_ino), counts=counts, identities=identities,
-                    positions=positions, pending=pending)
+                    positions=positions, pending=pending, exposureDigest=digest(json.dumps(exposure).encode()))
     finally:
         db.close()
 
 
-def assert_idle(state):
-    if state['positions'] or state['pending']:
+def assert_idle(state, preserve_paper_positions=False):
+    if (state['positions'] and not preserve_paper_positions) or state['pending']:
         raise RuntimeError('Wait for an idle paper ledger; deployment never force-closes positions or cancels orders')
 
 
@@ -223,7 +225,7 @@ class Host:
         if self.config_changes:self.systemctl('daemon-reload')
 
 
-def deploy(release, root, recovery, host=None, apply=False, backup_fn=backup_database):
+def deploy(release, root, recovery, host=None, apply=False, backup_fn=backup_database, preserve_paper_positions=False):
     release, root, recovery = Path(release).resolve(), Path(root).resolve(), Path(recovery)
     verify(release, root)
     manifest = json.loads((release/'manifest.json').read_text())
@@ -231,7 +233,7 @@ def deploy(release, root, recovery, host=None, apply=False, backup_fn=backup_dat
     host.preflight(manifest)  # Service/HTTP access must succeed before any mutation.
     database = root/'.runtime/lighter-showcase/multichain-candidate.sqlite3'
     baseline = ledger_state(database)
-    assert_idle(baseline)
+    assert_idle(baseline,preserve_paper_positions)
     frontend = host.ui_state()
     if not apply:
         return dict(preflightPassed=True, deployed=False, mode='PAPER', liveProtectionVerified=False)
@@ -251,13 +253,16 @@ def deploy(release, root, recovery, host=None, apply=False, backup_fn=backup_dat
         lock = open(str(database)+'.lock', 'a')
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         stopped = ledger_state(database)
-        assert_idle(stopped)
+        assert_idle(stopped,preserve_paper_positions)
         assert_continuity(baseline, stopped)
         verify(release, root)  # Recheck after shutdown; never overwrite a racing edit.
         for name, (content, mode) in files.items():
             atomic_write(root/name, content, mode)
             changed.append(name)
-        assert_continuity(stopped, ledger_state(database))
+        overlaid=ledger_state(database)
+        assert_continuity(stopped, overlaid)
+        if overlaid['exposureDigest']!=stopped['exposureDigest']:
+            raise RuntimeError('Paper exposure changed while service was stopped; retain ledger for reconciliation')
         if host.ui_state() != frontend:raise RuntimeError('Frontend changed during deployment')
         expected = source_fingerprint(root)
         lock.close();lock = None
@@ -267,6 +272,7 @@ def deploy(release, root, recovery, host=None, apply=False, backup_fn=backup_dat
         host.install_ops(recovery)
         if host.ui_state() != frontend:raise RuntimeError('Frontend changed during acceptance')
         result.update(deployed=True, backendFingerprint=expected, ledgerContinuity=True,
+                      existingPaperPositionsPreservedDuringOverlay=stopped['positions'],
                       frontendUnchanged=True, healthHttpsWebSocketVerified=True,
                       backupsAndHealthTimersInstalled=True, genuineWalletApprovalVerified=False)
         atomic_write(recovery/'result.json', (json.dumps(result, indent=2)+'\n').encode(), 0o600)
@@ -303,13 +309,16 @@ def main():
     parser.add_argument('--apply', action='store_true')
     parser.add_argument('--repair-model-error', action='store_true',
                         help='Allow only the known model-loop error before repair; require healthy acceptance afterward')
+    parser.add_argument('--preserve-paper-positions', action='store_true',
+                        help='Permit a controlled PAPER-only restart with open positions; refuse pending orders and verify exposure is unchanged during overlay')
     args = parser.parse_args()
     os.umask(0o077)
     if os.geteuid() != 0:raise SystemExit('Existing root-owned Vela service access is required')
     recovery = TARGET/'.runtime/deployments'/time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
     try:
         print(json.dumps(deploy(args.release, TARGET, recovery,
-                               host=Host(TARGET, repair_model_error=args.repair_model_error), apply=args.apply)))
+                               host=Host(TARGET, repair_model_error=args.repair_model_error), apply=args.apply,
+                               preserve_paper_positions=args.preserve_paper_positions)))
     except Exception as error:
         print(json.dumps(dict(deployed=False, error=str(error), errorType=type(error).__name__,
                               recovery=str(recovery), liveProtectionVerified=False)))

@@ -27,7 +27,7 @@ class RequestLimits:
             return await self.reject(send, 413, 'Request too large')
         # Do not trust client-supplied forwarding headers. At the gateway this
         # is the actual peer supplied by its configured trusted reverse proxy.
-        if mutation and scope.get('path', '').startswith('/api/auth/'):
+        if mutation and (scope.get('path', '').startswith('/api/auth/') or scope.get('path') == '/api/paper/session'):
             now = self.clock()
             peer = (scope.get('client') or ('unknown',))[0]
             while self.clients and now-next(iter(self.clients.values()))[-1] >= self.window:

@@ -128,12 +128,13 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
         return HTMLResponse(html)
 
     @app.websocket('/ws/markets')
+    @app.websocket('/api/paper/stream')
     async def markets(ws: WebSocket):
         if ws.headers.get('origin') != ORIGIN:
             await ws.close(code=1008)
             return
         try:
-            async with websockets.connect(upstream.replace('http://', 'ws://') + '/ws/markets',
+            async with websockets.connect(upstream.replace('http://', 'ws://') + ws.url.path,
                                           origin=ORIGIN, open_timeout=10) as connection:
                 await ws.accept()
                 async for message in connection:
@@ -166,7 +167,7 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
                 readOnly=True, simulationFunding='existing demo trading ledger')
             for chain in data.get('chains', []) + [data.get('chain', {})]:
                 if chain.get('id') == 'dogeos':
-                    chain['status'] = 'DogeOS Testnet · Demo'
+                    chain['status'] = 'Featured · DogeOS Testnet · Demo'
                     chain['capabilities'].update(testnetVault=False, tokenTransfers=False,
                         demoLending=False, contractReads=True, customerTransactions=False)
             # Keep the legacy writer disabled. The actual factory lives in the

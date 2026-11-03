@@ -78,9 +78,9 @@ class GovernedPaper(LighterPaperAdapter):
     def revision(self,owner):
         v=self.db.execute('SELECT data FROM vaults WHERE owner=?',(owner,)).fetchone()
         return [get(self.db,'trading-permission:'+owner,{}).get('revision',0),json.loads(v[0])['permissionRevision'] if v else 0]
-    def gate(self,owner,order=None,require_running=True, filling=False):
+    def gate(self,owner,order=None,require_running=True, filling=False, manual=False):
         if get(self.db,'direct-settlement:'+owner,False):raise ValueError('Wait for position settlement to finish')
-        if require_running or filling:
+        if require_running or filling or manual:
             binding=get(self.db,'agent-session:'+owner)
             if self.require_session or binding:
                 session=self.db.execute('SELECT address,expires FROM auth_sessions WHERE hash=?',(binding or '',)).fetchone()
@@ -131,11 +131,13 @@ class GovernedPaper(LighterPaperAdapter):
         return dict(allocation=allocation,position=position,leverage=leverage,budget=budget)
     def submit(self,user,payload,client_id):
         if not payload.get('reduceOnly'):
-            self.gate(user,payload)
+            manual=user.startswith('paper:') and not bool(payload.get('agent'))
+            self.gate(user,payload,require_running=not manual,manual=manual)
         return super().submit(user,payload,client_id)
     def fill_open(self,user,order):
         # Exclude this order from the pending reservation during its fill check.
-        limits=self.gate(user['address'],order,filling=True)
+        manual=user['address'].startswith('paper:') and not bool(order.get('agent'))
+        limits=self.gate(user['address'],order,require_running=not manual,filling=True)
         p=super().fill_open(user,order)
         if D(p['qty'])*D(p['entry'])>limits['position']: raise ValueError('Fill price exceeds notional authorization')
         exposure=sum(D(x['qty'])*D(x['entry'])/D(x['leverage'])+D(x['entry_fee_left']) for x in self.getPosition(user['address']))
@@ -218,6 +220,10 @@ def agents_for(db,model,paper):
     def eligible(u):
         try: paper.gate(u['address']);contextual.owner=u['address'];return True
         except ValueError:return False
-    return Agents(db,contextual,eligible=eligible,markets=lambda u:['BTC/USD','ETH/USD','SOL/USD'],
+    def markets(u):
+        if u['address'].startswith('paper:'):
+            return [get(db,'paper-prefs:'+u['address'],{}).get('symbol','BTC/USD')]
+        return ['BTC/USD','ETH/USD','SOL/USD']
+    return Agents(db,contextual,eligible=eligible,markets=markets,
         entry_gate=lambda db,s:s in paper.feed.markets and paper.feed.markets[s].fresh(),
         revision=lambda u:[get(db,'paper-prefs:'+u['address'],{}).get('generation',0),paper.revision(u['address'])])

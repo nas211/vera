@@ -1,0 +1,5 @@
+.earn-account-field{display:grid;gap:.6rem;margin:1rem 0;font-size:.85rem;color:var(--muted,#b7b8aa)}
+.earn-account-field input,.earn-account-field select{max-width:100%;width:100%;padding:.8rem;background:#151815;border:1px solid #424339;border-radius:6px;color:#eee;font:inherit}
+.earn-wallet-actions{display:grid;gap:.7rem;margin:1rem 0}.earn-wallet-actions .button{width:100%;min-width:0;white-space:normal}
+.earn-wallet-id{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}.earn-wallet-id button{background:transparent;border:0;color:inherit;cursor:pointer}
+.earn-account-error{color:#f0aba1;overflow-wrap:anywhere}.earn-account-notice{color:#cfe2b6}.earn-page-overview>small{display:block;line-height:1.6;margin:1rem 0}.earn-page-overview .staking-facts strong{font-size:.95rem;overflow-wrap:anywhere}

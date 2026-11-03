@@ -4,10 +4,10 @@
   "project": "Vela",
   "canonicalOrigin": "https://defivela.xyz",
   "stages": {
-    "preparedCode": "isolated branches; active checkouts untouched",
-    "tests": "executed locally; fixture and transport limitations recorded separately",
-    "deployment": "deployed and accepted on existing VPS; source fingerprint verified through local backend, gateway and public HTTPS",
-    "liveProtection": "Real trading remains disabled; no live exchange protection claimed"
+    "preparedCode": "Committed on isolated development branch; newer authoritative VPS source preserved",
+    "tests": "283 backend tests passed; desktop/mobile fixture and public browsers passed",
+    "deployment": "Existing VPS backend, independent paper desk and demo staking deployed; no ledger replacement",
+    "liveProtection": "Real trading disabled; no exchange protection claimed"
   },
   "sources": [
     {
@@ -20,14 +20,14 @@
     {
       "component": "newer domain application",
       "path": "/root/VellaMultichain",
-      "head": "dff777b",
+      "head": "29274943fd7dbd411a83daf14f5d984e3ef0657c (release source)",
       "branch": "feature/vella-multichain",
-      "authority": "VPS Nginx/service files reference this application; live service health not observable"
+      "authority": "Actual current systemd/API ledger owner; deployment and health verified"
     },
     {
       "component": "current frontend per Nginx",
       "path": "/var/www/defivela-ui/simple-tabs-20261101T085948Z",
-      "authority": "matches November 1 deployment history; live HTTP unavailable"
+      "authority": "Actual Nginx homepage root; all original file hashes preserved. Portal copy and new products use separate static roots."
     },
     {
       "component": "existing Sites project",
@@ -49,23 +49,23 @@
   "features": [
     {
       "id": "homepage",
-      "status": "implemented_newer_source",
-      "evidence": "November 1 frontend preserved; browser verification blocked by sockets"
+      "status": "deployed_verified",
+      "evidence": "All nine original HTML/JS/CSS files unchanged; public desktop/mobile browser checks passed"
     },
     {
       "id": "trade",
-      "status": "implemented_paper_only",
-      "evidence": "wallet authentication, zero initial account, demo allocations, permissions, AI start/stop, account history; legacy /trade and newer /trading need compatibility"
+      "status": "deployed_verified_paper",
+      "evidence": "/trade redirects to /trading; signed wallet authentication, demo ledger and AI start/stop deployed"
     },
     {
       "id": "paper",
-      "status": "implemented_legacy",
-      "evidence": "manual orders, partial closes, sequenced feed, risk accounting; newer app lacks a direct independent desk"
+      "status": "deployed_verified_paper",
+      "evidence": "/paper uses same ledger owner/feed/risk engine; public long/short, partial/full close, cancellation, idempotency and persistence passed"
     },
     {
       "id": "earn_staking",
-      "status": "backend_demo_prepared_disabled",
-      "evidence": "New opt-in existing-ledger demo staking deposit/withdraw/accrual/claim tests; disabled by default; no funded reward product or staking contract"
+      "status": "deployed_verified_demo",
+      "evidence": "/earn uses existing shared-ledger demo staking; signed auth, deposit, claim, withdraw, reconnect passed. No funded staking contract"
     },
     {
       "id": "lending",
@@ -74,8 +74,8 @@
     },
     {
       "id": "wallet_metamask",
-      "status": "backend_auth_verified_device_pending",
-      "evidence": "Live EOA signature authentication, secure cookie, logout and account recovery passed using a disposable QA wallet; genuine MetaMask/device approval remains unverified"
+      "status": "implemented",
+      "evidence": "EOA cryptographic fixtures pass; historical October 29 mobile authentication documented; not reverified this turn"
     },
     {
       "id": "wallet_mydoge",
@@ -89,13 +89,13 @@
     },
     {
       "id": "ai_pipeline",
-      "status": "live_model_connectivity_verified",
-      "evidence": "Actual configured model preflight and paper start/stop passed with a disposable QA wallet; research/review/direction/execution pipeline covered by local fixtures; no trades forced"
+      "status": "deployed_verified_paper",
+      "evidence": "Prior public model connectivity and three-stage decision/paper fill verified; SQLite snapshot repair deployed; fixture pipeline and deterministic risk regression tests pass"
     },
     {
       "id": "lighter_public",
-      "status": "live_connectivity_verified",
-      "evidence": "Fresh BTC/ETH/SOL data and public WebSocket stream passed deployment acceptance"
+      "status": "deployed_verified",
+      "evidence": "Public BTC/ETH/SOL live prices and both market streams verified"
     },
     {
       "id": "lighter_live",
@@ -114,68 +114,68 @@
     },
     {
       "id": "dogeos_new_collateral",
-      "status": "verified_read_only",
-      "evidence": "Current public gateway verified DogeOS chain 6281971 and existing contract state; customer transactions disabled"
+      "status": "deployed_read_only",
+      "evidence": "RPC contract reads rendered in public browser; DogeOS featured. Customer writes disabled; no new transaction submitted"
     },
     {
       "id": "risk",
-      "status": "backend_hardening_prepared",
-      "evidence": "Universal fee-inclusive $2 or stricter stop-trigger budget; lowered permission reconciles existing long/short/partial positions across restart; no live protection changed"
+      "status": "deployed_verified_paper",
+      "evidence": "Fee-inclusive $2 or stricter budget; long/short and restart/partial regression tests pass; live public QA used stricter $0.75 budget. Not a realized-loss guarantee"
     },
     {
       "id": "database_ownership",
-      "status": "deployed",
-      "evidence": "Ownership acquired after clean stop and before code application; single engine retained; no ledger replacement"
+      "status": "deployed_verified",
+      "evidence": "One live owner, backed-up retained ledger, second-owner regression tests pass"
     },
     {
       "id": "start_stop_race",
-      "status": "deployed",
-      "evidence": "Tested session/generation revalidation and pending-start protection installed; live signed start/stop flow passed"
+      "status": "deployed_verified",
+      "evidence": "Session and permission generation revalidation tested and deployed"
     },
     {
       "id": "shutdown",
-      "status": "deployed",
-      "evidence": "Graceful candidate/gateway restart completed successfully; ledger continuity passed"
+      "status": "deployed_verified",
+      "evidence": "Worker-draining graceful shutdown tested; controlled restart preserved one open paper position"
     },
     {
       "id": "request_limits",
-      "status": "deployed",
-      "evidence": "Actual-body, JSON and auth-rate limits installed; live invalid signature and cross-origin rejection checked"
+      "status": "deployed_verified",
+      "evidence": "Body limits and auth admission limits including desk capabilities deployed"
     },
     {
       "id": "service_supervision",
-      "status": "installed_enabled",
-      "evidence": "Candidate/gateway enabled for boot with restart-on-failure; health and backup timers installed, enabled and successful; machine reboot not performed"
+      "status": "deployed_verified",
+      "evidence": "Existing services enabled, daily backup and two-minute health timers active"
     },
     {
       "id": "backups",
-      "status": "installed_and_verified",
-      "evidence": "Fresh post-deployment and post-acceptance SQLite backups passed integrity and disposable restore checks; daily timer active"
+      "status": "deployed_verified",
+      "evidence": "WAL-aware backup integrity and isolated restoration verified; daily timer installed"
     },
     {
       "id": "security_scan",
-      "status": "partial",
-      "evidence": "Hosted backend requirements audit found no known vulnerabilities; source pattern scans passed. Frontend SDK advisories and independent financial-security review remain outstanding"
+      "status": "partial_unresolved_sdk_advisories",
+      "evidence": "Source pattern review and backend CI audit; full prepared npm tree reports 15 high, 27 moderate and 62 low findings. SDK disabled; no independent audit"
     },
     {
       "id": "deployment",
-      "status": "deployed_verified_paper",
-      "evidence": "Existing candidate/gateway gracefully restarted; public HTTPS, WebSocket, readiness and source fingerprint passed; ledger retained; UI unchanged"
+      "status": "deployed_verified",
+      "evidence": "Existing VPS, Nginx and services; no new hosting project, ledger replacement, real trading or funds"
     },
     {
       "id": "why_isolation",
-      "status": "verified_unchanged",
-      "evidence": "31 observed WHY service PIDs and active states unchanged across deployment; no WHY changes"
+      "status": "preserved_verified",
+      "evidence": "No WHY source, credentials or services changed; all 38 non-restarted service PID/state pairs unchanged"
     },
     {
       "id": "trading_history_reductions",
-      "status": "backend_prepared",
-      "evidence": "Authenticated idempotent partial/full close and cancellation, paginated scoped history, persisted fresh equity observations; no UI changes"
+      "status": "deployed_verified",
+      "evidence": "Authenticated/idempotent reductions and paper desk partial/full closes verified"
     },
     {
       "id": "model_usage",
-      "status": "backend_prepared",
-      "evidence": "Persistent UTC-day quotas and token reservations, provider usage when observed, no invented charges; per-ledger scope"
+      "status": "deployed_verified",
+      "evidence": "Persisted usage/reservations and bounded model workers deployed"
     },
     {
       "id": "source_preservation",
@@ -185,12 +185,12 @@
     {
       "id": "backend_release",
       "status": "deployed_verified",
-      "evidence": "38-file backend overlay applied with fresh verified backup; matching source tree committed locally as 8220665"
+      "evidence": "Guarded overlay, code rollback, fresh consistent backup, ledger continuity, HTTPS and both WebSocket endpoints"
     },
     {
       "id": "ci_cd",
-      "status": "hosted_ci_passed",
-      "evidence": "GitHub run 41620836655: clean installation, 55 backend tests, dependency consistency and backend requirements advisory audit passed"
+      "status": "workflow_prepared",
+      "evidence": "Pinned backend test and current-advisory audit workflow prepared for existing GitHub repo; hosted execution must be observed separately"
     }
   ],
   "blockers": [
@@ -201,28 +201,21 @@
     {
       "id": "financial_activation",
       "requires": "exact scoped transaction authorization, funding/custody specification, verified liquidity/oracles/rewards and independent security review"
-    },
-    {
-      "id": "frontend_dependency_review",
-      "requires": "Review remaining wallet SDK/transitive advisories; the passing hosted audit covers backend Python requirements only"
     }
   ],
   "scope": {
     "backendOnly": true,
     "uiUxChanged": false,
     "trackedUiFilesCompared": 121,
-    "productionServicesChanged": true,
+    "productionServicesChanged": false,
     "realTransactionsSubmitted": 0,
     "excludedProducts": [
       "ZK and transaction-privacy products, removed from scope by owner"
     ],
-    "scopeCorrection": "Privacy/ZK is excluded, not an outstanding deliverable. Legacy marketing claims are removed separately without changing the current served UI.",
-    "changedServices": [
-      "vela-multichain-candidate",
-      "vela-dogeos-readonly"
-    ]
+    "scopeCorrection": "Privacy/ZK is excluded, not an outstanding deliverable. Legacy marketing claims are removed separately without changing the current served UI."
   },
   "validationRecord": "snapshot/backend-validation-20261103.json",
   "report": "docs/BACKEND-COMPLETION-20261103.md",
-  "latestValidationRecord": "snapshot/deployment-acceptance-20261103.json"
+  "latestValidationRecord": "snapshot/backend-operations-validation-20261103.json",
+  "latestAcceptance": "snapshot/paper-earn-20261103.json"
 }

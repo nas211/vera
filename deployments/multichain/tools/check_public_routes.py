@@ -6,7 +6,7 @@ import urllib.parse
 import urllib.request
 
 ORIGIN = 'https://defivela.xyz'
-PAGES = ('/', '/overview', '/vault', '/borrow', '/trading', '/repay', '/how-it-works')
+PAGES = ('/', '/overview', '/vault', '/borrow', '/trading', '/repay', '/how-it-works', '/paper', '/earn')
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -46,7 +46,7 @@ def probe(case):
             if media_type:
                 valid = valid and response.headers.get('Content-Type', '').startswith(media_type)
             if expected == 200:
-                valid = valid and b'<script' in body and b'/ui-assets/' in body
+                valid = valid and b'<script' in body and (b'/ui-assets/' in body or b'/product-assets/' in body or b'/portal-assets/' in body)
             return dict(path=path, status=status, passed=bool(valid))
     except Exception as error:
         # No headers, response bodies, cookies, wallet information or secrets.

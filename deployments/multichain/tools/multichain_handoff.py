@@ -116,7 +116,8 @@ def prepare():
     model = load_existing_model()
     config = Config(origin=ORIGIN, rpc=wallet['RPC'], client_id=wallet['MYDOGE_CLIENT_ID'],
                     walletconnect_project_id=wallet.get('WALLETCONNECT_PROJECT_ID', ''),
-                    db_path=DATABASE, multichain=True, network_enabled=True)
+                    db_path=DATABASE, multichain=True, network_enabled=True,
+                    demo_staking=os.getenv('VERA_PROTOCOL_DEMO_STAKING_ENABLED','1')=='1')
     if config.db_path in {
         ROOT / '.runtime/lighter-showcase/multichain.sqlite3',
         Path('/root/Vera/.runtime/lighter-showcase/competition/paper.sqlite3'),
