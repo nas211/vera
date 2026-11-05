@@ -1,0 +1,32 @@
+{
+  "status": "INCOMPLETE",
+  "error": "AI trade closed without an eligible realized profit sweep",
+  "startedAt": "2026-11-05T12:28:12.325600+00:00",
+  "finishedAt": "2026-11-05T12:35:10.393603+00:00",
+  "execution": "PAPER",
+  "collateral": "Simulated Base ETH",
+  "realFunds": false,
+  "blockchainWrites": false,
+  "trades": [
+    {
+      "symbol": "BTC/USD",
+      "side": "long",
+      "qty": "0.00123",
+      "entry": "80123.9",
+      "exit": "79970.2",
+      "gross": "-0.189051",
+      "fees": "0.078767",
+      "pnl": "-0.2679090018173102181911521688",
+      "reason": "ai_exit",
+      "closed": 1793882090.2552218
+    }
+  ],
+  "closedFills": 1,
+  "profitSweepReceiptCount": 0,
+  "finalPositions": 0,
+  "finalPendingOrders": 0,
+  "autonomous": false,
+  "cleanupError": null,
+  "logoutError": null,
+  "scope": "Only this fresh Nov5 diagnostic; all wallet/auth/session/loan identifiers excluded"
+}
