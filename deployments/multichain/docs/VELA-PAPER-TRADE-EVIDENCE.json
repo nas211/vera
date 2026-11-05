@@ -1,0 +1,31 @@
+{
+  "scope": "Historical deployed AI paper-trade verification; November 4, 2026, 22:52 UTC",
+  "execution": "PAPER",
+  "aiDecision": {
+    "side": "long",
+    "action": "open",
+    "reason": "SOL/USD meets all strategy conditions with strong positive momentum and is at the top of its recent range, suitable for opening a long swing position with acceptable risk and target parameters."
+  },
+  "trade": {
+    "symbol": "SOL/USD",
+    "side": "long",
+    "qty": "0.206",
+    "entry": "96.109",
+    "exit": "96.060",
+    "gross": "-0.010094",
+    "fees": "0.015836",
+    "funding": "1.039959306716823565300546667E-7",
+    "pnl": "-0.02593010399593067168235653005",
+    "reason": "owner_settlement",
+    "chain_status": "offchain"
+  },
+  "finalPositions": 0,
+  "finalPendingOrders": 0,
+  "autonomous": false,
+  "notes": [
+    "One closed paper fill; simulated loss, not exchange execution.",
+    "Owner settlement closed this trade; this was not an observed stop-trigger execution.",
+    "No claim of financed-profit repayment.",
+    "Owner wallet was not used by this diagnostic test."
+  ]
+}

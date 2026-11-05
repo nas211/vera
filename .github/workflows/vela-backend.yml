@@ -82,3 +82,29 @@ jobs:
           npm run build:products
           python3 scripts/prepare-dogeos-portal.py --source deployed-simple-tabs
           git diff --exit-code -- products-built portal-built
+
+  judge-quickstart:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: deployments/multichain
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Run the documented judge setup from a fresh checkout
+        run: bash tools/setup_judge_demo.sh
+      - name: Check actual dashboard assets, API, long/short fills and partial closes
+        env:
+          PYTHONPATH: backend
+        run: .venv/bin/python -m pytest tests/test_judge_demo.py tests/test_paper_acceptance.py tests/test_persistent_trading.py -q
+      - name: Rehearse the complete loan, AI pipeline and settlement with explicit fixtures
+        run: .venv/bin/python tools/rehearse.py
+

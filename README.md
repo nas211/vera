@@ -21,7 +21,7 @@ The **VELA Collateral Rewards** project was created in Noah on November 4, 2026.
 
 The published implementation previously passed **502 backend tests, 251 frontend tests and 47 contract tests**, including fuzz properties. TypeScript, scoped lint, build and release integrity checks passed. Those local results are separate from GitHub Actions for this source-publication commit. This is not an independent security audit or a production-readiness certification. Dependency advisories remain in the wider repository/tooling tree.
 
-The deployed reconciler records completed loan and reward-vault round trips. The reward payout is recorded as **0.000003757610350076 DOGE**, followed by principal withdrawal and zero collateral/debt. Additional accrued rewards remain claimable. A fresh independent RPC audit of the new reward receipts was blocked by this terminal's network policy; do not describe that audit as completed. Live financed-trading fills and protective exits remain unverified. Trading is stopped.
+The deployed reconciler records completed loan and reward-vault round trips. The reward payout is recorded as **0.000003757610350076 DOGE**, followed by principal withdrawal and zero collateral/debt. Additional accrued rewards remain claimable. A fresh independent RPC audit of the new reward receipts was blocked by this terminal's network policy; do not describe that audit as completed. A deployed AI paper trade was recorded on November 4: SOL/USD long, entry 96.109, exit 96.060, net result -0.02593010399593067168235653005 demo USD including fees and observed funding. It was closed by owner settlement. This verifies a paper entry/close/accounting cycle, not a live-exchange fill, a triggered protective exit or a financed-profit repayment. The owner account remains stopped. A sanitized record is in `deployments/multichain/docs/VELA-PAPER-TRADE-EVIDENCE.json` (or `docs/` from this directory).
 
 ## Inspect the code
 
@@ -33,6 +33,42 @@ The deployed reconciler records completed loan and reward-vault round trips. The
 - `deployments/multichain/tools/`: build and deployment tooling; publication does not execute deployment scripts.
 
 No live database, user session, wallet private key or production environment file is included in this update. Example configuration files contain placeholders. Keep credentials server-side and never import them into a frontend build.
+
+## Run the app locally (judges)
+
+Requirements: **Python 3.11+**, **Node.js 22.12+**, npm and an internet connection for package installation/public market data. macOS/Linux/WSL; no Docker, Foundry, wallet, private repository or project credentials needed for the paper desk.
+
+```bash
+git clone https://github.com/nas211/vera.git
+cd vera/deployments/multichain
+bash tools/setup_judge_demo.sh
+.venv/bin/python tools/run_judge_demo.py
+```
+
+Open **http://127.0.0.1:8802/** (use this exact host, not localhost). The launcher binds only to loopback and stores a separate local ledger in `.runtime/lighter-showcase/judge.sqlite3`.
+
+- **`/paper`**: the actual backend, SQLite accounting and paper execution engine using public market data. The separate browser desk starts with 10,000 simulated USD. Place a long/short order, inspect its stop, close 50%, then close the remainder and inspect closed fills. No wallet or AI key is required for manual paper trades. Wait for fresh market data; network failures block new entries.
+- **`/app/`**: the connected Noah-derived dashboard against your local backend. Wallet authentication is optional and requires your signature. This local launcher deliberately has no factory/attestor configuration and disables native vault writes. It cannot show your production account or deploy/borrow testnet collateral.
+- **`/preview/`**: the Noah dashboard with visibly labeled deterministic sample data; it is separate from the backend ledger. No wallet or model is used.
+- **`/api/health`**: runtime/market status. `modelConfigured=false` is expected by default. The launcher does not load project secrets or ambient model credentials.
+
+To run the same API paper-trading check against your local server:
+
+```bash
+.venv/bin/python tools/check_paper_trading.py
+```
+
+It creates a fresh disposable paper desk, opens a $20 long and short, closes partial/remainder quantities, checks fee-inclusive stops and accounting, and leaves no positions or pending orders. These are simulated trades, not blockchain transactions.
+
+For the deterministic loan → AI research/review/direction → paper fill → repayment → settlement rehearsal (synthetic model, prices, wallet and chain):
+
+```bash
+.venv/bin/python tools/rehearse.py
+```
+
+To inspect without network reads, use `tools/run_judge_demo.py --offline`; the fixture preview works, while paper entries correctly wait for market data. For optional real AI decisions, set your own `VELA_MODEL`, `VELA_MODEL_KEY` and `VELA_MODEL_ENDPOINT` in the server process and start with `--with-ai`. Model calls may incur provider charges; never put the key in `VITE_*`, source files or the frontend. An AI HOLD is a valid result, not an entry guarantee. The default runner makes no model calls.
+
+The fully configured DogeOS testnet experience is [the deployed app](https://defivela.xyz/app/). Reproducing its wallet transactions requires test DOGE and explicit wallet approvals; the local quickstart does not automatically deploy contracts or use the owner's database. The `judge-quickstart` CI job runs the documented setup and checks dashboard assets plus the real paper API using explicit test market fixtures.
 
 ## Reproduce local checks
 
