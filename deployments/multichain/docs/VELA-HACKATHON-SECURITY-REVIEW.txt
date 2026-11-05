@@ -1,0 +1,95 @@
+Vela hackathon dependency review — 5 November 2026
+
+Decision and scope
+
+The connected /app/ build passes a known-advisory module reachability check.
+This is an internal assessment for the PAPER/DEMO hackathon prototype, not a
+claim that every dependency is patched or that the project is production-ready.
+The owner removed an external audit from this submission task.
+
+Prepared changes
+
+The dashboard pins PostCSS 8.5.32, including nested copies, and ws 8.22.1 for
+8.x consumers. This removes the affected PostCSS and ws versions from that
+lockfile without forcing unrelated wallet SDK major-version migrations.
+The Vite development server now binds to 127.0.0.1 and accepts only localhost
+and 127.0.0.1 hostnames by default. The public app serves compiled assets; it
+does not run the Vite development server, Vitest UI/API or a Node wallet server.
+
+Sources and reproducibility
+
+The npm registry bulk advisory API was queried on 5 November 2026 for the
+exact versions in site/package-lock.json, site/vela-dashboard/package-lock.json
+and site/products-toolchain/package-lock.json. The saved responses are in
+config/security/npm-advisories-20261105.json. Full npm propagation counts are
+different from unique advisory/package instances; do not compare them as one
+metric. The shared site tree has additional SDK findings beyond the earlier
+dashboard-only scan. The scoped product toolchain returned no advisories.
+
+Run from deployments/multichain after tools/setup_judge_demo.sh:
+
+  node tools/audit_frontend_exposure.mjs --refresh
+
+Omit --refresh only to reproduce the saved snapshot. A failed registry request
+fails the fresh check; it does not silently reuse the snapshot. The result in
+verification/noah/green-frontend-exposure.json records the lockfile hashes,
+exact affected versions, advisory URLs, build entries and rendered modules.
+The command builds both dashboard profiles in memory and rejects an affected
+package in the connected /app/ build. It also rejects new/unassessed exposure
+in the legacy fixture build. A future version must be reviewed again.
+
+Assessment of remaining findings
+
+1. uuid (GHSA-w5hq-g745-h8pq): affected functions are v3/v5/v6 with a supplied
+   output buffer. No uuid module renders in /app/. The legacy fixture renders
+   only v4 and its rng/regex/validate/stringify helpers through MetaMask. The
+   checker allowlists precisely those five files for this one advisory, and
+   rejects any expansion. This is a function-specific assessment, not a global
+   suppression of uuid vulnerabilities.
+
+2. zod, decode-uri-component, deepmerge and their transitive RainbowKit,
+   WalletConnect, Reown, Coinbase and MetaMask findings: no affected package
+   modules render in /app/ or the fixture outputs. Some SDKs still require old
+   majors; replacing their validation/decoder APIs blindly is not accepted.
+   Deepmerge has no patched version listed in its advisory. These remain
+   dependency-tree findings, assessed as outside the rendered submission code.
+
+3. The parent site's axios, bigint-buffer, bn.js, elliptic, follow-redirects,
+   stream-json, valibot and ws findings: none of their affected package modules
+   render in either dashboard profile. They belong to the wider MyDoge/Tomo/
+   optional wallet dependency tree. This check does not certify other site
+   entrypoints or server-side use of those SDKs. Do not enable another wallet
+   entrypoint on the strength of this /app/ result.
+
+4. vite, vitest, @vitest/mocker, minimatch and tinypool: build/test tools only;
+   no modules render in the application. The development tree remains affected,
+   including critical tinypool prototype-pollution gadget advisories. The
+   review assumes trusted checked-in test/build input, no public dev/test API,
+   no secrets in CI, and local-only development access. These are conditional
+   mitigations, not a patched-toolchain claim. Review/update before running
+   untrusted tests, exposing tooling, or reusing this build environment with
+   sensitive credentials. CI executes Vitest in one-shot run mode.
+
+Primary advisory references
+
+https://github.com/advisories/GHSA-96hv-2xvq-fx4p — ws fixes include 8.21.0.
+https://github.com/advisories/GHSA-fxqj-rqcc-2cmp — PostCSS fixed in 8.5.23.
+https://github.com/advisories/GHSA-w5hq-g745-h8pq — UUID affected functions.
+https://github.com/advisories/GHSA-gcqx-w48m-w2h4 — deepmerge, no listed fix.
+All other exact advisory URLs and versions are retained in the JSON evidence.
+
+Validation and deployment boundary
+
+The changes passed 251 frontend tests, both TypeScript configurations, both
+dashboard builds, and the module exposure check. Separately, 177 backend
+financial/risk regressions passed with isolated fixtures: long/short stops,
+fees, inward rounding, partial exits, existing-position reconciliation,
+stricter limits and profit-sweep repayment. The restricted-environment pytest
+runner was needed for this terminal's asynchronous shutdown behavior.
+
+These are prepared source/tooling changes. No service, application bundle or
+contract deployment was performed for this review. Public stop observations
+come from a separate authenticated diagnostic on the existing deployed paper
+engine. Code edits and successful tests do not establish live exchange stops.
+Every account retains the stricter existing per-position limit or a $2
+fee-inclusive stop-trigger budget. Slippage and funding can exceed that budget.

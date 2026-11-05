@@ -105,6 +105,22 @@ jobs:
         env:
           PYTHONPATH: backend
         run: .venv/bin/python -m pytest tests/test_judge_demo.py tests/test_paper_acceptance.py tests/test_persistent_trading.py -q
+      - name: Verify frontend behavior and TypeScript
+        working-directory: deployments/multichain/site/vela-dashboard
+        run: |
+          npx vitest run src/lib
+          npx tsc --noEmit -p tsconfig.app.json
+          npx tsc --noEmit -p tsconfig.node.json
+      - name: Check fresh advisories against rendered submission modules
+        run: node tools/audit_frontend_exposure.mjs --refresh
+      - name: Verify stop budgets and realized-profit repayment
+        env:
+          PYTHONPATH: backend
+        run: >-
+          .venv/bin/python -m pytest
+          tests/test_protocol.py tests/test_modules.py tests/test_multichain.py
+          tests/test_closed_trade_repayment_flow.py tests/test_vault_migration.py
+          tests/test_completion_safety.py tests/test_first_native_permission.py
+          tests/test_paper_acceptance.py -q
       - name: Rehearse the complete loan, AI pipeline and settlement with explicit fixtures
         run: .venv/bin/python tools/rehearse.py
-
