@@ -1,0 +1,39 @@
+Vela deployed PAPER verifier control
+
+Run tools/verify_deployed_paper.py only for an explicitly authorized diagnostic.
+It creates disposable identities, simulated collateral/debt and paper positions.
+It does not use an owner's wallet, submit blockchain transactions or move funds.
+
+From the project root on a persistent host:
+
+  .venv/bin/python tools/verify_deployed_paper.py --case financed --seconds 600 --output-dir verification/noah/new-diagnostic
+
+To request an immediate full market close, without waiting for profit:
+
+  touch verification/noah/new-diagnostic/close-now
+
+SIGINT (Ctrl-C) or SIGTERM also requests graceful close and cleanup. The request
+is handled after the current HTTP operation returns or times out. New actions
+are then blocked, entries are stopped, and remaining positions are reduced.
+Existing pending reductions are observed rather than duplicated. A timed-out
+mutation is recorded as UNCONFIRMED and is never blindly replayed.
+
+The seconds limit counts wall-clock time, including a suspended runner. Cleanup
+has its own bounded wait. A preexisting close-now file cancels before account
+creation; use a new output directory for a separately authorized run.
+
+Read the resulting financed.json before claiming closure. A successful close
+request is not a confirmed fill. Check cleanup positions/orders and any
+cleanupError. A loss remains INCOMPLETE for the profit-sweep experiment even
+when manual close succeeds. Settlement of available demo equity is separate
+from automatic realized-profit repayment; residual debt is never erased.
+
+Credentials exist only in process memory. SIGKILL, host loss or a destroyed
+remote sandbox cannot run cleanup and cannot be recovered by this marker.
+Existing server-side paper protection remains independent of the runner, but
+flat/stopped state must be verified separately. Do not run this tool on an
+ephemeral remote workbench or start another run to recover a lost one.
+
+Tests use mocked HTTP and do not open deployed positions:
+
+  .venv/bin/python -m pytest tests/test_deployed_probe_control.py -q

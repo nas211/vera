@@ -4,6 +4,8 @@
 No owner credentials, chain writes, fixture prices, manual debt adjustments or
 service changes. The financed case uses Base's explicitly simulated vault path.
 Evidence contains no cookies, authentication signatures or private keys.
+Create OUTPUT_DIR/close-now or send SIGINT/SIGTERM for a graceful market close.
+Run on a persistent host: abrupt process/host loss cannot execute cleanup.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -12,6 +14,8 @@ from decimal import Decimal as D
 import json
 from pathlib import Path
 import secrets
+import signal
+from threading import Event
 import time
 import uuid
 
@@ -24,9 +28,39 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def pending_reductions(orders):
+    result = set()
+    for order in orders:
+        payload = order['payload']
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        if order['status'] == 'pending' and payload.get('reduceOnly'):
+            result.add(payload.get('positionId'))
+    return result
+
+
+class Control:
+    def __init__(self, directory, seconds):
+        self.close_file = directory/'close-now'
+        self.stop = Event()
+        # A suspended sandbox may freeze monotonic time while positions remain
+        # open on the server. Count real elapsed time toward the run limit.
+        self.deadline = time.time()+seconds
+
+    def close_requested(self):
+        return self.stop.is_set() or self.close_file.exists()
+
+    def require_running(self):
+        if self.close_requested():
+            raise RuntimeError('Diagnostic close requested; no new action started')
+        if time.time() >= self.deadline:
+            raise RuntimeError('Diagnostic wall-clock deadline reached')
+
+
 class Probe:
-    def __init__(self, base, output, **headers):
+    def __init__(self, base, output, control=None, **headers):
         self.output = output
+        self.control = control
         self.report = dict(startedAt=now(), status='RUNNING', execution='PAPER',
                            realFunds=False, blockchainWrites=False, steps=[])
         self.client = httpx.Client(base_url=base, timeout=30, headers={
@@ -55,6 +89,9 @@ class Probe:
                 time.sleep(1+attempt)
 
     def post(self, path, body=None):
+        cleanup = path in ('trading/stop', 'settle', 'logout') or path.endswith(('/close', '/cancel'))
+        if self.control and not cleanup:
+            self.control.require_running()
         # Never replay a timed-out mutation. Cleanup first reads the account.
         result = self.client.post('/api/'+path, json=body or {}, headers={
             'Idempotency-Key': 'verify-'+uuid.uuid4().hex},
@@ -68,8 +105,10 @@ class Probe:
         return result.json()
 
     def preflight(self):
-        deadline = time.monotonic()+30
+        deadline = time.time()+30
         while True:
+            if self.control:
+                self.control.require_running()
             health = self.get('health')
             self.report['health'] = health
             self.save()
@@ -77,7 +116,7 @@ class Probe:
             assert not health['liveEnabled'] and not health['realFunding'], 'Real execution must be disabled'
             if health['engineReady'] and health['marketData'] and not health['runtimeError']:
                 break
-            if time.monotonic() >= deadline:
+            if time.time() >= deadline:
                 raise RuntimeError('Engine, market data or runtime health not ready; no account created')
             time.sleep(2)
 
@@ -87,8 +126,9 @@ class Probe:
         self.client.close()
 
 
-def stop_probe(base, output, seconds):
-    p = Probe(base, output, **{'X-Vela-Paper': secrets.token_hex(32)})
+def stop_probe(base, output, seconds, control=None):
+    control = control or Control(output.parent, seconds)
+    p = Probe(base, output, control, **{'X-Vela-Paper': secrets.token_hex(32)})
     created = False
     try:
         p.preflight()
@@ -104,8 +144,8 @@ def stop_probe(base, output, seconds):
             case = dict(side=side, submitted=order, positions=[])
             p.report['cases'].append(case)
             case['order'] = p.post('paper/orders', order)
-            deadline = time.monotonic()+seconds
-            while time.monotonic() < deadline:
+            while time.time() < control.deadline:
+                control.require_running()
                 snapshot = p.get('paper/account')
                 for pos in snapshot['positions']:
                     sign = D(1 if pos['side'] == 'long' else -1)
@@ -155,16 +195,22 @@ def stop_probe(base, output, seconds):
             try:
                 snap = p.get('paper/account')
                 for order in snap['orders']:
-                    if order['status'] == 'pending':
+                    payload = order['payload']
+                    if isinstance(payload, str):
+                        payload = json.loads(payload)
+                    if order['status'] == 'pending' and not payload.get('reduceOnly'):
                         p.post('paper/orders/'+order['id']+'/cancel')
-                for pos in p.get('paper/account')['positions']:
-                    p.post('paper/positions/'+pos['id']+'/close', dict(clientId='cleanup-'+uuid.uuid4().hex, fraction='1'))
-                deadline = time.monotonic()+40
+                snap = p.get('paper/account')
+                pending = pending_reductions(snap['orders'])
+                for pos in snap['positions']:
+                    if pos['id'] not in pending:
+                        p.post('paper/positions/'+pos['id']+'/close', dict(clientId='cleanup-'+uuid.uuid4().hex, fraction='1'))
+                deadline = time.time()+40
                 while True:
                     snap = p.get('paper/account')
                     if not snap['positions'] and not any(o['status'] == 'pending' for o in snap['orders']):
                         break
-                    if time.monotonic() >= deadline:
+                    if time.time() >= deadline:
                         raise RuntimeError('Cleanup still has positions or orders')
                     time.sleep(1)
                 assert not snap['preferences']['autonomous']
@@ -175,9 +221,46 @@ def stop_probe(base, output, seconds):
     return p.report
 
 
-def financed_probe(base, output, seconds):
+def manage_financed_close(p, snapshot, requested_close):
+    """Pause entries and request full reductions, including losing positions."""
+    paper = snapshot['paper']
+    manual = p.control.close_requested()
+    if paper['positions'] and 'aiEntry' not in p.report:
+        p.report['aiEntry'] = snapshot
+    if (paper['positions'] or manual) and not p.report.get('entriesStopped'):
+        p.post('trading/stop')
+        p.report['entriesStopped'] = True
+    if manual and 'manualCloseRequestedAt' not in p.report:
+        p.report['manualCloseRequestedAt'] = now()
+        p.save()
+    reserve = sum(D(pos['mark'])*D(pos['qty'])*D('.0007')
+                  for pos in paper['positions'] if pos.get('mark'))+D('.01')
+    profitable = paper['unrealized'] is not None and D(paper['unrealized']) > reserve
+    pending = pending_reductions(paper['orders'])
+    if manual or profitable:
+        for pos in paper['positions']:
+            if pos['id'] in requested_close or pos['id'] in pending:
+                continue
+            # Record before sending; never blindly retry an uncertain mutation.
+            requested_close.add(pos['id'])
+            attempt = dict(position=pos['id'], at=now(), reason='manual' if manual else 'observed_gain', status='REQUESTING')
+            p.report.setdefault('closeRequests', []).append(attempt)
+            p.save()
+            try:
+                p.post('trading/positions/'+pos['id']+'/close', dict(confirm=True, fraction='1'))
+            except Exception:
+                attempt['status'] = 'UNCONFIRMED'
+                p.save()
+                raise
+            attempt['status'] = 'ACCEPTED'
+            p.save()
+    return manual and not paper['positions'] and not paper['trades']
+
+
+def financed_probe(base, output, seconds, control=None):
+    control = control or Control(output.parent, seconds)
     wallet = Account.create()
-    p = Probe(base, output, **{'X-Vella-Network': 'base', 'X-Wallet-Address': wallet.address})
+    p = Probe(base, output, control, **{'X-Vella-Network': 'base', 'X-Wallet-Address': wallet.address})
     p.report.update(wallet=wallet.address, network='base',
                     collateral='Explicitly simulated ETH; no Base transaction',
                     loan='Simulated USD loan; no direct trading allocation', samples=[])
@@ -209,10 +292,9 @@ def financed_probe(base, output, seconds):
         assert D(funded['paper']['balance']) == 200 and D(funded['directAllocation']) == 0
         p.report['funded'] = funded
         p.post('trading/start')
-        deadline = time.monotonic()+seconds
-        last_quote = time.monotonic()
-        halted, requested_close = False, set()
-        while time.monotonic() < deadline:
+        last_quote = time.time()
+        requested_close = set()
+        while time.time() < control.deadline:
             snapshot = p.get('account')
             paper = snapshot['paper']
             p.report['samples'].append(dict(at=now(), balance=paper['balance'],
@@ -221,20 +303,8 @@ def financed_probe(base, output, seconds):
             assert D(snapshot['directAllocation']) == 0
             for pos in paper['positions']:
                 assert D(pos['riskBudget']) <= D('1')
-            if paper['positions'] and not halted:
-                # Preserve autonomous protective management; prevent a second entry.
-                p.report['aiEntry'] = snapshot
-                p.post('trading/stop')
-                halted = True
-            # Close only after an observed gain covers estimated closing costs.
-            # The actual fill and automatic repayment receipt determine success.
-            exit_reserve = sum(D(pos['mark'])*D(pos['qty'])*D('.0007')
-                               for pos in paper['positions'] if pos.get('mark'))+D('.01')
-            if halted and paper['positions'] and paper['unrealized'] is not None and D(paper['unrealized']) > exit_reserve:
-                for pos in paper['positions']:
-                    if pos['id'] not in requested_close:
-                        p.post('trading/positions/'+pos['id']+'/close', dict(confirm=True, fraction='1'))
-                        requested_close.add(pos['id'])
+            if manage_financed_close(p, snapshot, requested_close):
+                raise RuntimeError('Diagnostic cancelled before a closed AI trade was observed')
             receipts = [e for e in snapshot['events'] if e['kind'] == 'SIMULATED_REPAYMENT_RECEIPT'
                         and json.loads(e['detail']).get('method') == 'profit_sweep']
             if receipts:
@@ -249,14 +319,14 @@ def financed_probe(base, output, seconds):
                                 sweptProfit=str(paid), scope='This new diagnostic account only',
                                 limitation='Deployed simulated Base vault and real AI/market observations; no DogeOS loan or real exchange execution.')
                 break
-            if halted and not paper['positions'] and paper['trades']:
+            if p.report.get('entriesStopped') and not paper['positions'] and paper['trades']:
                 # Give the repayment task time to run after the closing fill.
                 if time.time()-max(t['closed'] for t in paper['trades']) > 15:
                     p.report['closedWithoutSweep'] = snapshot
                     raise RuntimeError('AI trade closed without an eligible realized profit sweep')
-            if time.monotonic()-last_quote > 180:
+            if not control.close_requested() and time.time()-last_quote > 180:
                 p.post('quote', {'drop':'0'})
-                last_quote = time.monotonic()
+                last_quote = time.time()
             p.save()
             time.sleep(2)
         else:
@@ -270,12 +340,12 @@ def financed_probe(base, output, seconds):
                 snapshot = p.get('account')
                 if snapshot['agent']['loan']:
                     p.post('settle', context(snapshot))
-                    deadline = time.monotonic()+50
+                    deadline = time.time()+50
                     while True:
                         snapshot = p.get('account')
                         if not snapshot['paper']['positions'] and not any(o['status'] == 'pending' for o in snapshot['paper']['orders']):
                             break
-                        if time.monotonic() >= deadline:
+                        if time.time() >= deadline:
                             raise RuntimeError('Settlement still has positions or orders')
                         time.sleep(1)
                     # Do not fabricate additional capital to repay a loss.
@@ -301,9 +371,12 @@ if __name__ == '__main__':
     parser.add_argument('--case', choices=('both', 'stops', 'financed'), default='both')
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    control = Control(args.output_dir, args.seconds)
+    for signum in (signal.SIGINT, signal.SIGTERM):
+        signal.signal(signum, lambda *_: control.stop.set())
     cases = [('stops', stop_probe), ('financed', financed_probe)]
     with ThreadPoolExecutor(max_workers=2) as pool:
-        jobs = [(name, pool.submit(fn, args.base_url.rstrip('/'), args.output_dir/(name+'.json'), args.seconds))
+        jobs = [(name, pool.submit(fn, args.base_url.rstrip('/'), args.output_dir/(name+'.json'), args.seconds, control))
                 for name, fn in cases if args.case in ('both', name)]
         results = {name: job.result()['status'] for name, job in jobs}
     print(json.dumps(results))
