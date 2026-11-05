@@ -5,6 +5,7 @@ loaded by this module. All values in a snapshot refer to one confirmed block.
 """
 import hashlib
 import json
+import re
 import time
 from decimal import Decimal
 
@@ -16,7 +17,7 @@ from .config import ROOT, CHAIN_ID
 from .auth import address
 
 READ_METHODS = frozenset({'eth_chainId', 'eth_getBlockByNumber', 'eth_getCode',
-                          'eth_call', 'eth_getBalance', 'eth_getTransactionReceipt'})
+                          'eth_call', 'eth_getBalance', 'eth_getTransactionReceipt', 'eth_getTransactionByHash'})
 
 
 class DogeOSReadOnly:
@@ -65,7 +66,9 @@ class DogeOSReadOnly:
         if '0x' + keccak(bytes.fromhex(raw[2:])).hex() != self.contracts[name]['runtimeKeccak256']:
             raise ValueError('Deployed runtime bytecode mismatch')
 
-    def snapshot(self, wallet=None):
+    def snapshot(self, wallet=None, transaction=None):
+        if transaction is not None and not re.fullmatch(r'0x[0-9a-fA-F]{64}', transaction):
+            raise ValueError('Invalid transaction hash')
         owner = to_checksum_address(address(wallet or self.roles['vaultOwner']))
         if int(self.rpc('eth_chainId', []), 16) != CHAIN_ID:
             raise ValueError('Wrong RPC chain')
@@ -97,9 +100,11 @@ class DogeOSReadOnly:
                 raise ValueError('Vault role mismatch')
             balance = int(self.rpc('eth_getBalance', [mapped, block]), 16)
             collateral, loan_state = read('collateral'), read('loanState')
+            withdrawable = read('withdrawable')
             vault = dict(address=mapped, owner=to_checksum_address(actual_owner),
                          balanceWei=str(balance), balanceTestDOGE=str(Decimal(balance) / 10**18),
                          collateralWei=str(collateral), collateralTestDOGE=str(Decimal(collateral) / 10**18),
+                         withdrawableWei=str(withdrawable), withdrawableTestDOGE=str(Decimal(withdrawable) / 10**18),
                          loanState=loan_state, paused=read('paused'), trading=read('trading'),
                          treasury=to_checksum_address(treasury), attestor=to_checksum_address(attestor),
                          ownershipVerified=True, registrationVerified=True, bytecodeVerified=True,
@@ -107,6 +112,21 @@ class DogeOSReadOnly:
         wallet_balance = int(self.rpc('eth_getBalance', [owner, block]), 16)
         if self.rpc('eth_getBlockByNumber', [block, False])['hash'] != observed['hash']:
             raise ValueError('DogeOS observation reorganized')
+        receipt_state = None
+        if transaction:
+            receipt = self.rpc('eth_getTransactionReceipt', [transaction])
+            receipt_state = dict(hash=transaction, status='PENDING')
+            if receipt and int(receipt['blockNumber'], 16) <= height:
+                tx = self.rpc('eth_getTransactionByHash', [transaction])
+                canonical = self.rpc('eth_getBlockByNumber', [receipt['blockNumber'], False])
+                if (not tx or receipt['transactionHash'].lower() != transaction.lower()
+                        or tx['hash'].lower() != transaction.lower() or tx['blockHash'] != receipt['blockHash']
+                        or canonical['hash'] != receipt['blockHash'] or tx['from'].lower() != owner.lower()
+                        or (tx.get('to') or '').lower() not in {self.factory.lower(), (mapped or '').lower()}):
+                    raise ValueError('Transaction identity or canonical receipt mismatch')
+                receipt_state = dict(hash=transaction, status='CONFIRMED' if int(receipt['status'],16)==1 else 'REVERTED',
+                    block=int(receipt['blockNumber'],16), blockHash=receipt['blockHash'],
+                    sender=tx['from'], to=tx['to'], valueWei=str(int(tx['value'],16)), data=tx['input'])
         return dict(status='VERIFIED', chainId=CHAIN_ID, network='DogeOS Chikyu Testnet',
                     block=height, blockHash=observed['hash'], observedAt=time.time(),
                     confirmations=3, wallet=owner, walletBalanceWei=str(wallet_balance),
@@ -115,7 +135,7 @@ class DogeOSReadOnly:
                     referenceOwner=self.roles['vaultOwner'], explorer=self.deployment['explorer'],
                     deploymentTransactions={n:c['transactionHash'] for n,c in self.contracts.items()},
                     readOnly=True, customerTransactionsEnabled=False,
-                    collateralUsedForPaperTrading=False, settlementOnDogeOS=False)
+                    collateralUsedForPaperTrading=False, settlementOnDogeOS=False, transaction=receipt_state)
 
     def verify_deployment(self):
         result = self.snapshot()

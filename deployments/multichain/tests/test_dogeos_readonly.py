@@ -85,8 +85,7 @@ def test_gateway_blocks_contract_actions_preserves_sessions_and_seven_networks()
             home=await client.get('/')
             assert home.json()=={'upstream':True}
             vault=await client.get('/vault')
-            assert '/integrations/dogeos-readonly.js' in vault.text
-            assert '/assets/app-YM7MDSM2.js' in vault.text
+            assert vault.json()=={'upstream':True}  # Same release for every portal route.
             demo=(await client.get('/api/dogeos/demonstration')).json()
             assert 'not live AI trades' in demo['label']
             assert any(float(c['realizedPnl'])>0 for c in demo['cases'])
@@ -103,4 +102,53 @@ def test_rpc_failure_does_not_return_verified_or_stale_values():
             r=await client.get('/api/dogeos/status')
             assert r.status_code==503 and r.json()['status']=='UNAVAILABLE'
             assert 'walletBalanceTestDOGE' not in r.json() and 'vault' not in r.json()
+    asyncio.run(run())
+
+
+def test_narrow_wallet_capability_never_enables_lending_or_backend_broadcasts():
+    sent=[]
+    def handler(req):
+        sent.append(req)
+        return httpx.Response(200,json=dict(chain=CHAINS['dogeos'].public(Config(multichain=True)),chains=[],factory='legacy',attestorConfigured=True))
+    app=create_app(FixtureReader(),transport=httpx.MockTransport(handler),wallet_transactions=True)
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app),base_url=ORIGIN) as c:
+            config=(await c.get('/api/config')).json()
+            assert config['dogeosWallet']['enabled']
+            assert config['dogeosWallet']['actions']==['createVault','deposit','withdraw']
+            assert config['factory'] is None and not config['attestorConfigured']
+            assert not config['chain']['capabilities']['demoLending']
+            h={'Origin':ORIGIN,'X-ADP-Client':'web','X-Vella-Network':'dogeos'}
+            for path in BLOCKED:
+                n=len(sent);assert (await c.post(path,headers=h,json={})).status_code==403;assert len(sent)==n
+    asyncio.run(run())
+
+
+def test_gateway_can_start_during_rpc_outage():
+    class Unavailable(FixtureReader):
+        client=SimpleNamespace(close=lambda:None)
+        def snapshot(self,*a,**k):raise ValueError('offline')
+        def verify_deployment(self):raise AssertionError('Must not block gateway startup on RPC')
+    app=create_app(Unavailable(),transport=httpx.MockTransport(lambda req:httpx.Response(200,json={'application':'available'})))
+    async def run():
+        async with app.router.lifespan_context(app):
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app),base_url=ORIGIN) as c:
+                assert (await c.get('/api/markets')).json()=={'application':'available'}
+                assert (await c.get('/api/dogeos/status')).status_code==503
+    asyncio.run(run())
+
+
+def test_transaction_query_bypasses_cached_snapshot_and_rejects_bad_hash():
+    class Reader(FixtureReader):
+        def snapshot(self,wallet=None,transaction=None):
+            self.wallets.append(transaction)
+            return dict(status='VERIFIED',wallet=wallet,observedAt=__import__('time').time(),transaction=transaction)
+    reader=Reader()
+    app=create_app(reader,transport=httpx.MockTransport(lambda req:httpx.Response(200,json={'network':'dogeos','address':'0x'+'12'*20,'authenticated':True})))
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app),base_url=ORIGIN) as c:
+            assert (await c.get('/api/dogeos/account')).status_code==200
+            for _ in range(2):assert (await c.get('/api/dogeos/account?tx=0x'+'ab'*32)).status_code==200
+            assert len(reader.wallets)==3
+            assert (await c.get('/api/dogeos/account?tx=garbage')).status_code==400
     asyncio.run(run())

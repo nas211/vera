@@ -211,3 +211,17 @@ def test_gateway_rejects_huge_length_without_forwarding_or_integer_error():
                 headers={'Origin': ORIGIN, 'X-ADP-Client': 'web', 'Content-Length': '9'*5000})
             assert response.status_code == 413
     asyncio.run(scenario())
+
+
+def test_runtime_fingerprint_includes_execution_and_gateway_but_not_secret_files(tmp_path):
+    for name in ['backend/autodefi/api.py','backend/vela/lighter/engine.py','tools/dogeos_readonly.py','components/why-discovery/backend/discovery/model.py']:
+        path=tmp_path/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text('baseline')
+    before=fingerprint(runtime_root=tmp_path)
+    (tmp_path/'.env').write_text('not a runtime source file')
+    assert fingerprint(runtime_root=tmp_path)==before
+    for name in ['backend/vela/lighter/engine.py','tools/dogeos_readonly.py','components/why-discovery/backend/discovery/model.py']:
+        path=tmp_path/name;path.write_text('changed')
+        after=fingerprint(runtime_root=tmp_path)
+        assert after!=before
+        assert source_fingerprint(tmp_path)==after
+        before=after

@@ -1,45 +1,73 @@
-# Vela multichain backend
+# Vela — DogeOS vaults, rewards and AI paper trading
 
-**Current status:** the backend, `/paper` desk and `/earn` demo staking are deployed on the existing VPS. DogeOS is featured in the portal; the homepage is unchanged. See the [latest acceptance record](docs/PAPER-EARN-20261103.md). Real trading, funded staking and fund transfers remain disabled.
+[Working application](https://defivela.xyz/app/) · [Noah project](https://trynoah.ai/playground/6aeb352f7d19514dabedc93a) · [Hackathon](https://trynoah.ai/hackathon/6ad632514ff7b2bf9f7ea37d)
 
-This directory publishes the newer VPS backend and all prepared backend changes from source commit `77ad84168da9e95101696313f4ba86ca650db929`. It coexists with the legacy Vela application at the repository root. It does not replace that application, its database, or any UI files.
+Vela combines owner-controlled native DOGE vaults, reserve-funded rewards, demo borrowing and AI paper trading. The current implementation is in **this directory**. Other top-level code and earlier documents are retained as project history; they are not the current deployment manifest.
 
-The existing runtime directory is `/root/VellaMultichain`; Nginx serves its separately preserved UI and routes API traffic through the existing gateway. Do not start a second engine against that runtime's ledger. This source publication does not deploy or restart any service.
+## What Noah built
 
-Included: FastAPI backend, reused pure risk/agent/feed modules, contract source and tests, configuration schemas, backend tests, operational tools, pending service configuration and validation records. All prepared backend changed/new files are included verbatim. The original checkout's README is retained as [source history](docs/SOURCE-README.md); historical deployment statements there are not current acceptance evidence.
+The **VELA Collateral Rewards** project was created in Noah on November 4, 2026. Noah contributed the dashboard, initial rewards-accounting logic, vault/factory components and build checkpoints. We exported that module, repaired financial and wallet-flow edge cases and integrated it with Vela's pre-existing backend and paper-trading engine. The whole Vela application was not built in Noah. The saved Noah preview uses deterministic fixtures; the connected experience is the external application linked above. Eligibility is for the organizers to assess; this repository does not claim organizer approval.
 
-Current frontend source and the newly deployed product/portal bundles are now included, together with the exact prior portal assets needed to reproduce the three text replacements. Historical generated frontend builds, customer databases, environment files, private recovery copies and installed dependencies are excluded. Backend tests that inspect preserved frontend bundles require those original build artifacts; this publication intentionally does not generate or replace them. The full suite was executed against the preserved artifacts in the isolated VPS worktree, as recorded in [validation](snapshot/backend-validation-20261103.json).
+## Current functionality
 
-Start with the [backend implementation and deployment report](docs/BACKEND-COMPLETION-20261103.md), [implementation inventory](snapshot/completion-inventory-20261103.json), and [source publication manifest](snapshot/publication-20261103.json). The manifest records the exact original source hashes. Its `README.md` hash refers to `docs/SOURCE-README.md`; this entrypoint explains the additive publication layout.
+- DogeOS testnet chain **6281971**: native-DOGE vault creation, deposits, reserve-funded rewards, owner-signed claims and withdrawals.
+- Current reward rate: **5% simple APR**, accruing while the shared reserve supports it. This is not a guaranteed yield or an immediate 5% payout.
+- Demo lending: simulated USD credit, interest-first repayment and owner-confirmed testnet collateral settlement.
+- AI trading: paper execution only. No live exchange orders or real stablecoin lending.
+- Same-owner migration from an empty, settled legacy vault preserves account history and demo cash.
+- Every account retains its stricter existing limit or a **$2 fee-inclusive per-position stop-trigger budget**. Long/short positions, partial exits, inward rounding and existing-position reconciliation are covered by automated checks. Slippage and funding can exceed that trigger budget.
 
-## Run backend checks
+## Validation and deployment
 
-Use an isolated dependency environment with `requirements.txt`, never a WHY environment. With this directory as the working directory:
+The published implementation previously passed **502 backend tests, 251 frontend tests and 47 contract tests**, including fuzz properties. TypeScript, scoped lint, build and release integrity checks passed. Those local results are separate from GitHub Actions for this source-publication commit. This is not an independent security audit or a production-readiness certification. Dependency advisories remain in the wider repository/tooling tree.
+
+The deployed reconciler records completed loan and reward-vault round trips. The reward payout is recorded as **0.000003757610350076 DOGE**, followed by principal withdrawal and zero collateral/debt. Additional accrued rewards remain claimable. A fresh independent RPC audit of the new reward receipts was blocked by this terminal's network policy; do not describe that audit as completed. Live financed-trading fills and protective exits remain unverified. Trading is stopped.
+
+## Inspect the code
+
+- `deployments/multichain/backend/autodefi/`: vault, loan, account, repayment and trading orchestration.
+- `deployments/multichain/contracts/`: reviewed vault/factory/shared-pool contracts and tests.
+- `deployments/multichain/site/vela-dashboard/`: integrated Noah-derived dashboard.
+- `deployments/multichain/tests/`: backend and financial invariants.
+- `deployments/multichain/noah/vela-collateral-rewards/`: original build prompts and module architecture.
+- `deployments/multichain/tools/`: build and deployment tooling; publication does not execute deployment scripts.
+
+No live database, user session, wallet private key or production environment file is included in this update. Example configuration files contain placeholders. Keep credentials server-side and never import them into a frontend build.
+
+## Reproduce local checks
 
 ```bash
-PYTHONPATH=backend python -m pytest tests/test_completion_safety.py \
-  tests/test_agent_sessions.py tests/test_model_usage.py tests/test_staking.py \
-  tests/test_trading_details.py tests/test_backend_acceptance.py \
-  tests/test_backend_release.py tests/test_source_preservation.py \
-  tests/test_backend_deployment.py -q
+cd deployments/multichain
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+npm --prefix contracts install --ignore-scripts
+forge build --root contracts
+npm --prefix site ci --ignore-scripts
+npm --prefix site run build
+npm --prefix site run build:candidate
+# Only in a fresh local checkout, initialize the legacy UI test fixture:
+test -d site/dist || cp -R site/prepared site/dist
+PYTHONPATH=backend .venv/bin/python -m pytest tests -q
+npm --prefix site/vela-dashboard ci --legacy-peer-deps --ignore-scripts
+cd site/vela-dashboard
+npx vitest run src/lib
+npx tsc --noEmit -p tsconfig.app.json
+npx tsc --noEmit -p tsconfig.node.json
 ```
 
-The tests use synthetic wallet keys, market data, model responses and temporary ledgers. They do not prove genuine wallet approvals, live market/provider connectivity or exchange-side protection. `tools/restricted_pytest.py` provides a selector heartbeat for restricted test executors; it does not bypass test assertions.
+Contract checks use Solidity 0.8.30 and Foundry with dependencies from `contracts/package.json`. Test fixtures are not live transactions. Native actions require the owner's browser wallet and the configured testnet backend; do not deploy or fund contracts to browse the repository.
 
-## Deploy the existing backend
+## DogeOS evidence
 
-Use the verified backend overlay and matching code rollback from `/root/vela-completion-20261103/release-v2`, following the report's preflight, fresh backup, ownership, graceful restart and acceptance sequence. This GitHub copy provides the source of every overlay file and its unchanged backend dependencies. The release builder's base reference belongs to the original multichain repository history, not this additive import commit; do not attempt to resolve that base in the legacy repository history.
+Reward factory: `0x7304EbdE8D313c95c3a89caa20e7915545a0665e`  
+Shared pool: `0x79a20c6c39525A6253C8aA5D04EE5682ECB2B0Ae`  
+Demonstrated vault: `0x2937bfdaea76fc29529d7792ac674b6eef55eca5`
 
-Publication does not authorize enabling real trading, real lending, funded staking, chain writes or a new contract deployment. The fee-inclusive per-position stop-trigger budget remains $2 or stricter; it is not a guarantee against slippage, gaps or funding. Live protection remains unverified. Demo staking is enabled explicitly in the public application factory. The library default remains disabled. Existing page layouts and the homepage remain unchanged; independent paper/earn products and three DogeOS text updates are documented in the latest acceptance record.
+| Action | Recorded confirmed transaction |
+| --- | --- |
+| Reward vault creation | [0x5b2750…8b603](https://dogeos-testnet.l2scan.co/tx/0x5b2750a6cd5db170cbb456cb2dab13edfaae3df2682b326524513d2c6da8b603) |
+| Reward vault deposit | [0x1fad3b…202c](https://dogeos-testnet.l2scan.co/tx/0x1fad3b1797bc08c7aa6339501f320180e61d7cff91906201d72fd9d8d501202c) |
+| Reward claim | [0x737df8…d53d](https://dogeos-testnet.l2scan.co/tx/0x737df894fca8138f8fcbd57ca9473775092053caa2c3d310fdbd7b46a6b6d53d) |
+| Principal withdrawal | [0x764907…a886](https://dogeos-testnet.l2scan.co/tx/0x764907c41d388795073b92b89645997925a123a4b0ad1de19f968daa6722a886) |
 
-The owner excludes ZK/privacy products from this project. Backend deployment automation, monitoring/backups and CI are documented in the updated backend report. No host deployment is claimed from publishing this source.
-
-## Build and check the new products
-
-From `site`, run `npm ci --prefix products-toolchain --ignore-scripts` and `npm run build:products`. The build checks its bundled dependency allowlist and excludes the disabled DogeOS SDK. Run `python3 scripts/prepare-dogeos-portal.py --source deployed-simple-tabs` to reproduce the copy-only portal bundle.
-
-For local browser journeys, start `uvicorn tools.products_browser_fixture:app --host 127.0.0.1 --port 18917` from this backend directory in an isolated environment, then run `npm run test:products` from `site`. The harness uses a new temporary ledger and synthetic market/model/wallet fixtures. `npm run test:public-products` checks public page rendering without real funds or wallet approvals.
-
-The full prepared frontend dependency tree still has SDK-related advisories (15 high, 27 moderate, 62 low at the latest audit). Do not interpret the narrow new-product bundle allowlist or passing backend CI as a complete security audit.
-
-The scoped product toolchain now has its own exact lockfile; a clean install reproduces all nine deployed product assets byte-for-byte and its current npm audit reports zero findings. The larger disabled SDK tree remains separately disclosed above.
+Third-party components retain their existing notices and licenses. Making the repository public does not relicense those components or grant an additional license to the rest of the repository.

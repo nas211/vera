@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node checks/unit.test.mjs && node checks/simulator.test.mjs && node checks/homepage-market.test.mjs && node checks/guided.test.mjs && node checks/render.test.mjs && node checks/build.test.mjs",
+    "test": "node checks/unit.test.mjs && node checks/flow-validation.test.mjs && node checks/testnet-vault.test.mjs && node checks/simulator.test.mjs && node checks/homepage-market.test.mjs && node checks/guided.test.mjs && node checks/render.test.mjs && node checks/build.test.mjs",
     "test:browser": "node checks/browser.mjs",
     "test:modules": "node checks/modular-browser.mjs",
     "test:multichain": "node checks/multichain.test.mjs",
@@ -14,7 +14,9 @@
     "build:candidate": "VELLA_BUILD_OUTPUT=candidate node scripts/build.mjs",
     "build:products": "node scripts/build-products.mjs",
     "test:products": "node checks/products-browser.mjs",
-    "test:public-products": "node checks/public-products-browser.mjs"
+    "test:public-products": "node checks/public-products-browser.mjs",
+    "test:public-homepage": "node checks/public-homepage-navigation.mjs",
+    "test:flow": "node checks/flow-browser.mjs"
   },
   "dependencies": {
     "@dogeos/dogeos-sdk": "4.0.4",

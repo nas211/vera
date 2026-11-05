@@ -102,7 +102,7 @@ try{
     if(id==='base')await page.screenshot({path:out+`/browser/borrow-${width}.png`,fullPage:true});
     await page.reload();await page.getByRole('tablist').waitFor();assert.equal(new URL(page.url()).pathname,'/borrow');assert.match(await page.locator('#panel-borrow').innerText(),/\$400\.00/);
     await tab('trading');
-    assert.equal(await page.locator('details[open]').count(),0);assert.match(await page.locator('#panel-trading').innerText(),/The AI will trade your borrowed \$400\.00/);assert.match(await page.locator('#panel-trading').innerText(),/Max loss \$2\.00 per trade, fees included/);
+    assert.equal(await page.locator('details[open]').count(),0);assert.match(await page.locator('#panel-trading').innerText(),/The AI will trade your borrowed \$400\.00/);assert.match(await page.locator('#panel-trading').innerText(),/Fee-inclusive stop-trigger budget \$2\.00 per trade, fees included/);
     await page.getByRole('button',{name:'Start AI Trading',exact:true}).click();assert.match(await page.getByRole('dialog').innerText(),/max loss of \$2\.00 per trade including fees/);await confirm();
     await page.locator('.quick-ai.is-running').waitFor();const started=await account(id);assert.equal(started.paper.preferences.autonomous,true);
     assert.deepEqual([started.vault.limits.positionSize,started.vault.limits.maxLoss,started.vault.limits.leverage],['100000000','2000000','1']);

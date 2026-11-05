@@ -60,15 +60,26 @@ def verification_command(name, target, arguments, version):
     ])
 
 
-def prepare(deployer=None, nonce=None, attestor=None, treasury=None, owner=None):
-    values = (deployer, nonce, attestor, treasury)
+def prepare(deployer=None, nonce=None, attestor=None, treasury=None, owner=None,
+            rewarded=False, reward_manager=None, apr_bps=None):
+    if not rewarded and (reward_manager is not None or apr_bps is not None):
+        raise ValueError('Reward settings require the rewarded contract candidate')
+    values = ((deployer, attestor, treasury, reward_manager, apr_bps) if rewarded
+              else (deployer, nonce, attestor, treasury))
     if any(x is not None for x in values) and not all(x is not None for x in values):
-        raise ValueError('Provide deployer, nonce, attestor and treasury together')
+        raise ValueError('Provide all public deployment roles and reward terms together' if rewarded
+                         else 'Provide deployer, nonce, attestor and treasury together')
+    if nonce is not None and (deployer is None or isinstance(nonce, bool) or not isinstance(nonce, int) or nonce < 0):
+        raise ValueError('A deployment nonce requires public roles and a nonnegative integer')
+    if rewarded and apr_bps is not None and (isinstance(apr_bps, bool) or not isinstance(apr_bps, int) or not 0 <= apr_bps <= 10_000):
+        raise ValueError('Reward APR must be integer basis points from 0 to 10000')
     if owner and deployer is None:
         raise ValueError('Vault prediction requires the factory deployment inputs')
+    factory_name, vault_name = (('RewardedVaultFactory', 'RewardedCollateralVault') if rewarded
+                               else ('VaultFactory', 'DogeCollateralVault'))
     contracts = {}
     binaries = {}
-    for name in ('VaultFactory', 'DogeCollateralVault'):
+    for name in (factory_name, vault_name) + (('NativeRewardPool',) if rewarded else ()):
         data, bytecode, sources = artifact(name)
         binaries[name] = bytecode
         contracts[name] = {
@@ -94,40 +105,79 @@ def prepare(deployer=None, nonce=None, attestor=None, treasury=None, owner=None)
                     'Explicit deployment/spending approval', 'Confirmed receipt and explorer verification'],
         'verificationDocumentation': 'https://docs.dogeos.com/en/developers/verifying-smart-contracts',
     }
+    if rewarded:
+        result.update(candidate='FUNDED_NATIVE_REWARDS', customerTransactionsEnabled=False,
+                      rewardTerms={'manager': None, 'initialAprBps': None, 'reserveFunding': 'One shared project pool; anyone may fund it without a personal vault'},
+                      backendRegistration={'VERA_PROTOCOL_REWARD_FACTORY': None,
+                                           'VERA_PROTOCOL_REWARD_FACTORY_CODEHASH': None,
+                                           'VERA_PROTOCOL_REWARD_VAULT_CODEHASH': None,
+                                           'VERA_PROTOCOL_REWARD_POOL_CODEHASH': None,
+                                           'VERA_PROTOCOL_NATIVE_ACTIONS_ENABLED': '0'},
+                      legacyPolicy='Keep the registered legacy factory and owners; no automatic migration or second vault for an existing owner',
+                      feeRequirements=['Fresh execution gas estimate', 'Fresh DogeOS data/finality fee estimate',
+                                       'Funded sender balance covers both fees; reserve donation is separate'],
+                      pending=['Reward manager and initial APR', 'Authorized deployment wallet',
+                               'Live chain, nonce, balance and both fee estimates', 'Canonical deployment receipt and runtime hashes',
+                               'Shared pool funding and owner-wallet flow verification'])
     if deployer is not None:
         deployer, attestor, treasury = map(address, (deployer, attestor, treasury))
-        if isinstance(nonce, bool) or not isinstance(nonce, int) or nonce < 0:
-            raise ValueError('A nonnegative deployment nonce is required')
-        factory = to_checksum_address(keccak(rlp.encode([bytes.fromhex(deployer[2:]), nonce]))[-20:])
-        arguments = encode(['address', 'address'], [attestor, treasury])
-        initcode = binaries['VaultFactory'] + arguments
+        if rewarded:
+            reward_manager = address(reward_manager)
+            result['rewardTerms'].update(manager=reward_manager, initialAprBps=apr_bps)
+        factory = to_checksum_address(keccak(rlp.encode([bytes.fromhex(deployer[2:]), nonce]))[-20:]) if nonce is not None else None
+        argument_types = ['address', 'address'] + (['address', 'uint256'] if rewarded else [])
+        argument_values = [attestor, treasury] + ([reward_manager, apr_bps] if rewarded else [])
+        arguments = encode(argument_types, argument_values)
+        initcode = binaries[factory_name] + arguments
         result['unsignedTransaction'] = {
-            'from': deployer, 'chainId': CHAIN, 'nonce': nonce, 'value': '0x0',
+            'from': deployer, 'chainId': CHAIN, 'value': '0x0',
             'data': '0x' + initcode.hex(),
             'note': 'No gas/fee quotation or signature. Recheck nonce, chain, code and funding immediately before an approved deployment.',
         }
-        contracts['VaultFactory']['predictedAddress'] = factory
-        contracts['VaultFactory']['verificationCommand'] = verification_command(
-            'VaultFactory', factory, arguments, contracts['VaultFactory']['compiler'])
+        if nonce is not None:
+            result['unsignedTransaction']['nonce'] = nonce
+        contracts[factory_name]['constructorArguments'] = '0x' + arguments.hex()
+        contracts[factory_name]['predictedAddress'] = factory
+        if factory:
+            contracts[factory_name]['verificationCommand'] = verification_command(
+                factory_name, factory, arguments, contracts[factory_name]['compiler'])
+        pool_address = None
+        if rewarded:
+            pool_args = encode(['address', 'uint256'], [reward_manager, apr_bps])
+            pool_row = contracts['NativeRewardPool']
+            pool_row.update(constructorArguments='0x' + pool_args.hex(), deployment='created inside factory constructor')
+            if factory:
+                # A newly created EVM contract starts with nonce 1; this is its first CREATE.
+                pool_address = to_checksum_address(keccak(rlp.encode([bytes.fromhex(factory[2:]), 1]))[-20:])
+                pool_row['predictedAddress'] = pool_address
+                pool_row['verificationCommand'] = verification_command('NativeRewardPool', pool_address, pool_args, pool_row['compiler'])
         if owner:
             owner = address(owner)
-            args = encode(['address', 'address', 'address'], [owner, attestor, treasury])
+            args = (encode(['address', 'address', 'address', 'address'], [owner, attestor, treasury, pool_address]) if pool_address
+                    else None) if rewarded else encode(['address'] + argument_types, [owner] + argument_values)
             salt = bytes.fromhex(owner[2:]).rjust(32, b'\0')
-            predicted = to_checksum_address(keccak(b'\xff' + bytes.fromhex(factory[2:]) + salt
-                + keccak(binaries['DogeCollateralVault'] + args))[-20:])
-            contracts['DogeCollateralVault']['predictedAddress'] = predicted
-            contracts['DogeCollateralVault']['verificationCommand'] = verification_command(
-                'DogeCollateralVault', predicted, args, contracts['DogeCollateralVault']['compiler'])
+            contracts[vault_name]['constructorArguments'] = '0x' + args.hex() if args is not None else None
+            if factory:
+                predicted = to_checksum_address(keccak(b'\xff' + bytes.fromhex(factory[2:]) + salt
+                    + keccak(binaries[vault_name] + args))[-20:])
+                contracts[vault_name]['predictedAddress'] = predicted
+                contracts[vault_name]['verificationCommand'] = verification_command(
+                    vault_name, predicted, args, contracts[vault_name]['compiler'])
         result['pending'] = ['Recheck deployer nonce and testnet balance', 'Explicit deployment/spending approval',
                              'Confirmed receipt, deployed code/immutable values and explorer verification']
+        if rewarded:
+            result['pending'] += ['Record all three runtime hashes and preserve legacy registrations',
+                                  'Fund the shared pool once its deployment is confirmed', 'Verify real owner-wallet flows before enabling customer actions']
     return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ('deployer', 'attestor', 'treasury', 'owner'):
+    for name in ('deployer', 'attestor', 'treasury', 'owner', 'reward-manager'):
         parser.add_argument('--' + name)
     parser.add_argument('--nonce', type=int)
+    parser.add_argument('--rewarded', action='store_true', help='Prepare the new funded-reward contracts, preserving the legacy deployment')
+    parser.add_argument('--apr-bps', type=int, help='Initial simple annual rate in basis points; no assumed default')
     args = parser.parse_args()
     try:
         print(json.dumps(prepare(**vars(args)), sort_keys=True, indent=2))

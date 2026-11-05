@@ -34,12 +34,43 @@ class GovernedPaper(LighterPaperAdapter):
         super().__init__(*args,**kwargs)
         self.require_session=require_session
     def account(self,*args): raise ValueError('Authenticate wallet; accounts start at zero')
+    def pause_entries(self,owner,reason='New entries are stopped.',action='Review your limits, then select Start AI Trading.'):
+        super().pause_entries(owner)
+        self.db.execute('DELETE FROM kv WHERE key=?',('agent-authorization:'+owner,))
+        put(self.db,'paper-stop-reason:'+owner,dict(reason=reason,action=action,at=time.time()))
+    def snapshot(self,owner):
+        result=super().snapshot(owner)
+        result['entryStop']=get(self.db,'paper-stop-reason:'+owner) if not result['preferences'].get('autonomous') else None
+        return result
+    def authorize_run(self,owner):
+        # Called only by authenticated Start, after its network preflight and
+        # final session/revision check. Browser cookies are not ongoing consent.
+        if owner.startswith('paper:'):raise ValueError('Wallet authorization required')
+        permission=self.permission(owner)
+        prefs=get(self.db,'paper-prefs:'+owner,{})
+        if not prefs.get('autonomous'):raise ValueError('Start trading before authorization')
+        expires=int(permission.get('expiresAt',0))
+        if expires<=time.time():raise ValueError('Active trading permission required')
+        put(self.db,'agent-authorization:'+owner,dict(version=1,owner=owner,
+            revision=self.revision(owner),generation=prefs.get('generation',0),
+            expiresAt=expires,authorizedAt=time.time()))
+    def run_authorized(self,owner):
+        consent=get(self.db,'agent-authorization:'+owner)
+        prefs=get(self.db,'paper-prefs:'+owner,{})
+        return bool(consent and consent.get('version')==1 and consent.get('owner')==owner
+            and not owner.startswith('paper:') and prefs.get('autonomous')
+            and consent.get('revision')==self.revision(owner)
+            and consent.get('generation')==prefs.get('generation',0)
+            and int(consent.get('expiresAt',0))>time.time()
+            and int(self.permission(owner).get('expiresAt',0))>time.time())
+    def account_budget(self,owner):
+        return min(D(2000000),number(get(self.db,'account-stop-budget:'+owner,'2000000')))
     def protect(self,p):
         # A newly tightened wallet permission also applies to existing exposure.
         # Persist it so later expiry, loan settlement or permission renewal can
         # never widen this position's budget again.
         meta=self.meta(p)
-        budget=min(D(2),self.settings.loss_budget,number(meta.get('riskBudget','2')))
+        budget=min(D(2),self.settings.loss_budget,number(meta.get('riskBudget','2')),self.account_budget(p['user'])/1000000)
         permissions=[get(self.db,'trading-permission:'+p['user'],{})]
         try:permissions.append(self.permission(p['user']))
         except ValueError:pass  # Missing collateral state cannot disable base protection.
@@ -61,7 +92,7 @@ class GovernedPaper(LighterPaperAdapter):
         if not D('.000002')<=budget<=min(D(2),self.settings.loss_budget) or not 1<=leverage<=3:raise ValueError('Invalid risk limits; stop budget must be at least two micro-USDC and cannot exceed $2')
         old=get(self.db,'trading-permission:'+owner,{})
         # Preserve any stricter existing stop budget even when editing settings.
-        budget=min(budget,number(old.get('maxLoss',budget*1000000))/1000000)
+        budget=min(budget,number(old.get('maxLoss',budget*1000000))/1000000,self.account_budget(owner)/1000000)
         self.pause_entries(owner)
         permission=dict(allocation=str(allocation*1000000),positionSize=str(position*1000000),maxLoss=str(budget*1000000),leverage=str(leverage),markets='7',expiresAt=str(int(time.time())+86400),revision=old.get('revision',0)+1)
         put(self.db,'trading-permission:'+owner,permission)
@@ -73,16 +104,47 @@ class GovernedPaper(LighterPaperAdapter):
             p=lending.vault(owner,False)['limits']
             if extra:
                 p=dict(p,**{k:str(min(D(p[k]),D(extra[k]))) for k in ('allocation','positionSize','maxLoss','leverage','expiresAt')})
-            return p
-        return extra
+            return dict(p,maxLoss=str(min(number(p['maxLoss']),self.account_budget(owner))))
+        return dict(extra,maxLoss=str(min(number(extra['maxLoss']),self.account_budget(owner)))) if extra else extra
+    def authorization_budget(self,owner):
+        """Review ceiling, distinct from the currently executable permission.
+
+        A first borrow revokes the constructor's empty permission and increments
+        revision to one. That provably unused permission is not a chosen $0
+        budget. Unknown legacy revocation history remains blocked. Stored paper
+        limits (including zero) and rewarded-vault lifetime limits still apply.
+        This method does not authorize entries or alter execution gates.
+        """
+        budget=min(min(D(2),self.settings.loss_budget)*1000000,self.account_budget(owner))
+        extra=get(self.db,'trading-permission:'+owner,{})
+        if extra.get('maxLoss') is not None:budget=min(budget,number(extra['maxLoss']))
+        lending=Lending(self.db);loan=lending.loan(owner)
+        if loan and loan['state'] not in ('REPAID','CANCELLED'):
+            v=lending.vault(owner,False);p=v['limits']
+            if v.get('kind')=='rewarded':
+                budget=min(budget,number(v.get('stopBudgetMicro','0')))
+                if number(p['maxLoss'])>0:budget=min(budget,number(p['maxLoss']))
+            else:
+                unused=(v.get('loanNonce')==1 and v.get('permissionRevision')==1
+                    and v.get('loanState') in (1,2) and not v.get('trading')
+                    and v.get('agent','').lower()=='0x'+'00'*20
+                    and all(str(p.get(k))=='0' for k in ('allocation','positionSize','expiresAt','maxLoss','leverage','markets'))
+                    and p.get('autoReduce') is False)
+                if not unused:budget=min(budget,number(p['maxLoss']))
+        return str(int(max(D(0),budget)))
     def revision(self,owner):
         v=self.db.execute('SELECT data FROM vaults WHERE owner=?',(owner,)).fetchone()
         return [get(self.db,'trading-permission:'+owner,{}).get('revision',0),json.loads(v[0])['permissionRevision'] if v else 0]
     def gate(self,owner,order=None,require_running=True, filling=False, manual=False):
+        if get(self.db,'paper-funding-incomplete:'+owner,False):
+            raise ValueError('Funding history is incomplete; reconcile before opening positions')
         if get(self.db,'direct-settlement:'+owner,False):raise ValueError('Wait for position settlement to finish')
         if require_running or filling or manual:
             binding=get(self.db,'agent-session:'+owner)
-            if self.require_session or binding:
+            consent=get(self.db,'agent-authorization:'+owner)
+            if consent is not None:
+                if not self.run_authorized(owner):raise ValueError('Active server trading authorization required')
+            elif self.require_session or binding:
                 session=self.db.execute('SELECT address,expires FROM auth_sessions WHERE hash=?',(binding or '',)).fetchone()
                 if not session or session['address']!=owner or session['expires']<=time.time():
                     raise ValueError('Active authenticated trading session required')
@@ -93,7 +155,8 @@ class GovernedPaper(LighterPaperAdapter):
             v=lending.vault(owner);lending.price(owner)
             if l['state']!='ACTIVE' or v['loanState']!=2 or l['id']!=v['loanId']: raise ValueError('Active confirmed demo loan required')
             p=v['limits']
-            if v['paused'] or not v['trading'] or v['agent'].lower()!=v['settlementSigner'].lower() or int(p['expiresAt'])<=time.time(): raise ValueError('Active on-chain agent authorization required')
+            if v['paused'] or not v['trading'] or v['agent'].lower()!=v['settlementSigner'].lower() or int(p['expiresAt'])<=time.time():
+                raise ValueError('Active demo loan trading authorization required' if v.get('simulated') else 'Active on-chain agent authorization required')
             hf=D(lending.health(owner)['healthFactor'])
             if hf<D(RISK['blockHealthBelow']): raise ValueError('Loan health blocks new positions')
         else:
@@ -114,7 +177,7 @@ class GovernedPaper(LighterPaperAdapter):
         allocation=min(D(p['allocation'])/1000000,D(snap['equity']))*scale
         position=D(p['positionSize'])/1000000*scale
         leverage=min(D(3),D(p['leverage']),D(1) if scale<1 else D(3))
-        budget=min(D(2),self.settings.loss_budget,D(p['maxLoss'])/1000000)
+        budget=min(D(2),self.settings.loss_budget,D(p['maxLoss'])/1000000,self.account_budget(owner)/1000000)
         if order:
             if order.get('agent'):
                 connection=get(self.db,'ai-connection',{})
@@ -155,6 +218,7 @@ class GovernedPaper(LighterPaperAdapter):
         for symbol in ('BTC/USD','ETH/USD','SOL/USD'): self.market(symbol)
         prefs=get(self.db,'paper-prefs:'+owner,{})
         put(self.db,'paper-prefs:'+owner,dict(prefs,autonomous=True,generation=prefs.get('generation',0)+1))
+        self.db.execute('DELETE FROM kv WHERE key=?',('paper-stop-reason:'+owner,))
         self.activity(owner,'agent_started','Paper entries enabled subject to live loan, model and market checks')
     def settle(self,owner,confirmed):
         if confirmed is not True: raise ValueError('Confirm closure of all paper positions')
@@ -186,14 +250,21 @@ class GovernedPaper(LighterPaperAdapter):
             owner=row[0]
             with transaction(self.db):
                 self.close_for_settlement(owner)
-                if not self.getPosition(owner) and not self.db.execute("SELECT 1 FROM paper_orders WHERE user=? AND status='pending'",(owner,)).fetchone(): Lending(self.db).repay_available(owner)
+                if (not get(self.db,'paper-funding-incomplete:'+owner,False)
+                        and not self.getPosition(owner) and not self.db.execute("SELECT 1 FROM paper_orders WHERE user=? AND status='pending'",(owner,)).fetchone()):
+                    Lending(self.db).repay_available(owner)
     def risk_governor(self):
         for row in self.db.execute('SELECT address FROM users').fetchall():
             owner=row[0];prefs=get(self.db,'paper-prefs:'+owner,{})
             if not prefs.get('autonomous'): continue
             try: self.gate(owner)
             except ValueError as exc:
-                with transaction(self.db): self.pause_entries(owner);self.activity(owner,'loan_risk_block',str(exc))
+                reason=str(exc)
+                action=('Refresh the collateral quote and review loan health; repay debt or add collateral before restarting.' if 'health' in reason.lower() else
+                    'Reconcile funding history before restarting.' if 'Funding history' in reason else
+                    'Refresh market and collateral data, resolve the reported condition, then select Start AI Trading.' if 'stale' in reason.lower() or 'fresh' in reason.lower() else
+                    'Review the vault and trading limits, then select Start AI Trading to authorize a new run.')
+                with transaction(self.db): self.pause_entries(owner,reason,action);self.activity(owner,'loan_risk_block',reason)
                 # Optional reduction explicitly authorized in the on-chain permission.
                 try:
                     v=Lending(self.db).vault(owner)

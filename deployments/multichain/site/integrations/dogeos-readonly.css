@@ -1,0 +1,32 @@
+/* Scoped to the existing DogeOS portal. Original homepage/assets stay intact. */
+.dogeos-readonly #panel-vault,.dogeos-readonly #panel-borrow,.dogeos-readonly #panel-agent,
+.dogeos-readonly #tab-borrow,.dogeos-readonly #tab-agent,
+.dogeos-readonly .guided-app .next-step,
+.dogeos-readonly .overview-stats>.stat:nth-child(1),
+.dogeos-readonly .overview-stats>.stat:nth-child(2),
+.dogeos-readonly .overview-stats>.stat:nth-child(6),
+.dogeos-readonly .portal-welcome>div>.small,
+.dogeos-readonly .portal-welcome .wallet>.notice {display:none}
+.dogeos-readonly .portal-section-links a[href$="#borrow"],
+.dogeos-readonly .portal-section-links a[href$="#agent"]{display:none}
+.dogeos-readonly .guided-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dogeos-readonly .overview-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dogeos-contract-panel{margin:22px 0;scroll-margin-top:20px}
+.dogeos-contract-panel h2{margin:0;font-size:24px}
+.dogeos-contract-panel.is-trading .dogeos-contract-grid,
+.dogeos-contract-panel.is-trading .guided-details,
+.dogeos-contract-panel.is-trading .dogeos-disclosure{display:none}
+.dogeos-contract-panel.is-trading{padding:18px 24px}
+.dogeos-contract-panel.is-trading h2{font-size:18px}
+.dogeos-contract-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr);gap:30px}
+.dogeos-facts{min-width:0;margin:14px 0}
+.dogeos-facts div{align-items:flex-start;gap:14px}
+.dogeos-facts dt{flex-shrink:0}
+.dogeos-facts dd{min-width:0;overflow-wrap:anywhere;font-size:11px}
+.dogeos-demo{padding:22px 0}
+.dogeos-read-status{color:var(--accent);font-size:12px;line-height:1.6}
+.dogeos-contract-details .address{overflow-wrap:anywhere;white-space:normal}
+.dogeos-demo-dialog{color:var(--text);background:#161b14;max-width:490px;width:calc(100% - 28px);padding:25px}
+.dogeos-demo-dialog::backdrop{background:#000b}
+.dogeos-demo-dialog .dogeos-demo-error{color:#efa893;font-size:13px}
+@media(max-width:650px){.dogeos-contract-grid{grid-template-columns:1fr;gap:0}.dogeos-contract-panel{padding:20px}.dogeos-contract-panel h2{font-size:21px}.dogeos-readonly .overview-stats{grid-template-columns:1fr}.dogeos-demo{border-top:1px solid var(--line);margin-top:8px}.dogeos-contract-panel .button-row{flex-direction:column}.dogeos-contract-panel .button-row button{min-height:44px}}

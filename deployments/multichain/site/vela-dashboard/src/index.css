@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Vela homepage palette: charcoal #0d0e0b, gold #e5c17c, cream #f2f1e9. */
+@layer base {
+  :root {
+    --background: 80.00 12.00% 4.90%;
+    --foreground: 53.33 25.71% 93.14%;
+    --card: 90.00 12.50% 9.41%;
+    --card-foreground: 53.33 25.71% 93.14%;
+    --popover: 94.29 12.28% 11.18%;
+    --popover-foreground: 53.33 25.71% 93.14%;
+    --primary: 39.43 66.88% 69.22%;
+    --primary-foreground: 42.00 38.46% 10.20%;
+    --secondary: 90.00 13.89% 14.12%;
+    --secondary-foreground: 65.00 18.75% 87.45%;
+    --muted: 93.33 13.85% 12.75%;
+    --muted-foreground: 70.00 6.38% 63.14%;
+    --accent: 41.05 24.68% 15.10%;
+    --accent-foreground: 39.43 66.88% 69.22%;
+    --destructive: 2 68% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --warning: 38 86% 58%;
+    --warning-foreground: 35 60% 8%;
+    --info: 204 58% 64%;
+    --fixture: 39.49 42.25% 63.33%;
+    --fixture-foreground: 42.00 38.46% 10.20%;
+    --success: 129.41 40.16% 75.10%;
+    --border: 82.50 8.51% 18.43%;
+    --input: 80.00 10.17% 23.14%;
+    --ring: 39.43 66.88% 69.22%;
+    --radius: 0.6rem;
+
+    --glass-bg: 90.00 12.50% 9.41% / 0.92;
+    --glass-border: 82.50 8.51% 18.43% / 0.95;
+    --glow-primary: 39.43 66.88% 69.22% / 0.06;
+    --shadow-panel: 0 1px 0 0 hsl(150 30% 90% / 0.03) inset, 0 20px 40px -24px hsl(170 40% 1% / 0.8);
+    --transition-base: 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+
+    --sidebar-background: 105.00 13.33% 5.88%;
+    --sidebar-foreground: 53.33 25.71% 93.14%;
+    --sidebar-primary: 39.43 66.88% 69.22%;
+    --sidebar-primary-foreground: 42.00 38.46% 10.20%;
+    --sidebar-accent: 90.00 13.89% 14.12%;
+    --sidebar-accent-foreground: 65.00 18.75% 87.45%;
+    --sidebar-border: 82.50 8.51% 18.43%;
+    --sidebar-ring: 39.43 66.88% 69.22%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { color-scheme: dark; }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+}
+
+@layer components {
+  .bg-atmosphere {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(60rem 30rem at 12% -10%, hsl(var(--glow-primary)), transparent 60%),
+      radial-gradient(40rem 24rem at 100% 0%, hsl(80 15% 20% / 0.05), transparent 60%),
+      linear-gradient(180deg, hsl(80 12% 6%), hsl(var(--background)) 40%);
+  }
+  .grain::after {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .glass {
+    background-color: hsl(var(--glass-bg));
+    border: 1px solid hsl(var(--glass-border));
+    backdrop-filter: blur(14px) saturate(120%);
+    box-shadow: var(--shadow-panel);
+    transition: border-color var(--transition-base), background-color var(--transition-base);
+  }
+  .glass:hover { border-color: hsl(var(--primary) / 0.22); }
+  .num { font-family: theme('fontFamily.mono'); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .eyebrow { @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground; }
+  .fixture-stripe {
+    background-image: repeating-linear-gradient(135deg, hsl(var(--fixture) / 0.035) 0 8px, transparent 8px 16px);
+  }
+  .interactive { transition: all var(--transition-base); }
+}

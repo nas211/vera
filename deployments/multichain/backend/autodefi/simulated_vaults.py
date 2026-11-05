@@ -70,6 +70,8 @@ class SimulatedVaults:
                          principalMicro=str(int(amount*1000000)),withdrawable='0',trading=False,limits=self.empty_limits())
                 self.save(owner,v);lending.borrow(owner)
                 v['loanState']=2
+                self.paper.pause_entries(owner,'A new demo loan needs trading authorization.',
+                    'Select Start AI Trading to review and authorize trading with the borrowed demo funds. Existing positions retain protective exits.')
             elif action=='authorize':
                 if v['paused']: raise ValueError('Vault paused')
                 permission=self.paper.configure(owner,dict(body,confirm=True,positionSize=body.get('positionSize','100'),maxLoss=body.get('maxLoss','2'),leverage=body.get('leverage','1')))

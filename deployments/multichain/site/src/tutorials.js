@@ -45,6 +45,16 @@ export const duration=tutorial=>tutorial.steps.reduce((seconds,s)=>seconds+s.sec
 // Keep the existing player and DogeOS storyboards. Simulated networks need
 // their own transaction wording; none of these steps asks for a token transfer.
 export function networkTutorial(tab,chain,asset=chain?.collateral){
+ if(chain?.id==='dogeos'){
+  const original=tutorials[tab];
+  if(tab==='overview')return {title:original.title,steps:[
+   step('Your native test DOGE vault','Wallet-approved deposits and withdrawals, when enabled, move native test DOGE. Wait for confirmed contract state. USDC borrowing is unavailable.','vault',['Your wallet','Test DOGE vault']),
+   step('Separate paper trading capital','Allocate non-redeemable demo USD in AI Trading. Test DOGE deposits do not become trading capital.','trading',['Demo USD','Paper trades']),
+   step('Time-limited permission','An authenticated Start runs within your saved limits until expiry, changes, or Stop, including while your browser is closed.','risk',['Your permission','Risk checks']),
+   step('Close positions or withdraw','Stop blocks new entries. Repay & Manage can close paper positions; Vault manages unlocked native test DOGE withdrawals.','settle',['Paper positions','Test DOGE stays separate']),
+  ]};
+  if(tab==='trading')return {...original,steps:original.steps.map((s,i)=>i===0?{...s,narration:'Allocate separate non-redeemable demo USD. DogeOS has no USDC loan or conversion from test DOGE. Lighter supplies market inputs for paper execution.'}:i===3?{...s,narration:'Closing the browser preserves a valid trading permission. Stop blocks entries; Repay & Manage can close paper positions. No DogeOS loan or native DOGE transfer is involved.'}:s)};
+ }
  if(!chain?.capabilities?.simulatedVault)return tutorials[tab];
  const original=tutorials[tab],replace=text=>text.replaceAll('Testnet vault','Simulated vault').replaceAll('Test DOGE','Demo '+asset).replaceAll('test DOGE','demo '+asset).replaceAll('DOGE',asset);
  const steps=original.steps.map(s=>({...s,title:replace(s.title),narration:replace(s.narration),labels:s.labels.map(replace)}));

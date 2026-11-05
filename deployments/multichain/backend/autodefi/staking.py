@@ -46,6 +46,8 @@ class DemoStaking:
             amount=number(body.get('amount'))
             if amount<=0 or amount!=down(amount):raise ValueError('Positive micro-USDC precision required')
         if action=='deposit':
+            if get(self.db,'paper-funding-incomplete:'+owner,False):
+                raise ValueError('Funding history is incomplete; reconcile before moving equity')
             loan=Lending(self.db).loan(owner)
             if loan and loan['state'] not in ('REPAID','CANCELLED'):raise ValueError('Settle existing debt before demo staking')
             if pool['depositsPaused']:raise ValueError('Demo staking deposits are paused')

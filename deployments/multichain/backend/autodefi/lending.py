@@ -84,6 +84,8 @@ class Lending:
         return self.loan(owner)
     def repay_amount(self,owner,paid,as_of=None):
         """Apply an already capacity-checked repayment, interest first, atomically."""
+        if get(self.db,'paper-funding-incomplete:'+owner,False):
+            raise ValueError('Funding history is incomplete; reconcile before moving equity')
         l=self.loan(owner)
         if not l or l['state'] not in ('ACTIVE','CLOSING','SHORTFALL'): raise ValueError('No repayable loan')
         debt=self.accrue(l,as_of);paid=number(paid)
@@ -118,12 +120,16 @@ class Lending:
         else:self.db.execute("UPDATE loans SET state='SHORTFALL' WHERE id=?",(l['id'],))
         return self.loan(owner)
     def surplus(self,owner):
+        if get(self.db,'paper-funding-incomplete:'+owner,False):
+            raise ValueError('Funding history is incomplete; reconcile before moving equity')
         balance=D(self.db.execute('SELECT balance FROM users WHERE address=?',(owner,)).fetchone()[0])
         if balance>0:
             cashflow(self.db,owner,-balance)
             put(self.db,'demo-surplus:'+owner,str(D(get(self.db,'demo-surplus:'+owner,'0'))+balance))
     def liquidate(self,owner,confirmed):
         if confirmed is not True: raise ValueError('Explicit simulated liquidation confirmation required')
+        if get(self.db,'paper-funding-incomplete:'+owner,False):
+            raise ValueError('Funding history is incomplete; reconcile before liquidation')
         l=self.loan(owner); v=self.vault(owner); price=self.price(owner)
         if l and l['state']=='DEFAULT_PENDING' and D(v['collateral'])>D(l['seized']):
             self.db.execute("UPDATE loans SET state='SHORTFALL',bad_debt='0',last=? WHERE id=?",(self.clock(),l['id']))

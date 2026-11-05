@@ -20,9 +20,10 @@ export function units(text,decimals=18){
   const [a,b='']=String(text).split('.');if(b.length>decimals)throw Error('Too many decimal places');
   return BigInt(a)*10n**BigInt(decimals)+BigInt(b.padEnd(decimals,'0')||'0');
 }
-export async function request(path,body,address,key){
+export async function request(path,body,address,key,options={}){
   const response=await fetch(path,{method:body===undefined?'GET':'POST',credentials:'same-origin',
-    headers:{'Content-Type':'application/json','X-ADP-Client':'web','X-Vella-Network':activeNetwork.id,...(address?{'X-Wallet-Address':address}:{}),...(key?{'Idempotency-Key':key}:{})},
+    signal:options.signal,
+    headers:{'Content-Type':'application/json','X-ADP-Client':'web','X-Vella-Network':(options.network||activeNetwork).id,...(address?{'X-Wallet-Address':address}:{}),...(key?{'Idempotency-Key':key}:{})},
     body:body===undefined?undefined:JSON.stringify(body)});
   const result=await response.json();if(!response.ok){const error=Error(result.error||result.detail||'Request failed');error.status=response.status;throw error;}return result;
 }

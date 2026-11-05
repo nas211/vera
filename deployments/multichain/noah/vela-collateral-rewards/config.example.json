@@ -1,0 +1,21 @@
+{
+  "mode": "fixture",
+  "blockchainWritesEnabled": false,
+  "chainId": 6281971,
+  "network": "DogeOS Chikyu testnet",
+  "rpcUrl": "",
+  "explorerBaseUrl": "",
+  "rewardFactoryAddress": "",
+  "rewardVaultAddress": "",
+  "velaServiceBaseUrl": "",
+  "confirmations": 3,
+  "rewardAprBps": 500,
+  "rewardSource": "Separately prefunded faucet test DOGE",
+  "rewardCompounding": false,
+  "loanMode": "DEMO",
+  "tradingMode": "PAPER",
+  "maxOriginationLtvBps": 4000,
+  "liquidationThresholdBps": 6500,
+  "loanAprBps": 500,
+  "maxPositionStopBudgetMicroUsd": "2000000"
+}

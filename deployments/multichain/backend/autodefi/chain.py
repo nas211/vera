@@ -13,7 +13,17 @@ class DogeOS:
     def __init__(self,config):
         self.config=config
         self.w3=Web3(Web3.HTTPProvider(config.rpc,request_kwargs={'timeout':8}))
-    def read(self,owner,tx=None):
+    def state(self,owner,tx=None,migration=None):
+        from .native_vault import state
+        return state(self,owner,tx,migration=migration)
+    def read(self,owner,tx=None,migration=None):
+        if self.config.reward_factory:
+            observed=self.state(owner,tx,**({"migration":migration} if migration else {}))
+            result=observed['vault']
+            if not result:raise ValueError('Create and confirm your vault first')
+            receipt=observed['transaction']
+            if tx and (not receipt or receipt['status']!='CONFIRMED'):raise ValueError('Confirmed successful owner transaction required')
+            return result,receipt
         c=self.config
         if not c.network_enabled or not c.factory: raise ValueError('DogeOS factory not deployed/configured; testnet authorization required')
         if self.w3.eth.chain_id!=CHAIN_ID: raise ValueError('Wrong RPC chain')
@@ -42,7 +52,8 @@ class DogeOS:
         if self.w3.eth.get_block(height).hash!=block_hash: raise ValueError('Vault observation reorganized; retry confirmation')
         return result,receipt
     def sync(self,db,owner,tx=None):
-        result,receipt=self.read(owner,tx)
+        from .vault_migration import context
+        result,receipt=self.read(owner,tx,**context(db,owner))
         return DogeOS.record(db,owner,result,receipt)
     @staticmethod
     def record(db,owner,result,receipt=None):
@@ -53,6 +64,9 @@ class DogeOS:
                 # A slow manual sync must not overwrite a newer revocation, settlement,
                 # or withdrawal observed by the background RPC reader.
                 raise ValueError('Older vault observation discarded; refresh confirmed state')
+            if previous_state and json.loads(previous_state[0])['address'] != result['address']:
+                from .vault_migration import verify_switch
+                verify_switch(db,owner,json.loads(previous_state[0]),result)
             db.execute('INSERT OR REPLACE INTO vaults VALUES (?,?,?,?)',(owner,result['address'],json.dumps(result),time.time()))
             if receipt:
                 previous=db.execute('SELECT owner FROM chain_receipts WHERE hash=?',(receipt['hash'],)).fetchone()

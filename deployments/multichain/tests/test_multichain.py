@@ -48,6 +48,29 @@ def financed(e,network='base'):
     e['owner']=owner;e['v']=Lending(e['db']).vault(owner)
     return owner
 
+@pytest.mark.parametrize('network',NETWORKS)
+def test_borrow_pauses_previous_run_with_demo_reason_and_can_restart(env,network):
+    _,_,owner=login(env,network)
+    paper,db=env['paper'],env['db']
+    operation(env,owner,'create');operation(env,owner,'deposit',amount='10')
+    with transaction(db):
+        paper.configure(owner,dict(confirm=True,allocation='400',positionSize='100',maxLoss='0.5'))
+        put(db,'paper-prefs:'+owner,dict(autonomous=True,generation=1))
+        paper.authorize_run(owner)
+    operation(env,owner,'borrow',amount='400')
+    snap=paper.snapshot(owner)
+    assert snap['preferences']['autonomous'] is False and not paper.run_authorized(owner)
+    assert 'demo loan' in snap['entryStop']['reason']
+    assert 'Start AI Trading' in snap['entryStop']['action']
+    with pytest.raises(ValueError,match='demo loan trading authorization'):
+        paper.gate(owner,require_running=False)
+    operation(env,owner,'authorize',allocation='400',positionSize='100')
+    with transaction(db):
+        paper.start(owner,FixtureModel());paper.authorize_run(owner)
+    assert paper.run_authorized(owner)
+    assert paper.snapshot(owner)['entryStop'] is None
+    assert D(paper.permission(owner)['maxLoss'])==500000
+
 @pytest.mark.parametrize('network',CHAINS)
 def test_adapter_explicit_real_and_simulated_capabilities(env,network):
     c=adapter(network).public(env['config']);cap=c['capabilities']

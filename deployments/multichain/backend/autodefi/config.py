@@ -28,6 +28,12 @@ class Config:
     origin: str = 'http://127.0.0.1:8802'
     rpc: str = 'https://rpc.testnet.dogeos.com/'
     factory: str = ''
+    # New reward candidate is separately deployed; the existing factory remains registered.
+    reward_factory: str = ''
+    reward_factory_codehash: str = ''
+    reward_vault_codehash: str = ''
+    reward_pool_codehash: str = ''
+    native_actions_enabled: bool = False
     client_id: str = ''
     walletconnect_project_id: str = ''
     attestor_key: str = ''
@@ -55,6 +61,8 @@ class Config:
             path=ROOT/Path(path).relative_to(legacy_root)
         return cls(origin=env('ORIGIN',cls.origin),rpc=env('RPC',cls.rpc),
             factory=env('FACTORY'),client_id=env('MYDOGE_CLIENT_ID'),
+            reward_factory=env('REWARD_FACTORY'),reward_factory_codehash=env('REWARD_FACTORY_CODEHASH'),
+            reward_vault_codehash=env('REWARD_VAULT_CODEHASH'),reward_pool_codehash=env('REWARD_POOL_CODEHASH'),native_actions_enabled=env('NATIVE_ACTIONS_ENABLED','0')=='1',
             walletconnect_project_id=env('WALLETCONNECT_PROJECT_ID'),attestor_key=env('DEMO_ATTESTOR_KEY'),
             db_path=Path(path),network_enabled=env('NETWORK_ENABLED','0')=='1',multichain=env('MULTICHAIN','0')=='1',demo_staking=env('DEMO_STAKING_ENABLED','0')=='1')
     def paper(self):

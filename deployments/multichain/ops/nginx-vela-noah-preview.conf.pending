@@ -1,0 +1,22 @@
+# PREPARED ONLY. Insert these locations inside the existing defivela.xyz TLS server
+# only after a separate publication decision. Never replace its homepage/API routes.
+# Static destination: /var/www/defivela-preview/noah-313902d2af62-5a9d8e34e86b
+location = /vela-preview { return 308 /vela-preview/$is_args$args; }
+location = /vela-preview/ {
+    alias /var/www/defivela-preview/noah-313902d2af62-5a9d8e34e86b/preview.html;
+    default_type text/html;
+    add_header Cache-Control "no-store" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" always;
+}
+location ^~ /vela-preview/ {
+    alias /var/www/defivela-preview/noah-313902d2af62-5a9d8e34e86b/;
+    autoindex off;
+    add_header Cache-Control "no-store" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" always;
+}

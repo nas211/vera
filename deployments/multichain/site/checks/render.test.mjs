@@ -81,7 +81,7 @@ try{
  assert.match(pages.agent,/Profit Sweep percentage/);assert.match(pages.agent,/Scheduled|scheduled/);assert.match(pages.agent,/Revoke automation/);
  assert.match(pages.trading,/Allocate demo capital/);assert.match(pages.trading,/Save trading limits/);
  assert.match(render(GuidedDashboard,{...newUser,initialTab:'trading'}),/A vault and loan are optional/);
- {const html=render(GuidedDashboard,{...newUser,initialTab:'trading'});assert.match(html,/How much do you want to trade\?/);assert.match(html,/\$1,000/);assert.match(html,/Max loss \$2\.00 per trade, fees included/);assert.equal((html.match(/>Start AI Trading</g)||[]).length,1);
+ {const html=render(GuidedDashboard,{...newUser,initialTab:'trading'});assert.match(html,/How much do you want to trade\?/);assert.match(html,/\$1,000/);assert.match(html,/Fee-inclusive stop-trigger budget \$2\.00 per trade, fees included/);assert.equal((html.match(/>Start AI Trading</g)||[]).length,1);
   const running=structuredClone(newUser);running.data.paper.preferences={autonomous:true};running.data.tradingPermission={positionSize:'100000000',maxLoss:'2000000',leverage:'1',expiresAt:String(Math.floor(Date.now()/1000)+3600)};
   const live=render(GuidedDashboard,{...running,initialTab:'trading'});assert.match(live,/AI is running/);assert.match(live,/>Stop AI Trading</);assert.match(live,/No open trade right now/);assert.doesNotMatch(live,/How much do you want to trade/);}
  {const pages=Object.fromEntries(['overview','vault','borrow','agent'].map(t=>[t,render(GuidedDashboard,{...props,initialTab:t})]));
@@ -91,6 +91,10 @@ try{
   for(const t of ['overview','vault','borrow','agent'])assert.match(pages[t],/<summary>Advanced<\/summary>/);
   const fresh=structuredClone(props);fresh.data.health.loan=null;fresh.data.health.debt='0';fresh.data.health.borrowCapacity='300';
   assert.match(render(GuidedDashboard,{...fresh,initialTab:'borrow'}),/How much do you want to borrow\?/);}
+ const stopped=structuredClone(props);stopped.data.paper.entryStop={reason:'A new demo loan needs trading authorization.',action:'Select Start AI Trading to review and authorize trading with the borrowed demo funds.'};
+ const stoppedHtml=render(GuidedDashboard,{...stopped,initialTab:'trading'});assert.match(stoppedHtml,/A new demo loan needs trading authorization/);assert.match(stoppedHtml,/Select Start AI Trading to review/);
+ const connecting=render(Welcome,{config:props.config,busy:true,connecting:true});assert.match(connecting,/45 seconds/);assert.match(connecting,/>Cancel connection</);assert.match(connecting,/disabled="">Check your wallet/);
+ assert.match(render(Welcome,{config:props.config,busy:false,retryAvailable:true}),/>Retry connection</);
  const disconnected=structuredClone(props);disconnected.config.modelConfigured=false;assert.match(render(GuidedDashboard,{...disconnected,initialTab:'trading'}),/AI disconnected/);assert.match(render(GuidedDashboard,{...disconnected,initialTab:'trading'}),/AI is disconnected/);
  console.log('PASS: modular homepage, public top destinations, 3D illustration, wallet-first privacy, five fixture-rendered top tabs, tutorial dialogs, simulator relocation, trading scopes, pending loan and settlement controls. SSR only; no browser or genuine wallet verification.');
 }finally{await rm(dir,{recursive:true,force:true});}

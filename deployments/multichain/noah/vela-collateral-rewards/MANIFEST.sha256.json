@@ -1,0 +1,12 @@
+{
+  "01-PASTE-INTO-NOAH.txt": "b72f522e5b916aa834e51ed11ebc80ecc8ec85e9bf7e3166b641c3e6257ebf6c",
+  "START-HERE.txt": "6f56d2331324093f617e26c1da11306b5b4dddd9f399ff3d62b5b3df2f448c7a",
+  "config.example.json": "f82a678c6667db702136f86dd4e2b17519854a12b2e5abc61f59c7f1c4013ec3",
+  "contracts/IRewardedCollateralVault.sol": "ee0b5e5f77e66e0f198a8735296e0625a1148b060db872d84975979b5c1a8057",
+  "docs/ACCEPTANCE.md": "9c818f6712ba271028d667da84bfbccb387cbc342ad2badbe171e1c54d3df326",
+  "docs/ARCHITECTURE.md": "3833ca8c5ededdcb190c10c2a0b59f37578a8d41cf3e766b2a7e1fcc40adfcd5",
+  "prompts/NEXT-STEPS.txt": "26261d92c003f4ed0c6a63779a8a9f651e891673fcf74f73287bff6d88a7a8d1",
+  "src/adapters.ts": "e0d23ebe68ca3e24367852fdee69d7514294cdbdf68b103ce2df12976dae91be",
+  "src/reward-model.mjs": "3e2dfdf4971d38f7733f69b05c94c86a97cb2b3b0bdfd5bf6e83def2c437f1ee",
+  "tests/reward-model.test.mjs": "99ccdea8e9433801debea364359fbe73d94141dbb33fd8a1c8541fc6c096f465"
+}

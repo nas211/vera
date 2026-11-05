@@ -32,10 +32,8 @@ def digest(data):
 
 
 def source_fingerprint(root):
-    value = hashlib.sha256()
-    for path in sorted((root/'backend/autodefi').glob('*.py')):
-        value.update(path.name.encode()+b'\0'+hashlib.sha256(path.read_bytes()).digest())
-    return value.hexdigest()
+    from backend.autodefi.build import fingerprint
+    return fingerprint(runtime_root=root)
 
 
 def atomic_write(path, data, mode=0o644):

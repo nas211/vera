@@ -2,10 +2,10 @@ import React,{useEffect,useRef,useState} from 'react';
 import './protocol-visual.css';
 
 const chapters=[
- {name:'Lock DOGE',title:'Upcoming: put your collateral to work.',copy:'Collateral-backed liquidity is upcoming. Today, explore read-only DogeOS testnet vaults and separate demo funds; customer deposits are disabled.',out:'DOGE → VAULT',className:'deposit'},
- {name:'Unlock capital',title:'Upcoming: collateral-backed trading capital.',copy:'Unlocking liquidity against your assets is upcoming. Current USDC borrowing experiences are simulations; no real borrowing or stablecoin transfer is available.',out:'VAULT → USDC CAPITAL',className:'borrow'},
- {name:'Let AI trade',title:'Give the capital a job. Give the AI limits.',copy:'AI analyzes live market data and proposes paper trades using simulated funds. Permission and risk checks govern execution. Ecosystem rewards are upcoming.',out:'USDC → TRADING ENGINE',className:'trade'},
- {name:'Repay & unlock',title:'Upcoming: repay and unlock your collateral.',copy:'Collateral-backed repayment and withdrawals are upcoming. Current demo repayments are simulated; customer contract settlement and withdrawals remain disabled.',out:'REPAYMENT → ELIGIBLE DOGE',className:'repay'},
+ {name:'Lock & earn APY',title:'Planned: lock collateral and earn APY.',copy:'Lock crypto in your vault as collateral and earn APY while it is locked. Vault yield is planned; no live vault APY or funded rewards are available today.',out:'LOCK COLLATERAL → VAULT + APY (PLANNED)',className:'deposit'},
+ {name:'Borrow USDC',title:'Take a USDC loan against your vault.',copy:'Use your locked collateral to borrow a USDC loan, then put the borrowed funds to work with AI trading. Current loans are simulated; real collateral-backed borrowing is planned.',out:'VAULT → BORROW → USDC LOAN',className:'borrow'},
+ {name:'Let AI trade',title:'Put the loan to work with AI trading.',copy:'AI analyzes live market data and trades simulated loan funds within your risk limits. Any net trading profits can go toward repaying your loan.',out:'AI TRADING → POTENTIAL PROFITS',className:'trade'},
+ {name:'Profits repay loan',title:'Repay with profits. Unlock your collateral.',copy:'Use any trading profits to repay your loan and interest. Once the full debt is settled, unlock your collateral. Profits are not guaranteed; any shortfall must be covered. This flow is simulated today.',out:'PROFITS → REPAY LOAN → UNLOCK COLLATERAL',className:'repay'},
 ];
 function Token({kind='doge',className=''}){return <span className={`protocol-token ${kind} ${className}`}><span>{kind==='doge'?'Ð':'$'}</span></span>;}
 export function ProtocolVisual(){
@@ -31,9 +31,10 @@ export function ProtocolVisual(){
    <svg className="capital-pipes" viewBox="0 0 520 350" fill="none"><path className="doge-pipe" d="M52 160C100 160 103 213 153 213"/><path className="usdc-pipe" d="M299 207C360 207 335 105 431 105"/><path className="engine-pipe" d="M431 127C487 163 486 246 428 260"/><path className="repay-pipe" d="M411 283C360 345 129 320 68 214"/></svg>
    <div className="wallet-anchor"><span>YOUR WALLET</span><div className="wallet-outline"><i/></div></div>
    <Token className="deposit-token"/>
+   <div className="vault-yield-label"><span>LOCK &amp; EARN APY</span><small>PLANNED</small></div>
    <div className="vault-plinth"/>
    <div className="protocol-vault"><div className="vault-face vault-side"/><div className="vault-face vault-roof"/><div className="vault-face vault-front"><div className="vault-inset"><span className="vault-engraving">VELA</span><div className="vault-dial"><i/><i/><i/><span/></div><span className="vault-latch"/></div><span className="vault-light"/><span className="vault-caption">WALLET-OWNED</span></div></div>
-   <div className="capital-anchor"><span>USDC CAPITAL</span><Token kind="usdc"/></div>
+   <div className="capital-anchor"><span>BORROW USDC</span><small>COLLATERAL LOAN</small><Token kind="usdc"/></div>
    <Token kind="usdc" className="capital-token"/>
    <div className="ai-anchor"><span>AI TRADING ENGINE</span><div className="ai-orbit"><i/><div className="ai-core">AI</div></div></div>
    <Token kind="usdc" className="repay-token"/>

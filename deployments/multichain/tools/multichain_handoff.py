@@ -15,8 +15,9 @@ import stat
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / 'backend'))
+sys.path[:0] = [str(ROOT), str(ROOT / 'backend')]
 from autodefi.config import Config
+from tools.native_testnet_config import configured as native_testnet_config
 from autodefi.trading import ProtocolModel
 from vela.lighter.feed import LighterFeed, REST, WS
 
@@ -124,6 +125,7 @@ def prepare():
         Path('/root/VeraProtocol/.runtime/lighter-showcase/protocol.sqlite3'),
     }:
         raise ValueError('Candidate must not open an existing service ledger')
+    config = native_testnet_config(config)
     report = dict(status='PASS', scope='Configuration only; no live connectivity or deployment claim',
                   origin=config.origin, modelConfigured=model.ready, modelSource=str(MODEL_FILE),
                   walletConfigured=bool(config.client_id), walletSource=str(WALLET_FILE),
@@ -131,11 +133,12 @@ def prepare():
                   lighterImplementation='Existing public REST/WebSocket feed', lighterREST=REST, lighterWS=WS,
                   networkReadsEnabled=config.network_enabled, candidateAssetsVerified=assets,
                   candidateDatabase=str(config.db_path), execution='PAPER', lending='DEMO',
-                  liveEnabled=False, realFunding=False, factoryConfigured=False, attestorConfigured=False,
+                  liveEnabled=False, realFunding=False, factoryConfigured=bool(config.factory), attestorConfigured=bool(config.attestor_key),
+                  nativeWorkflowConfigured=config.native_actions_enabled, nativeRuntimeVerified=False,
                   readyForControlledActivation=False, deployed=False, liveProtectionVerified=False,
                   blockers=['Genuine browser/wallet and model/feed connectivity acceptance required',
                             'Candidate host service, TLS routing and rollback acceptance required',
-                            'New DogeOS factory/collateral deployment and attestor binding absent'])
+                            'Canonical DogeOS contract, pool and attestor verification required'])
     return config, model, report
 
 

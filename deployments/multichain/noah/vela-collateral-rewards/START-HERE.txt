@@ -1,0 +1,31 @@
+VELA COLLATERAL REWARDS — NOAH BUILD STARTER KIT
+Prepared 4 November 2026
+
+1. Open Noah and create a new project using the current interface.
+2. Paste the ENTIRE contents of 01-PASTE-INTO-NOAH.txt as the first instruction.
+3. If Noah supports file attachments/project import, attach the ZIP or its extracted files. If it does not, paste the source files it needs in subsequent messages. Import support is not assumed.
+4. Let it produce and test the fixture build. Use prompts/NEXT-STEPS.txt one stage at a time. Do not skip directly to deployment.
+5. Use docs/ACCEPTANCE.md as the test checklist and record actual results. A visual demo, local tests, a contract deployment and a verified wallet payout are separate milestones.
+
+WHAT IS IN THIS KIT
+• A complete first prompt and staged implementation prompts.
+• An exact-integer reward-accounting reference and executable Node tests.
+• A nondeployable Solidity interface for the new reward-enabled vault.
+• Typed boundaries separating native test DOGE from demo USD.
+• Configuration placeholders, architecture, flow regressions and acceptance tests.
+
+WHAT THIS IS NOT YET
+This is a build scaffold, not a completed Noah project or deployed reward system. No real yield provider is connected. Native testnet rewards must come from a separately funded test-DOGE reserve. Existing immutable vaults need an explicitly chosen new-vault path; they cannot gain reward hooks through a frontend edit. All lending/trading in this design remains DEMO/PAPER.
+
+QUICK LOCAL CHECK
+Install/use Node.js, then in the extracted kit run:
+  node --test tests/reward-model.test.mjs
+No package installation is required for these reference-model tests. They do not test Solidity, wallets, the Vela service or live markets.
+
+PROJECT CONTEXT
+Vela prepared baseline: commit 4bbf36f8405f752611f71e14c2b094e33a8a387b, branch fix/vela-wallet-testnet-20261104 in /root/VeraProtocol/.worktrees/vela-wallet-testnet-20261104.
+The separate Chrome-flow fixes are being prepared locally; this ZIP does not claim they are deployed. No browser fills were observed in the user's latest test. Existing backend tests are not proof of live protection.
+
+NOAH EVENT
+Official event page: https://trynoah.ai/hackathon/6ad632514ff7b2bf9f7ea37d
+The Nov 4 inspection found inconsistent deadline fields: event prose said Nov 6, while the API endDate corresponded to Nov 9 02:00 UTC. Plan against the earlier Nov 6 date and verify the actual cutoff in Noah or with organizers. Do not assume an extension or eligibility approval. Build this module meaningfully inside Noah and retain its project/build history for the submission.

@@ -61,3 +61,29 @@ def test_empty_manifest_cannot_be_reported_as_a_verified_release(tmp_path):
     (tmp_path/'manifest.json').write_text(json.dumps(dict(archives={}, files=[])))
     with pytest.raises(ValueError, match='Incomplete'):
         verify(tmp_path)
+
+
+def test_native_runtime_overlay_includes_only_public_reward_abis_and_python(tmp_path):
+    root,base=repository(tmp_path)
+    target=tmp_path/'active';(target/'backend').mkdir(parents=True)
+    (target/'backend/app.py').write_text('old\n')
+    (root/'backend/app.py').write_text('native runtime\n')
+    for name in ('config/NativeRewardPool.abi.json','config/RewardedCollateralVault.abi.json',
+                 'config/RewardedVaultFactory.abi.json','site/new-ui.js','config/secret.env'):
+        p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('[]\n')
+    commit(root)
+    output=tmp_path/'release';manifest=build(root,output,base,native=True)
+    assert manifest['nativeRewardRuntime'] is True
+    assert {r['path'] for r in manifest['files']}=={'backend/app.py','config/NativeRewardPool.abi.json',
+        'config/RewardedCollateralVault.abi.json','config/RewardedVaultFactory.abi.json'}
+    assert verify(output,target)['targetMatched']
+
+
+@pytest.mark.parametrize('change',['dirty','untracked'])
+def test_native_runtime_overlay_requires_committed_source(tmp_path,change):
+    root,base=repository(tmp_path)
+    (root/'backend/app.py').write_text('native runtime\n');commit(root)
+    (root/'backend'/('app.py' if change=='dirty' else 'new.py')).write_text('unreviewed\n')
+    with pytest.raises(ValueError,match='Commit the exact'):
+        build(root,tmp_path/'refused',base,native=True)
+    assert not (tmp_path/'refused').exists()

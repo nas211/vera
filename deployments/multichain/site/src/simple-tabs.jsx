@@ -1,3 +1,4 @@
+import {repaymentMaximum} from './flow-validation.js';
 import React,{useState} from 'react';
 
 // One question and one button per tab. Detailed controls stay under "Advanced";
@@ -17,12 +18,12 @@ function AmountForm({label,id,unit,value,setValue,max,help,error,button,busy,dis
  </form>;
 }
 
-export function SimpleOverview({data,asset,next,aiRunning,choose}){
+export function SimpleOverview({data,asset,next,aiRunning,choose,dogeos}){
  const h=data.health,p=data.paper;
  return <article className="panel simple-card">
   <div className="simple-stats">
-   <div><small>In your vault</small><strong>{h?`${qty(h.collateral)} ${asset}`:'Empty'}</strong>{h&&<span>{usd(h.collateralValue)}</span>}</div>
-   <div><small>Borrowed</small><strong>{usd(h?.debt||0)}</strong></div>
+   <div><small>In your vault</small><strong>{dogeos?'View test DOGE in Vault':h?`${qty(h.collateral)} ${asset}`:'Empty'}</strong>{h&&<span>{usd(h.collateralValue)}</span>}</div>
+   <div><small>{dogeos?'USDC borrowing':'Borrowed'}</small><strong>{dogeos?'Unavailable':usd(h?.debt||0)}</strong></div>
    <div><small>AI trading</small><strong>{aiRunning?'Running':'Stopped'}</strong></div>
    <div><small>Profit / loss (all time)</small><strong>{usd(p.pnl)}</strong></div>
   </div>
@@ -33,11 +34,6 @@ export function SimpleOverview({data,asset,next,aiRunning,choose}){
 export function SimpleVault({data,config,asset,busy,actions,dogeos}){
  const h=data.health,v=data.vault,[value,setValue]=useState('');
  const [chosen,setChosen]=useState(config.chain?.collateral||asset);
- if(dogeos)return <article className="panel simple-card">
-  <div className="simple-balance"><small>Your demo trading money</small><strong>{usd(data.paper.equity)}</strong></div>
-  <AmountForm id="simple-vault" label="How much demo money do you want to add?" unit="USDC" value={value} setValue={setValue} busy={busy}
-   help="Demo money only. Nothing real is sent." button="Add demo money" onSubmit={amount=>actions.open('allocate',amount)}/>
- </article>;
  const assets=config.chain?.assets||[],shown=v?.asset||chosen;
  return <article className="panel simple-card">
   <div className="simple-balance"><small>In your vault</small><strong>{qty(h?.collateral||0)} {shown}</strong>{h&&<span>{usd(h.collateralValue)}</span>}</div>
@@ -78,8 +74,8 @@ export function SimpleRepay({data,asset,busy,actions,choose,canSettle}){
    <AmountForm id="simple-repay" label="How much do you want to repay?" unit="USDC" value={value} setValue={setValue} max={Math.min(free,debt)} busy={busy}
     error={Number(value)>Math.min(free,debt)?`You can repay up to ${usd(Math.min(free,debt))} right now.`:''}
     button="Repay" onSubmit={amount=>actions.open('repay',amount)}/>
-   <button className="simple-submit" disabled={busy||free<debt} onClick={()=>actions.open('repayFull',(Math.ceil(debt*100)/100+.01).toFixed(2))}>Repay everything ({usd(debt)})</button>
-   {free<debt&&canSettle&&<p className="simple-help">Money is still in open trades. <button className="text-button" disabled={busy} onClick={()=>actions.open('settle')}>Stop AI & close trades</button> to free it up.</p>}
+   <button className="simple-submit" disabled={busy||free<debt} onClick={()=>actions.open('repayFull',repaymentMaximum(String(data.repayment?.debt||data.health?.debt||'0')))}>Repay everything ({usd(debt)})</button>
+   {free<debt&&canSettle&&<p className="simple-help">{data.paper.positions.length?'Position margin remains reserved. Closing trades may release equity; losses can still leave debt.':'Free equity is below your debt. Interest or trading losses can leave a shortfall; settlement does not erase it.'} <button className="text-button" disabled={busy} onClick={()=>actions.open('settle')}>Review Stop & Settle</button></p>}
   </>:<div className="simple-balance"><small>You owe</small><strong>{usd(0)}</strong><span>No loan to repay</span></div>}
   {v&&<div className="simple-divider">
    <div className="simple-balance"><small>Ready to take back</small><strong>{qty(back)} {asset}</strong>{back<=0&&Number(h?.collateral||0)>0&&<span>Your {asset} unlocks after the loan is repaid</span>}</div>

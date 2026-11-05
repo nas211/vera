@@ -23,9 +23,9 @@ try{
   const nav=page.getByRole('navigation',{name:'VELA application sections'});
   assert.equal(await nav.getByRole('link').count(),5);
   for(const label of ['Overview','Vault','Borrow','AI Trade','Agent Mode'])assert.equal(await nav.getByRole('link',{name:label,exact:true}).isVisible(),true);
-  await page.getByRole('button',{name:/Unlock capital/}).click();
+  await page.getByRole('button',{name:/Borrow USDC/}).click();
   await page.locator('.protocol-visual.phase-borrow').waitFor();
-  await page.getByRole('button',{name:/Repay & unlock/}).click();
+  await page.getByRole('button',{name:/Profits repay loan/}).click();
   await page.locator('.protocol-visual.phase-repay').waitFor();
   await noOverflow();await noPrivate();
   await page.locator('.home-actions .how-link').click();assert.equal(new URL(page.url()).hash,'#how-it-works');

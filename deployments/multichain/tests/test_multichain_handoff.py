@@ -19,6 +19,16 @@ from test_multichain import identity, sign
 from vela.db import get, put, transaction
 
 
+@pytest.fixture(autouse=True)
+def public_candidate_release(tmp_path,monkeypatch):
+    # Public build identity only; clean worktrees must not depend on a service's
+    # historical .runtime release directory or copy its private configuration.
+    manifest=handoff.ROOT/'site/candidate/build-manifest.json'
+    release=tmp_path/'public-release.json'
+    release.write_text(json.dumps({'candidateManifestSha256':hashlib.sha256(manifest.read_bytes()).hexdigest()}))
+    monkeypatch.setattr(handoff,'RELEASE',release)
+
+
 @pytest.fixture
 def sources(tmp_path, monkeypatch):
     # Use the existing secure parser against fixture files, never real key values.
@@ -53,12 +63,17 @@ def test_read_only_handoff_ignores_ambient_secrets_and_preserves_files(sources, 
     assert model.ready and model.key == 'fixture-key-never-a-credential'
     assert config.origin == 'https://defivela.xyz' and config.client_id == 'fixture-client'
     assert config.multichain and config.network_enabled
-    assert config.factory == config.attestor_key == ''
+    # Read-only activation now loads the reviewed public legacy deployment so
+    # existing owners can inspect their vaults before writes are enabled.
+    expected_factory=json.loads((handoff.ROOT/'config/dogeos-deployment.json').read_text())['contracts']['VaultFactory']['address']
+    assert config.factory == expected_factory
+    assert config.attestor_key == config.reward_factory == ''
+    assert config.native_actions_enabled is False
     assert config.paper().loss_budget <= D(2)
     assert dict(os.environ) == before_env
     assert before_files == [(p.read_bytes(), p.stat().st_mode, p.stat().st_mtime_ns) for p in sources]
     assert handoff.DATABASE.exists() == database_existed
-    assert report['candidateAssetsVerified'] == 18 and report['readyForControlledActivation'] is False
+    assert report['candidateAssetsVerified'] == len(json.loads((handoff.ROOT/'site/candidate/build-manifest.json').read_text())['outputs']) and report['readyForControlledActivation'] is False
     assert 'fixture-key' not in json.dumps(report) and 'ambient-must-not-import' not in json.dumps(report)
 
 

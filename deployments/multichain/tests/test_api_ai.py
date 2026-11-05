@@ -147,9 +147,9 @@ def test_vera_public_routes_brand_and_private_api_boundary(env):
         beat=asyncio.create_task(heartbeat())
         try:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url=env['config'].origin) as c:
-                for path in ('/','/vault'):
+                for path in ('/','/vault','/overview','/borrow','/trading','/repay','/how-it-works'):
                     response=await c.get(path)
-                    assert response.status_code==200 and '<title>VELLA</title>' in response.text
+                    assert response.status_code==200 and '<title>VELA — Multichain AI-Powered DeFi Trading</title>' in response.text
                     asset=re.search(r'<script type="module" src="([^"]+)"',response.text)[1]
                     assert (await c.get(asset)).status_code==200
                 config=(await c.get('/api/config')).json()
@@ -162,3 +162,19 @@ def test_vera_public_routes_brand_and_private_api_boundary(env):
                 assert 'VELLA: authenticate only.' in challenge['message']
         finally:beat.cancel()
     asyncio.run(run());app.state.db.close()
+
+
+def test_product_pages_and_legacy_trade_use_available_built_assets(env):
+    import re
+    app=create_app(env['config'],feed=env['feed'],model=FixtureModel())
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app),base_url=env['config'].origin) as c:
+            for path in ('/paper','/earn'):
+                r=await c.get(path);assert r.status_code==200
+                for asset in re.findall(r'(?:src|href)="(/product-assets/[^\"]+)"',r.text):
+                    assert (await c.get(asset)).status_code==200,asset
+            redirect=await c.get('/trade?source=flow')
+            assert redirect.status_code==307 and redirect.headers['location']=='/trading?source=flow'
+            assert (await c.get('/not-a-route')).status_code==404
+    try:asyncio.run(run())
+    finally:app.state.db.close()

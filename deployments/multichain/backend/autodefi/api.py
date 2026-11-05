@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from decimal import Decimal as D
 from fastapi import FastAPI,Request,WebSocket,HTTPException,Query
 from typing import Literal
-from fastapi.responses import JSONResponse,FileResponse
+from fastapi.responses import JSONResponse,FileResponse,RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from vela.lighter.feed import LighterFeed
 from vela.db import transaction,get,put
@@ -18,6 +18,7 @@ from .risk import RISK
 from .repayment import Repayment,TradingCapital
 from .orchestration import AgentOrchestrator
 from .vaults import VaultManagement
+from . import vault_migration
 from .adapters import adapter,CHAINS,split_owner
 from .multichain_auth import MultichainAuth
 from .simulated_vaults import SimulatedVaults
@@ -85,7 +86,7 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         chain=network(req)
         return auth.session(req.cookies.get('adp_session'),req.headers.get('x-wallet-address'),**({'network':chain.id} if config.multichain else {}))
     def financial_context(req,who,body):
-        if not config.multichain or network(req).id=='dogeos':return
+        if (not config.multichain or network(req).id=='dogeos') and 'loanId' not in body and 'vaultId' not in body:return
         loan=lending.loan(who)
         if body.get('loanId')!=(loan['id'] if loan else None):raise ValueError('Matching loan identifier required')
         row=db.execute('SELECT address FROM vaults WHERE owner=?',(who,)).fetchone()
@@ -98,6 +99,10 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
             brand=json.loads((ROOT/'config/brand.json').read_text()),network=json.loads((ROOT/'config/dogeos-testnet.json').read_text()) if selected.id=='dogeos' else descriptor['network'],
             risk=RISK,factory=config.factory or None,myDogeClientId=config.client_id,walletConnectProjectId=config.walletconnect_project_id,mode='PAPER',lending='DEMO',liveEnabled=False,realFunding=False,
             modelConfigured=model.ready,networkEnabled=config.network_enabled,attestorConfigured=bool(config.attestor_key),demoStakingEnabled=config.demo_staking,
+            nativeVaultActionsEnabled=config.native_actions_enabled and config.network_enabled,
+            nativeRewardDeployment=dict(factory=config.reward_factory or None,
+                factoryCodeHash=config.reward_factory_codehash or None,
+                vaultCodeHash=config.reward_vault_codehash or None,poolCodeHash=config.reward_pool_codehash or None),
             abis={n:json.loads((ROOT/'config'/f'{n}.abi.json').read_text()) for n in ('VaultFactory','DogeCollateralVault')})
     @app.get('/api/health')
     async def health():
@@ -135,7 +140,11 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         token=req.cookies.get('adp_session')
         try:
             who=auth.session(token)
-            with transaction(db):paper.pause_entries(who);repayment.disable(who,'Wallet disconnected');auth.logout(token)
+            with transaction(db):
+                # Preserve explicit server-side trading consent. Legacy runs
+                # keep their browser-session guard; logout never grants consent.
+                if not paper.run_authorized(who):paper.pause_entries(who)
+                auth.logout(token)
         except PermissionError:pass
         response=JSONResponse({'authenticated':False});response.delete_cookie('adp_session',path='/api');return response
     @app.get('/api/account')
@@ -144,14 +153,28 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         return dict(address=split_owner(who)[1],network=split_owner(who)[0],vault=json.loads(v[0]) if v else None,
             health=lending.health(who) if v and lending.quote(who) else None,paper=paper.snapshot(who),
             repayment=repayment.status(who),agent=agent.status(who),tradingPermission=paper.permission(who),
+            authorizationMaxLossMicro=paper.authorization_budget(who),
             directAllocation=get(db,'demo-allocated:'+who,'0'),
             demoSurplus=get(db,'demo-surplus:'+who,'0'),events=[dict(x) for x in db.execute('SELECT * FROM loan_events WHERE owner=? ORDER BY id DESC LIMIT 80',(who,))],
             transactions=[dict(x) for x in db.execute('SELECT * FROM chain_receipts WHERE owner=? ORDER BY block DESC LIMIT 40',(who,))])
+    @app.get('/api/vault/state')
+    async def native_vault_state(req:Request,tx:str|None=None):
+        who=owner(req)
+        if network(req).simulated:raise ValueError('Native DogeOS account required')
+        return await asyncio.to_thread(chain.state,who,tx,**vault_migration.context(db,who))
+    @app.post('/api/vault/migration/authorize')
+    async def authorize_migration(req:Request):
+        who=owner(req);body=await req.json()
+        if network(req).simulated or not config.network_enabled or not config.native_actions_enabled:
+            raise ValueError('Native vault actions are disabled')
+        observed=await asyncio.to_thread(chain.state,who,**vault_migration.context(db,who))
+        with transaction(db):
+            return vault_migration.authorize(db,who,observed,body)
     @app.post('/api/vault/sync')
     async def sync(req:Request):
         who=owner(req);b=await req.json()
         if network(req).simulated:raise ValueError('No blockchain synchronization for simulated vaults')
-        return await vaults.sync(who,b.get('tx'))
+        return await vaults.sync(who,b.get('tx'),include_state=b.get('includeState') is True)
     @app.post('/api/simulated-vault/{action}')
     async def simulated_vault(action:str,req:Request):
         who=owner(req);b=await req.json()
@@ -198,29 +221,36 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     async def quote(req:Request):
         who=owner(req);b=await req.json()
         with transaction(db):return lending.quote(who,b.get('drop','0'))
+    def native_context(who,body):
+        v=lending.vault(who)
+        if 'vaultId' in body or 'loanId' in body:
+            if body.get('vaultId')!=v['address'] or body.get('loanId')!=v['loanId']:
+                raise ValueError('Matching confirmed native vault and loan required')
+        return v
     @app.post('/api/borrow')
     async def borrow(req:Request):
         who=owner(req);b=await req.json()
         if network(req).simulated:raise ValueError('Use simulated vault borrowing; no chain certificates')
         # Verify signing capability before any credit, but no key is sent to the browser.
-        v=lending.vault(who);certificate(config,v,1,v['principalMicro'])
+        v=native_context(who,b);certificate(config,v,1,v['principalMicro'])
         result=once(db,who,req.headers.get('idempotency-key'),{'action':'borrow','vault':v['address'],'nonce':v['loanNonce'],'loan':v['loanId']},lambda:lending.borrow(who))
         return dict(loan=result,certificate=certificate(config,v,1,v['principalMicro']))
     @app.post('/api/borrow/cancel')
     async def cancel_borrow(req:Request):
-        who=owner(req)
+        who=owner(req);b=await req.json()
         if network(req).simulated:raise ValueError('No pending blockchain request')
-        v=lending.vault(who)
+        v=native_context(who,b)
         proof=certificate(config,v,3)
         with transaction(db):lending.cancel_unissued(who)
         return proof
     @app.post('/api/certificate')
     async def cert(req:Request):
-        who=owner(req)
+        who=owner(req);b=await req.json()
         if network(req).simulated:raise ValueError('Simulations have no blockchain certificate')
-        v=lending.vault(who);l=lending.loan(who)
-        if not l or l['nonce']!=v['loanNonce']:raise ValueError('Matching loan required')
+        v=native_context(who,b);l=lending.loan(who)
+        if not l or l['nonce']!=v['loanNonce'] or l['id']!=v['loanId'] or l['vault']!=v['address']:raise ValueError('Matching loan required')
         if v['loanState']==1 and l['state']=='ACTIVE':return certificate(config,v,1,v['principalMicro'])
+        if v['loanState']==1 and l['state']=='CANCELLED':return certificate(config,v,3)
         if v['loanState']==2 and l['state'] in ('AWAITING_CHAIN','DEFAULT_PENDING'):
             return certificate(config,v,2,int(D(l['paid'])*1000000),int(l['seized']),int(D(l['bad_debt'])*1000000))
         raise ValueError('Settlement is not reconciled; collateral remains locked')
@@ -246,14 +276,26 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
                 put(db,'ai-connection',dict(ok=True,at=time.time(),model=model.model))
                 put(db,'agent-session:'+who,digest(req.cookies['adp_session']))
                 paper.start(who,model)
+                paper.authorize_run(who)
         finally:
             runtime.starting.discard(who)
         return {'status':'ACTIVE','mode':'PAPER'}
     @app.post('/api/trading/stop')
     async def stop(req:Request):
         who=owner(req)
-        with transaction(db):paper.pause_entries(who)
+        with transaction(db):paper.pause_entries(who,'You stopped AI trading.','Select Start AI Trading when you are ready to review and renew permission.')
         return {'status':'STOPPED','protectiveManagement':True}
+    @app.post('/api/trading/settle')
+    async def settle_direct_paper(req:Request):
+        who=owner(req);body=await req.json()
+        if set(body)-{'confirm'} or body.get('confirm') is not True:
+            raise ValueError('Confirm closure of all paper positions')
+        loan=lending.loan(who)
+        if loan and loan['state'] not in ('REPAID','CANCELLED'):
+            raise ValueError('Use the loan repayment and settlement workflow')
+        return once(db,who,req.headers.get('idempotency-key'),
+            {'action':'settle-direct-paper','payload':body},
+            lambda:(paper.settle(who,True) or {'status':'CLOSING','mode':'PAPER','onchain':False}))
     @app.post('/api/trading/positions/{position_id}/close')
     async def close_position(position_id:str,req:Request):
         who=owner(req);body=await req.json()
@@ -307,7 +349,25 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     if (web_root/'assets').is_dir():app.mount('/assets',StaticFiles(directory=web_root/'assets'),name='assets')
     @app.get('/')
     @app.get('/vault')
+    @app.get('/overview')
+    @app.get('/borrow')
+    @app.get('/trading')
+    @app.get('/repay')
+    @app.get('/how-it-works')
     async def index():
         if not (web_root/'index.html').is_file():raise HTTPException(503,'Build frontend with npm run build')
         return FileResponse(web_root/'index.html')
+    @app.get('/trade')
+    @app.get('/trade/')
+    async def legacy_trade(req:Request):
+        return RedirectResponse('/trading'+('?' + req.url.query if req.url.query else ''),status_code=307)
+    products=ROOT/'site/products-built'
+    if products.is_dir():
+        app.mount('/product-assets/paper-earn-20261103',StaticFiles(directory=products),name='product-assets')
+    @app.get('/paper')
+    @app.get('/earn')
+    async def product_page(req:Request):
+        target=products/('paper.html' if req.url.path=='/paper' else 'earn.html')
+        if not target.is_file():raise HTTPException(503,'Build product frontend with npm run build:products')
+        return FileResponse(target)
     return app

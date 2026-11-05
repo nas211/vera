@@ -1,4 +1,4 @@
-"""Reversible read-only DogeOS gateway over the unchanged seven-network app.
+"""DogeOS gateway with an explicit opt-in for owner-reviewed native workflows.
 
 No database, signer, model credential or execution worker is opened here.
 The existing application owns authentication, demo accounting and trading.
@@ -6,6 +6,8 @@ The existing application owns authentication, demo accounting and trading.
 import asyncio
 from contextlib import asynccontextmanager
 import json
+import os
+import re
 from http.cookiejar import CookieJar, DefaultCookiePolicy
 from pathlib import Path
 import sys
@@ -23,7 +25,7 @@ from autodefi.http_security import RequestLimits
 
 ORIGIN = 'https://defivela.xyz'
 UPSTREAM = 'http://127.0.0.1:8804'
-BLOCKED = frozenset({'/api/vault/sync', '/api/borrow', '/api/borrow/cancel',
+BLOCKED = frozenset({'/api/vault/migration/authorize', '/api/vault/sync', '/api/borrow', '/api/borrow/cancel',
                      '/api/certificate', '/api/liquidate', '/api/settle'})
 HOP_HEADERS = frozenset({'host', 'connection', 'upgrade', 'keep-alive',
                          'proxy-authenticate', 'proxy-authorization', 'te',
@@ -35,29 +37,53 @@ class NoSharedCookies(DefaultCookiePolicy):
         return False
 
 
-def create_app(reader=None, upstream=UPSTREAM, transport=None):
+def native_ready(data):
+    """Configured capabilities only; canonical contract checks still run upstream."""
+    chain, deployment = data.get('chain') or {}, data.get('nativeRewardDeployment') or {}
+    factory = deployment.get('factory')
+    return (data.get('mode') == 'PAPER' and data.get('lending') == 'DEMO'
+            and data.get('liveEnabled') is False and data.get('realFunding') is False
+            and data.get('networkEnabled') is True and data.get('nativeVaultActionsEnabled') is True
+            and data.get('attestorConfigured') is True
+            and chain.get('id') == 'dogeos' and chain.get('chainId') == 6281971
+            and isinstance(factory, str) and bool(re.fullmatch(r'0x[0-9a-fA-F]{40}', factory)) and int(factory, 16) != 0
+            and all(isinstance(deployment.get(k), str) and bool(re.fullmatch(r'0x[0-9a-fA-F]{64}', deployment[k]))
+                    and int(deployment[k], 16) != 0 for k in ('factoryCodeHash', 'vaultCodeHash', 'poolCodeHash')))
+
+
+def create_app(reader=None, upstream=UPSTREAM, transport=None, wallet_transactions=None, native_workflow=None):
     reader = reader or DogeOSReadOnly()
+    # Narrow, explicit deployment opt-in. Never enables the legacy lender,
+    # settlement signer, backend broadcasts, or real trading funding.
+    enabled = (os.environ.get('VELLA_TESTNET_WALLET_ACTIONS') == '1'
+               if wallet_transactions is None else wallet_transactions is True)
+    native_enabled = (os.environ.get('VELLA_TESTNET_NATIVE_WORKFLOW') == '1'
+                      if native_workflow is None else native_workflow is True)
     cache, lock = {}, asyncio.Lock()
     client = httpx.AsyncClient(base_url=upstream, timeout=90, transport=transport,
                                follow_redirects=False, headers={'accept-encoding': 'identity'},
                                cookies=CookieJar(policy=NoSharedCookies()))
 
-    async def observation(wallet=None, verify=False):
+    async def observation(wallet=None, verify=False, transaction=None):
         key = wallet or 'deployment'
         async with lock:
             cached = cache.get(key)
-            if not verify and cached and time.time() - cached['observedAt'] < 15:
+            if not verify and not transaction and cached and time.time() - cached['observedAt'] < 15:
                 return cached
             result = await asyncio.to_thread(reader.verify_deployment if verify else reader.snapshot,
-                                             *(() if verify else (wallet,)))
+                                             *(() if verify else (wallet,)),
+                                             **({'transaction':transaction} if transaction else {}))
             if len(cache) >= 64:
                 cache.pop(next(iter(cache)))
-            cache[key] = result
+            # A receipt refresh must advance subsequent ordinary reads too;
+            # never let an older cached balance overwrite a confirmed deposit.
+            cache[key] = dict(result, transaction=None) if transaction else result
             return result
 
     @asynccontextmanager
     async def lifespan(app):
-        await observation(verify=True)
+        # RPC availability is checked on chain reads. A chain outage must not
+        # prevent unrelated paper products or authentication from starting.
         try:
             yield
         finally:
@@ -79,16 +105,25 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
             if len(length) > 16 or not length.isdigit() or int(length) > 16384:
                 return JSONResponse({'error': 'Request too large'}, status_code=413)
             if selected == 'dogeos' and (path in BLOCKED or path.startswith('/api/simulated-vault/')):
-                return JSONResponse({'error': 'DogeOS contracts are read-only. Use demo trading capital; customer contract transactions are disabled.'}, status_code=403)
+                if not native_enabled or path not in BLOCKED or request.method != 'POST':
+                    return JSONResponse({'error': 'Native testnet workflow is disabled for this route.'}, status_code=403)
+                try:
+                    # Fresh upstream state for every native mutation; never cache an enabled flag.
+                    configured = await client.get('/api/config', headers={'x-vella-network': 'dogeos'})
+                    ready = configured.status_code == 200 and native_ready(configured.json())
+                except (httpx.HTTPError, ValueError, TypeError, AttributeError):
+                    ready = False
+                if not ready:
+                    return JSONResponse({'error': 'Native testnet deployment configuration is unavailable.'}, status_code=503)
         response = await call_next(request)
         response.headers['Cache-Control'] = 'no-store' if path.startswith('/api') else 'no-cache'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Referrer-Policy'] = 'same-origin'
         return response
 
-    async def contract_response(wallet=None):
+    async def contract_response(wallet=None, transaction=None):
         try:
-            return JSONResponse(await observation(wallet))
+            return JSONResponse(await observation(wallet, transaction=transaction))
         except Exception:
             return JSONResponse({'error': 'DogeOS RPC verification unavailable. Contract data is not current.',
                                  'status': 'UNAVAILABLE', 'readOnly': True,
@@ -112,20 +147,16 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
         data = session.json()
         if data.get('network') != 'dogeos' or data.get('authenticated') is not True:
             return JSONResponse({'error': 'DogeOS wallet session required'}, status_code=403)
-        return await contract_response(data['address'])
+        tx = request.query_params.get('tx')
+        if tx is not None and not re.fullmatch(r'0x[0-9a-fA-F]{64}', tx):
+            return JSONResponse({'error':'Invalid transaction hash'},status_code=400)
+        return await contract_response(data['address'],tx)
 
     @app.get('/integrations/{filename}')
     async def integration_asset(filename: str):
         if filename not in ('dogeos-readonly.js', 'dogeos-readonly.css'):
             return Response(status_code=404)
         return FileResponse(ROOT / 'site/integrations' / filename)
-
-    @app.get('/vault')
-    async def vault_page():
-        html = (ROOT / 'site/candidate/index.html').read_text()
-        html = html.replace('</head>', '<link rel="stylesheet" href="/integrations/dogeos-readonly.css"></head>')
-        html = html.replace('</body>', '<script type="module" src="/integrations/dogeos-readonly.js"></script></body>')
-        return HTMLResponse(html)
 
     @app.websocket('/ws/markets')
     @app.websocket('/api/paper/stream')
@@ -162,18 +193,30 @@ def create_app(reader=None, upstream=UPSTREAM, transport=None):
             return JSONResponse({'error': 'Existing application unavailable'}, status_code=503)
         if path == 'api/config' and response.status_code == 200:
             data = response.json()
+            workflow = native_enabled and native_ready(data)
+            data['nativeVaultActionsEnabled'] = bool(workflow)
+            data['nativeWorkflowGatewayEnabled'] = bool(workflow)
             data['dogeosReadOnly'] = dict(chainId=6281971, factory=reader.factory,
                 referenceVault=reader.reference, customerTransactionsEnabled=False,
                 readOnly=True, simulationFunding='existing demo trading ledger')
+            data['dogeosWallet'] = dict(enabled=enabled, chainId=6281971, factory=reader.factory,
+                actions=['createVault','deposit','withdraw'] if enabled else [],
+                asset='test DOGE', faucet='https://faucet.testnet.dogeos.com/',
+                explorer='https://dogeos-testnet.l2scan.co', confirmations=3,
+                tradingFunding=False, stablecoinBorrowing=False)
             for chain in data.get('chains', []) + [data.get('chain', {})]:
                 if chain.get('id') == 'dogeos':
                     chain['status'] = 'Featured · DogeOS Testnet · Demo'
-                    chain['capabilities'].update(testnetVault=False, tokenTransfers=False,
-                        demoLending=False, contractReads=True, customerTransactions=False)
+                    chain['capabilities'].update(testnetVault=enabled, tokenTransfers=enabled,
+                        demoLending=False, contractReads=True, customerTransactions=enabled)
+                    if workflow:
+                        chain['capabilities'].update(testnetVault=True, tokenTransfers=True,
+                            demoLending=True, customerTransactions=True)
             # Keep the legacy writer disabled. The actual factory lives in the
             # explicitly read-only descriptor, never in the old transaction path.
             data['factory'] = None
-            data['attestorConfigured'] = False
+            if not workflow:
+                data['attestorConfigured'] = False
             return JSONResponse(data)
         if path == 'api/health' and response.status_code == 200:
             data = response.json()

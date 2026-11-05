@@ -37,9 +37,9 @@ class ChainAdapter:
                 nativeCurrency=dict(name=self.collateral,symbol=self.collateral,decimals=9 if self.family=='solana' else 18),
                 rpcUrls=[self.rpc] if self.rpc else [],blockExplorerUrls=[self.explorer],testnet=self.testnet),
             capabilities=dict(walletAuthentication=self.enabled,simulatedVault=self.simulated and self.enabled,
-                testnetVault=not self.simulated and bool(config.factory),demoLending=self.enabled and (self.simulated or bool(config.attestor_key and config.factory)),
+                testnetVault=not self.simulated and bool(config.factory or config.reward_factory),demoLending=self.enabled and (self.simulated or bool(config.attestor_key and (config.factory or config.reward_factory))),
                 paperTrading=self.enabled,realLending=False,realStablecoin=False,liveTrading=False,
-                tokenTransfers=False if self.simulated else bool(config.factory),crossChainSettlement=False,
+                tokenTransfers=False if self.simulated else bool(config.factory or config.reward_factory),crossChainSettlement=False,
                 genuineWalletVerified=False,settlement='simulation' if self.simulated else 'owner-confirmed DogeOS testnet'),
             oracle='Illustrative prices; explicitly refreshed, never a live collateral oracle',
             transactionHandling='Local atomic ledger; no wallet transaction or blockchain receipt' if self.simulated else 'Existing confirmed DogeOS transactions')

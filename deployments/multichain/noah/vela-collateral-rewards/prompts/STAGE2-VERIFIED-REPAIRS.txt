@@ -1,0 +1,27 @@
+Targeted repairs to the existing Noah project. Preserve a checkpoint first. Keep all dashboard design, fixture labels and blockchain writes OFF. No publishing, deployment, wallet signatures or backend connection. Do not rebuild the dashboard or create a new trading backend.
+
+The exported Stage 2 project was actually tested on the VPS:
+- Installed Vitest: 86/86 pass, including your reward-rounding regressions.
+- Vite build: passes.
+- Independent Foundry verification: contracts compile; 18 local-EVM tests pass, including 256 randomized conservation cases. Original Hardhat runner was NOT run.
+- Lint: 10 errors, 9 warnings.
+- App type check: input-otp.tsx:38, inputOTPContext is unknown.
+- Node config type check: TypeScript 5.5.3 cannot parse installed @vitejs/plugin-react-swc/index.d.ts line 58. Align compiler/plugin compatibility; do not suppress type checking.
+
+Nine additional fixture requirements checks ran: the normal borrow -> fresh consent -> seeded partial/full closes -> exact interest-first profit repayment once passed; eight boundary checks failed. Fix these focused issues:
+
+1. Reject negative/zero repayment amounts and negative/zero full-repayment allowances at the calculation and reducer boundaries. Do not create zero repayment receipts. Failed operations leave state unchanged.
+2. Manual repayment and demo-cash withdrawal must reserve open-position margin, pending orders and costs, and conservatively account for unrealized losses. Their UI Max values must use the same spendable calculation. Reproduction: initialFixture has cash 100.009999, margin 12.50 and costs 0.25; repaying or withdrawing 100.00 is currently accepted.
+3. Validate sweep permission floor >= 0 and finite integer expiry duration within the UI's supported 1–30 days independently at the engine boundary. GRANT_SWEEP currently accepts floorUsd6=-1n and days=NaN.
+4. START currently accepts stale prices. Apply the same risk/price gates at the engine boundary, preserving protective management of existing positions and all stricter limits or the universal $2 fee-inclusive stop-trigger budget.
+5. Fix lost pending sweep entitlement: grant 100%, close seeded BTC (net 1.165400 USD), reserve cash so only 0.000001 USD is free, evaluate a sweep, then release the pending-order reservation. Evaluating again currently repays nothing: commitSweep advanced the high-water mark over the whole profit after repaying only one micro-dollar. Retain the unpaid eligible amount, with exactly-once accounting across retries, permission changes, and restarts, while preserving loss recovery and excluding pre-consent profits, deposits, borrowed capital and DOGE rewards.
+
+Add focused regressions without weakening existing assertions. Keep arithmetic in exact base units.
+
+Lint locations: plugins/component-tagger.ts (3 explicit any), ui/calendar.tsx (2 unused props), ui/chart.tsx (unused _), both ui/use-toast.ts and hooks/use-toast.ts (actionTypes only used as type), lib/tokenService.ts (2 unused catch bindings). Fix narrowly; do not disable global rules or change the appearance.
+
+The fixture currently only closes seeded positions and evaluates sweeps manually. Describe that accurately. Do not claim actual new paper fills, automatic protective exits, wallet payouts or Vela integration are verified. We will reuse Vela's authoritative execution and repayment services when integrating.
+
+The reward contract currently has no loan-lock/settlement mechanism. Record this as an unresolved integration requirement; do not silently treat reward deposits as enforceably locked demo collateral or add a new lending protocol in this repair.
+
+Report files changed, tests actually run and checks unavailable separately. If you cannot execute commands, explicitly say so. Save a checkpoint and export the complete updated ZIP for independent verification.

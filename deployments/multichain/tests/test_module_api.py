@@ -42,7 +42,7 @@ def test_modular_api_auth_idempotency_receipts_and_logout(env):
                 assert (await post('/api/trading/allocate',{'amount':'100','confirm':True},'no-faucet-with-debt')).status_code==400
                 await c.post('/api/logout',headers=headers,json={})
                 assert (await c.get('/api/account')).status_code==401
-                assert not get(app.state.db,'repayment-policy:'+env['owner'])['enabled']
+                assert get(app.state.db,'repayment-policy:'+env['owner'])['enabled']  # Separate explicit permission survives browser logout.
                 await login(c,BOB)
                 allocation=await post('/api/trading/allocate',{'amount':'500','confirm':True},'api-direct-capital')
                 assert allocation.status_code==200,allocation.text

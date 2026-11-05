@@ -89,7 +89,8 @@ class Runtime:
             for row in self.db.execute('SELECT owner,data FROM vaults').fetchall():
                 if json.loads(row['data']).get('simulated'):continue
                 try:
-                    result,receipt=await asyncio.to_thread(self.chain.read,row[0])
+                    from .vault_migration import context
+                    result,receipt=await asyncio.to_thread(self.chain.read,row[0],**context(self.db,row[0]))
                     # Reconcile owner-confirmed settlements even if the mobile page closed
                     # before it could call /api/vault/sync. Never manufacture a receipt.
                     DogeOS.record(self.db,row[0],result,receipt)
