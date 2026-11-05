@@ -43,9 +43,9 @@ const input: Record<string, string> = testnet ? { vela: path.resolve(__dirname, 
 return {
   define: { __VELA_SOURCE_ID__: JSON.stringify(provenance.sourceId), __VELA_TESTNET_RELEASE__: JSON.stringify(testnet) },
   server: {
-    host: "0.0.0.0",
+    host: "127.0.0.1",
     port: 5173,
-    allowedHosts: true,
+    allowedHosts: ['localhost', '127.0.0.1'],
     hmr: {
       overlay: false,
       timeout: 15000,

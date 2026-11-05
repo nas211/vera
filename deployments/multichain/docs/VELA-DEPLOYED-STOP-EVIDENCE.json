@@ -1,0 +1,78 @@
+{
+  "observedAt": "2026-11-05T11:30:59.248411+00:00",
+  "status": "PASS",
+  "baseUrl": "https://defivela.xyz",
+  "sourceFingerprint": "259ee8231786e3bbc898adcdcda58852319c41f3ddee59b1b5c1d75e50a66582",
+  "execution": "PAPER",
+  "marketData": "Observed public Lighter order books",
+  "cases": [
+    {
+      "side": "long",
+      "symbol": "SOL/USD",
+      "entryOrderId": "42cf164a67684bcb8f75efb11f07a831",
+      "positionId": "17fb81c990e046bdbaa9105aec6e6907",
+      "entry": "96.523",
+      "stop": "96.514",
+      "qty": "0.207",
+      "entryFee": "0.007993",
+      "feeInclusiveTriggerLoss": "0.0178473592",
+      "authorizedBudget": "0.03",
+      "closedFills": [
+        {
+          "id": "d6cf8403948b4fcb835b9b4f5e6c1e0e",
+          "side": "long",
+          "entry": "96.523",
+          "exit": "96.476",
+          "qty": "0.207",
+          "fees": "0.015982",
+          "funding": "5.3720916922137733217109E-8",
+          "pnl": "-0.02571105372091692213773321711",
+          "reason": "stop",
+          "opened": 1793878247.1400952,
+          "closed": 1793878247.9497116,
+          "chain_status": "offchain"
+        }
+      ]
+    },
+    {
+      "side": "short",
+      "symbol": "SOL/USD",
+      "entryOrderId": "eeed6fde0e4e49beab2fadce0ca3b6ef",
+      "positionId": "979fd5107b5141d0833b444e5ad23953",
+      "entry": "96.472",
+      "stop": "96.481",
+      "qty": "0.207",
+      "entryFee": "0.007988",
+      "feeInclusiveTriggerLoss": "0.0178396268",
+      "authorizedBudget": "0.03",
+      "closedFills": [
+        {
+          "id": "03e9cd6bd038436aa7c8f0665aeac340",
+          "side": "short",
+          "entry": "96.472",
+          "exit": "96.517",
+          "qty": "0.207",
+          "fees": "0.015980",
+          "funding": "-5.3045079705212116865628E-8",
+          "pnl": "-0.02529494695492029478788313437",
+          "reason": "stop",
+          "opened": 1793878252.350366,
+          "closed": 1793878253.1503482,
+          "chain_status": "offchain"
+        }
+      ]
+    }
+  ],
+  "closedFills": 2,
+  "realizedNetPnl": "-0.05100600067583721692561635148",
+  "scope": "This new diagnostic account only on 2026-11-05 UTC; counts and P&L cover the same two closed fills",
+  "cleanup": {
+    "positions": 0,
+    "pendingOrders": 0,
+    "autonomous": false
+  },
+  "ownerWalletTouched": false,
+  "blockchainWrites": false,
+  "newDeployment": false,
+  "limitation": "Observed automatic paper stops; no live-exchange execution. Fees are included in the stop-trigger calculation; slippage and funding can exceed the trigger budget."
+}
