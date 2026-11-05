@@ -78,7 +78,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 npm --prefix contracts install --ignore-scripts
 forge build --root contracts
-npm --prefix site ci --ignore-scripts
+npm --prefix site ci --legacy-peer-deps --ignore-scripts
 npm --prefix site run build
 npm --prefix site run build:candidate
 # Only in a fresh local checkout, initialize the legacy UI test fixture:
