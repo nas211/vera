@@ -104,7 +104,7 @@ jobs:
       - name: Check actual dashboard assets, API, long/short fills and partial closes
         env:
           PYTHONPATH: backend
-        run: .venv/bin/python -m pytest tests/test_judge_demo.py tests/test_paper_acceptance.py tests/test_persistent_trading.py tests/test_deployed_probe_control.py -q
+        run: .venv/bin/python -m pytest tests/test_judge_demo.py tests/test_paper_acceptance.py tests/test_persistent_trading.py tests/test_deployed_probe_control.py tests/test_dogeos_receipt_fees.py -q
       - name: Verify frontend behavior and TypeScript
         working-directory: deployments/multichain/site/vela-dashboard
         run: |

@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "observedAt": "2026-11-05T12:44:18.500227+00:00",
+  "chainId": 6281971,
+  "head": 9209183,
+  "rewardPaidDoge": "0.000003757610350076",
+  "walletBalanceReconciled": true,
+  "totalTransactionFeesWei": "33037216999399196",
+  "transactionsSent": false,
+  "ledgerModified": false,
+  "credentialsRead": false,
+  "scope": "Independent canonical RPC receipt, event, code and state checks for the completed reward-vault cycle; not a contract audit",
+  "codeChecks": [
+    {
+      "address": "0x7304ebde8d313c95c3a89caa20e7915545a0665e",
+      "codeHash": "0x30a2b22ab9e245eb15c9ac2a938ee9b5c044f164ac36766a33193a97f24a3842",
+      "verified": true
+    },
+    {
+      "address": "0x2937bfdaea76fc29529d7792ac674b6eef55eca5",
+      "codeHash": "0xc06b153b5d119ab099ab7995a820336368ac2f9ec0867cae05a81b7bdb8444cd",
+      "verified": true
+    },
+    {
+      "address": "0x79a20c6c39525a6253c8aa5d04ee5682ecb2b0ae",
+      "codeHash": "0x59b57f3e609bfb8257eb85535fcf5de825b160798ae2fe0eebc10b959eecd024",
+      "verified": true
+    }
+  ],
+  "currentState": {
+    "collateral": "0",
+    "loanState": 0,
+    "trading": false,
+    "aprBps": 500,
+    "reserve": "999996242389649924",
+    "claimed": "3757610350076",
+    "poolPrincipal": "0",
+    "poolBalanceWei": "999996242389649924"
+  },
+  "receipts": [
+    {
+      "action": "createVault",
+      "tx": "0x5b2750a6cd5db170cbb456cb2dab13edfaae3df2682b326524513d2c6da8b603",
+      "status": "CONFIRMED",
+      "block": 9203002,
+      "blockHash": "0x891f4cbe30d273693e928d316154f4b800c6e974790954347c1100a3ee6f03a1",
+      "executionFeeWei": "75926720721056",
+      "dataFinalityFeeWei": "8789696887334962",
+      "totalFeeWei": "8865623608056018"
+    },
+    {
+      "action": "deposit",
+      "tx": "0x1fad3b1797bc08c7aa6339501f320180e61d7cff91906201d72fd9d8d501202c",
+      "status": "CONFIRMED",
+      "block": 9203109,
+      "blockHash": "0xaaf2ac60a6dd1230026ac2ccd98957b752ad1f4ab359f897b5be4c34f4440069",
+      "executionFeeWei": "3748329817400",
+      "dataFinalityFeeWei": "8388427031105472",
+      "totalFeeWei": "8392175360922872"
+    },
+    {
+      "action": "claimRewards",
+      "tx": "0x737df894fca8138f8fcbd57ca9473775092053caa2c3d310fdbd7b46a6b6d53d",
+      "status": "CONFIRMED",
+      "block": 9203188,
+      "blockHash": "0x19ca2906d3b43251b8d23ff26c624c2c8d0dc7ba8bdd1d354c56fe753eb09eeb",
+      "executionFeeWei": "6155414556696",
+      "dataFinalityFeeWei": "7054448796818616",
+      "totalFeeWei": "7060604211375312"
+    },
+    {
+      "action": "withdraw",
+      "tx": "0x764907c41d388795073b92b89645997925a123a4b0ad1de19f968daa6722a886",
+      "status": "CONFIRMED",
+      "block": 9203327,
+      "blockHash": "0xa98b463c268b4d1031f7f98c8fa9bd35cde16c14220e6483bfbfe26be669d6c8",
+      "executionFeeWei": "2505210855160",
+      "dataFinalityFeeWei": "8716308608189834",
+      "totalFeeWei": "8718813819044994"
+    }
+  ]
+}

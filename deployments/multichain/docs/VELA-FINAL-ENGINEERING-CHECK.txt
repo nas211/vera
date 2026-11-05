@@ -1,0 +1,62 @@
+Vela hackathon engineering check — 5 November 2026
+
+Verified on the unchanged deployed app
+
+The home page, connected /app/ and separate /paper page return HTTP 200; their
+referenced JavaScript and CSS assets load. Health and readiness are green.
+Unauthenticated account access returns 401. The public market WebSocket streams
+fresh BTC, ETH and SOL observations with the expected browser Origin; a missing
+Origin is correctly rejected. No private account data appears in that stream.
+
+Long and short automatic paper stops were independently observed earlier today;
+their exact evidence is VELA-DEPLOYED-STOP-EVIDENCE.json. This is paper-engine
+protection, not live exchange execution or a guarantee against slippage/funding.
+
+A new isolated 200 demo-USD loan funded an actual AI BTC/USD long. The AI closed
+0.00123 BTC from80123.9 to79970.2 with reason=ai_exit. Gross -0.189051USD,
+fees0.078767USD and funding0.0000910018173102181911521688051USD produced net
+-0.2679090018173102181911521688USD. Scope: exactly one closed fill in this new
+November5 diagnostic account. No profit sweep occurred, correctly for a loss.
+Cleanup repaid199.732090USD from remaining demo cash; principal shortfall
+0.268014USD was retained, not erased. Cleanup settlement is not a profit sweep.
+The account finished flat/stopped, with no pending orders or funding gap, and
+logged out. No owner wallet was used. VELA-FINANCED-AI-LOSS-EVIDENCE.json contains
+an allowlisted summary without wallet/authentication/session identifiers.
+
+Still unverified: an actual positive-net financed AI trade followed by a deployed
+automatic profit-sweep receipt. Isolated end-to-end tests cover that path,
+interest-before-principal, fees/funding, losses and missing authorization. The
+observed losing trades must not be presented as successful profit repayment.
+This remaining evidence gap is not a demonstrated repayment-code failure.
+
+Fixed during this check
+
+The independent reward-cycle verifier counted execution gas but omitted the
+DogeOS data/finality fee exposed as l1Fee in RPC receipts. It now sums both,
+rejects missing/invalid fee data, and reconciles the exact observed wallet
+balance change. Ten fee-accounting/evidence tests plus eight runner-control tests pass.
+Reference: https://docs.dogeos.com/en/developers/transaction-fees-on-dogeos
+
+Independent public RPC verification now confirms the completed reward-vault
+creation, 10 test-DOGE deposit, reward claim and full principal withdrawal,
+matching canonical blocks, decoded events, transaction inputs and runtime code
+hashes. The paid reward is0.000003757610350076DOGE. Current collateral and pool
+principal are zero; trading is stopped; the pool retains its backed reserve at
+500bps simple APR. VELA-REWARD-CYCLE-RPC-EVIDENCE.json contains the public proof.
+No wallet transaction was sent or repeated for this verification.
+
+Reproduce the read-only receipt check from the implementation directory:
+
+  .venv/bin/python tools/verify_reward_cycle_rpc.py --output verification/noah/reward-cycle-fresh.json
+
+Use a new output filename; existing evidence is preserved. No signer or wallet
+credential is required. This verifies the recorded cycle, not a contract audit.
+
+Release boundary
+
+Dependency assessment and runner-control fixes are merged with green CI.
+Remaining dependency-tree/tooling advisories are scoped in
+VELA-HACKATHON-SECURITY-REVIEW.txt; the repository is not advisory-free.
+No app, service, contract or live protective setting was deployed or changed by
+this check. Every account keeps its stricter existing fee-inclusive stop-trigger
+budget or the universal $2 ceiling. The test used a stricter $1 budget.
