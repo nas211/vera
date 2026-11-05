@@ -9,7 +9,7 @@
     "earn.js": "65e19671aa176d1cad779c130ed0fd3f72af71aeb24bf1b57a5a62f35666f145",
     "earn-account.css": "477df2c041003532717adc7cc750954a2a8c247d4ff76e365b3bf28c3153d573",
     "assets/paper.js": "72e6259ac6ccdfb739c8a67084d55700de828969f24f9359eea46e14a460759c",
-    "assets/earn-account.js": "b0cfe569456f85746088325d4c7186407cda2417a06a0493c44093c16bd338e5"
+    "assets/earn-account.js": "f04f8bd0c86789c34b227a076e0bf86f815183081b53a1c9c66a0474d5e0848b"
   },
   "bundledDependencies": [
     "@wallet-standard/app",
