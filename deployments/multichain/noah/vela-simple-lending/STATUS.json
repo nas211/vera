@@ -26,15 +26,33 @@
   "fundingHash": "0xc7971405e9d02fe8ad2394202e0121cc611c48f67b67742afc070c5137e728b7",
   "simulatedDogeConversionDeployed": true,
   "testDogeRepaymentWorkerDeployed": true,
-  "noahUpdateEvidence": "Owner-pasted browser extension completion report; not independently inspected",
+  "noahUpdateEvidence": "Owner-pasted browser extension completion report with saved preview URL; not independently inspected",
   "noahIndependentVerification": false,
-  "noahProfilePictureComplete": false,
+  "noahProfilePictureComplete": true,
   "noahTestsRun": false,
   "noahProductionBuildRun": false,
-  "noahSavedPreviewUrl": null,
+  "noahSavedPreviewUrl": "https://ta-01m6q79frp9mgfjn4gkgqztk1s-5173-ot8bowqvo9zyfoug81dv04649.preview.trynoah.app/settings",
   "noahExportRetrieved": false,
   "ownerReportsLendingCyclePassed": true,
   "physicalMobileWalletApprovalVerified": false,
   "publicAutomaticRepaymentVerification": "Deferred by owner",
-  "noahSubmissionPerformed": false
+  "noahSubmissionPerformed": false,
+  "noahBuiltinLintReportedPassed": true,
+  "noahCheckpointId": null,
+  "noahNamedDogeosOptionReportedPresent": false,
+  "noahApprovedWalletIdentityChecksReportedPresent": false,
+  "noahWalletCodeChanged": false,
+  "noahProfilePictureDetails": {
+    "actions": [
+      "Change picture",
+      "Remove"
+    ],
+    "storage": "browser-only",
+    "types": [
+      "JPG",
+      "PNG",
+      "WebP"
+    ],
+    "maximumKilobytes": 500
+  }
 }

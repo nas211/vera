@@ -50,7 +50,9 @@ def _rehearse():
                     await post('/api/borrow',key='rehearsal-borrow')
                     assert (await c.get('/api/account')).json()['paper']['balance']=='800';steps.append('800 simulated USDC credited exactly once')
                     chain.v.update(loanState=2,trading=True);await post('/api/vault/sync')
-                    await post('/api/trading/start');steps.append('Paper engine started under FIXTURE on-chain permissions and FIXTURE model connection')
+                    denied=await c.post('/api/trading/start',json={})
+                    assert denied.status_code==400 and 'Confirm Start Trading' in denied.json()['error']
+                    await post('/api/trading/start',{'confirm':True});steps.append('Explicit fixture consent authorized paper trading; missing consent was rejected. FIXTURE on-chain permissions and model connection only')
                     for m in feed.markets.values():
                         for bar in m.candles:db.execute('INSERT OR REPLACE INTO candles VALUES (?,?,?,?,?,?)',(m.symbol,bar['ts'],bar['o'],bar['h'],bar['l'],bar['c']))
                     agents=agents_for(db,model,paper)

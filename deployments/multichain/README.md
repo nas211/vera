@@ -27,7 +27,9 @@ Every account retains the stricter of its existing limit and a **$2 fee-inclusiv
 
 The same **VELA Collateral Rewards** Noah project and its build history are retained. Noah contributed the initial dashboard/rewards components; Vela reused and adapted those components and integrated them with its existing backend. The complete backend was not generated in Noah.
 
-The owner reports that the browser extension saved the new landing, lending, trading and Settings design in that same Noah project. Desktop/mobile navigation and theme checks were reported. Its latest export and independent build results are not available in this repository; the reported Noah profile-picture section remains unfinished. The connected product is hosted on Vela's origin. An unconnected Noah preview must not invent account data or copy authentication tokens from Vela.
+The owner reports that the browser extension saved the new landing, lending, trading and Settings design in that same Noah project. Desktop/mobile navigation and theme checks were reported. The [saved Settings preview](https://ta-01m6q79frp9mgfjn4gkgqztk1s-5173-ot8bowqvo9zyfoug81dv04649.preview.trynoah.app/settings) now includes Change picture and Remove, browser-only storage, and JPG/PNG/WebP validation up to 500 KB. Built-in lint reportedly passed; tests and a production build were not run because Noah exposes no shell. The checkpoint ID and latest ZIP export are unavailable. These are owner-reported results, not an independent inspection.
+
+The Noah source still lacks a named DogeOS wallet option and approved-wallet identity checks; its wallet code was unchanged. Those features exist in Vela's connected implementation, but that does not establish their presence in Noah. The connected product is hosted on Vela's origin. An unconnected Noah preview must not invent account data or copy authentication tokens from Vela.
 
 ## Deployed and verified
 

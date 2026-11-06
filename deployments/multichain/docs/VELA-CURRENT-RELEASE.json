@@ -26,7 +26,13 @@
     "independentlyInspected": false,
     "testsAndProductionBuildReported": false,
     "exportRetrieved": false,
-    "profilePictureReportedPresent": false
+    "profilePictureReportedPresent": true,
+    "savedPreviewUrl": "https://ta-01m6q79frp9mgfjn4gkgqztk1s-5173-ot8bowqvo9zyfoug81dv04649.preview.trynoah.app/settings",
+    "builtinLintReportedPassed": true,
+    "checkpointId": null,
+    "namedDogeosWalletReportedPresent": false,
+    "approvedWalletIdentityChecksReportedPresent": false,
+    "walletCodeChanged": false
   },
   "verification": {
     "ownerReportsLendingCycleComplete": true,
