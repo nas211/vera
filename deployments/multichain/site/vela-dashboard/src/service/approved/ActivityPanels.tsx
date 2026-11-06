@@ -7,6 +7,23 @@ import { GatedButton } from '@/components/common/GatedButton';
 import { useAccountDashboard } from './context';
 import { usd, doge, units, ratio, percent, stamp } from './presentation';
 
+/** Compact view of the same authoritative positions and reviewed close action. */
+export function AccountOpenTrades() {
+  const {account,refreshing,controller,ledgerReason,closing}=useAccountDashboard();
+  const positions=account?.paper.positions;
+  return <Panel title="Open trades" className="flex aspect-square min-w-0 flex-col">
+    {!positions?.length ? <div className="flex flex-1 items-center justify-center"><p className="text-2xl text-muted-foreground">{account?'None':!controller.service?'Connect your wallet':refreshing?'Loading…':'Unavailable'}</p></div> : <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
+      {positions.map(p=><div key={p.id} className="rounded-md border border-border/70 p-3">
+        <div className="flex items-center justify-between gap-3"><p className="font-display font-semibold">{p.symbol}</p><span className="text-xs text-muted-foreground">{p.side==='long'?'Price up':'Price down'}</span></div>
+        <div className="my-3 flex items-center justify-between gap-3 text-sm"><span className="text-muted-foreground">Open profit / loss</span><span className={`num ${p.fresh&&(units(p.unrealized)??0n)>0n?'text-success':p.fresh&&(units(p.unrealized)??0n)<0n?'text-destructive':''}`}>{p.fresh?usd(p.unrealized):'Unavailable'}</span></div>
+        <Button size="sm" variant="outline" disabled={!!ledgerReason||!!closing[p.id]||account?.paper.orders.some(o=>o.status==='pending'&&o.payload?.reduceOnly&&o.payload.positionId===p.id)} onClick={()=>void controller.reviewLedger({kind:'close',positionId:p.id,fraction:'1'})}>{closing[p.id]||account?.paper.orders.some(o=>o.status==='pending'&&o.payload?.reduceOnly&&o.payload.positionId===p.id)?'Closing…':'Close trade'}</Button>
+        {(units(p.riskBudget)===null||(units(p.riskBudget)??0n)>2_000_000n)&&<p role="alert" className="mt-2 text-xs text-destructive">Reported protection needs review. You can still close this trade.</p>}
+        <Details label="Details"><Row k="Entry price" v={usd(p.entry)} /><Row k="Current price" v={p.fresh?usd(p.mark):'Unavailable'} /><Row k="Stop price" v={usd(p.stop)} /><Row k="Stop-trigger budget" v={usd(p.riskBudget)} /><p className="mt-2 text-xs text-muted-foreground">Includes fees. Slippage and funding can exceed this budget. Live protection is unverified.</p></Details>
+      </div>)}
+    </div>}
+  </Panel>;
+}
+
 export function AccountPositions() {
   const { account, controller, ledgerReason }=useAccountDashboard();
   return <Panel title="Positions & protective stops" aside={<SourceTag kind="demo" label="PAPER" />}>

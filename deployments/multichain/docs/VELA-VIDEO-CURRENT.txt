@@ -1,0 +1,12 @@
+VELA — CURRENT DEMO OUTLINE
+
+1. Show the landing page, then open Lending Dashboard.
+2. Connect MetaMask or DogeOS Wallet; confirm the displayed account matches the wallet.
+3. Show DOGE balance, collateral, 70% borrowing limit and 5% simple APR.
+4. Demonstrate the existing testnet borrow/withdraw/repay flow. Customer actions never require market deployment.
+5. Open Trade to repay and show the Trading Dashboard: strategy, Start/Stop, settings and open trades. Explain that market prices are live but USDC balances, fills and conversion are simulated.
+6. Explain optional repayment: eligible closed-trade profit can request test DOGE from the project reserve. A public automatic repayment has not been verified; do not present one as observed.
+7. Show Settings and light/dark appearance.
+8. Show the existing Noah project and GitHub source. Credit the reused Noah frontend components and existing Vela backend accurately.
+
+Use actual recorded wallet actions; do not invent success, balances, profits or payments. Stop-trigger budgets are fee-inclusive and capped at the stricter existing limit or $2 per position; slippage and funding can exceed them.

@@ -29,13 +29,23 @@ class Lending:
         r=self.db.execute("SELECT * FROM loans WHERE owner=? ORDER BY rowid DESC LIMIT 1",(owner,)).fetchone()
         return dict(r) if r else None
     def quote(self,owner,drop=None):
+        saved=get(self.db,'quote:'+owner)
+        if drop is None and not saved:return None
+        v=self.vault(owner,False)
+        base=number(v.get('illustrativePrice',RISK['dogePrice']) if v.get('simulated') else RISK['dogePrice'])
+        source=('ILLUSTRATIVE — fixed test valuation; 1 test DOGE = 1 demo USD; not a live collateral oracle'
+                if not v.get('simulated') and base==1 else 'ILLUSTRATIVE — not a live collateral oracle')
         if drop is not None:
             drop=number(drop)
             if drop not in (D(0),D('.10'),D('.25'),D('.50')): raise ValueError('Unsupported stress scenario')
-            v=self.vault(owner,False)
-            base=v.get('illustrativePrice',RISK['dogePrice'])
-            put(self.db,'quote:'+owner,dict(price=str(D(base)*(1-drop)),drop=str(drop),at=self.clock(),source='ILLUSTRATIVE — not a live collateral oracle'))
-        return get(self.db,'quote:'+owner)
+            put(self.db,'quote:'+owner,dict(price=str(base*(1-drop)),basePrice=str(base),drop=str(drop),at=self.clock(),source=source))
+        saved=get(self.db,'quote:'+owner)
+        if not saved:return None
+        if v.get('simulated'):return saved
+        # The test valuation is configured, not a market observation. Revalue old
+        # quotes under the current policy without fabricating a fresh timestamp
+        # or discarding their stress scenario. Stale quotes still block borrowing.
+        return dict(saved,price=str(base*(1-number(saved['drop']))),basePrice=str(base),source=source)
     def price(self,owner,fresh=True):
         q=self.quote(owner)
         if not q or (fresh and not 0<=self.clock()-q['at']<=RISK['quoteFreshSeconds']): raise ValueError('Refresh illustrative DOGE quote')
@@ -57,11 +67,13 @@ class Lending:
         v=self.vault(owner,False); l=self.loan(owner); debt,_=self.debt(l)
         price=self.price(owner,False); collateral=D(v['collateral'])/WEI; value=collateral*price
         pool=get(self.db,pool_key(owner)); reserve=D(RISK['initialDemoLiquidity'])*D(RISK['reserveRatio'])
+        liquidity=max(D(0),D(pool['cash'])-reserve)
         return dict(collateral=str(collateral),price=str(price),collateralValue=str(value),debt=str(debt),
             interest=str(self.debt(l)[0]-D(l['principal'])) if l else '0',principal=l['principal'] if l else '0',
             ltv=str(debt/value) if value else None,healthFactor=str(value*D(RISK['liquidationThreshold'])/debt) if debt else None,
-            liquidationThreshold=RISK['liquidationThreshold'],maxLtv=RISK['maxLtv'],apr=l['apr'] if l else RISK['annualInterest'],
-            borrowCapacity=str(max(D(0),min(value*D(RISK['maxLtv'])-debt,D(pool['cash'])-reserve))),
+            liquidationThreshold=RISK['liquidationThreshold'],maxLtv=RISK['maxLtv'],maxTradingLtv=RISK['maxTradingLtv'],apr=l['apr'] if l else RISK['annualInterest'],
+            borrowCapacity=str(max(D(0),min(value*D(RISK['maxLtv'])-debt,liquidity))),
+            lendingLiquidity=dict(currency='demo USD',cash=str(pool['cash']),reserved=str(reserve),available=str(liquidity),source='Simulated lending ledger; separate from the native DOGE reward pool'),
             withdrawableDoge=str(D(v['withdrawable'])/WEI),
             theoreticalUnlockedDoge=str(max(D(0),collateral-debt/(price*D(RISK['maxLtv'])))),
             quote=self.quote(owner),loan=l,simulated=True,

@@ -71,7 +71,11 @@ def check(base_url):
             final = request('account')
             report['trades'] = [{k:t.get(k) for k in ('symbol','side','qty','entry','exit','gross','fees','funding','pnl','reason','chain_status')} for t in final['trades']]
             total = sum(D(t['pnl']) for t in final['trades'])
-            assert D(final['balance']) == D(first['balance'])+total
+            # Funding and balances accumulate at Decimal's 28-digit precision;
+            # summing closed P&L in a different order can differ below 1e-22 USD.
+            delta = D(final['balance']) - (D(first['balance'])+total)
+            report.update(finalBalance=final['balance'], decimalAccumulationDelta=str(delta))
+            assert abs(delta) <= D('1e-22'), 'Paper balance does not reconcile to net P&L'
             assert not final['preferences']['autonomous']
             report.update(status='PASS',finalBalance=final['balance'],realizedNetPnl=str(total),
                           scope='This new diagnostic session only; counts are closed fills, including partial exits',

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "chainId": 6281971,
+  "enabled": true,
+  "market": "0xB0D753703B1a207bC980b3667C007fd5c2F26573",
+  "runtimeCodeHash": "0x533bbd4fce2f2ebe1d1f22a854674e0724e520046df5df28c87691df092a78b4",
+  "manager": "0xF8b7120F466f39063398fdc62F5f8cBCe37Ad1dB",
+  "deploymentBlock": 9222147,
+  "confirmations": 3,
+  "conversion": {
+    "enabled": false,
+    "reason": "USDC conversion and real trading settlement are not configured."
+  }
+}

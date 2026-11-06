@@ -1,0 +1,11 @@
+Update the EXISTING Noah project https://trynoah.ai/playground/6aeb352f7d19514dabedc93a using its signed-in browser. Preserve history; do not create a new project or submission.
+
+Inspect https://defivela.xyz/, https://defivela.xyz/app/, https://defivela.xyz/app/trading and https://defivela.xyz/settings. Match the light design and dark option while preserving landing explanations and layout. Keep Lending Dashboard and Trading Dashboard navigation, responsive mobile and desktop layouts, profile-picture controls and Settings.
+
+Lending shows native test DOGE collateral, debt, 70% borrowing limits, Borrow/Repay, and available borrowed DOGE with Withdraw to wallet. Trade to repay opens Trading Dashboard. Trading shows strategy selection, Start/Stop, settings and open trades; switching strategies requires stopping. Provide BOTH MetaMask and DogeOS Wallet choices, and bind approved account identity to sign-in and every transaction.
+
+Reuse existing Noah components and Vela service interfaces. Do not rebuild backend, create a ledger, deploy contracts, transfer funds, copy authentication tokens, or fabricate balances/actions. Mark unavailable backend connections clearly.
+
+Market data is live; USDC balances, fills and USDC-to-DOGE conversion are simulated. Actual test DOGE repayments use the project reserve. Do not claim public automatic repayment is verified. Preserve each account's stricter stop or maximum $2 fee-inclusive per-position stop-trigger budget, including fees, inward rounding and partial exits. It is not a guarantee against slippage or funding.
+
+Save in this same project, check desktop and mobile preview plus theme switching, run available tests/build, and return actual saved preview URL, checkpoint, changes and export if available. Do not submit the hackathon form; the owner supplies the video.

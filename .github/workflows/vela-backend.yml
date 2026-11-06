@@ -41,7 +41,9 @@ jobs:
           tests/test_staking.py tests/test_staking_api.py tests/test_paper_desk.py
           tests/test_trading_details.py tests/test_backend_acceptance.py
           tests/test_backend_release.py tests/test_source_preservation.py
-          tests/test_backend_deployment.py
+          tests/test_backend_deployment.py tests/test_demo_doge_repayment.py
+          tests/test_doge_lending_reader.py tests/test_doge_lending_activation.py
+          tests/test_doge_lending_readonly_api.py tests/test_strategy_profiles.py
           -q
       - name: Check installed dependency consistency
         run: python -m pip check
@@ -105,6 +107,8 @@ jobs:
         env:
           PYTHONPATH: backend
         run: .venv/bin/python -m pytest tests/test_judge_demo.py tests/test_paper_acceptance.py tests/test_persistent_trading.py tests/test_deployed_probe_control.py tests/test_dogeos_receipt_fees.py -q
+      - name: Verify wallet approval identity and event recovery
+        run: node --test site/checks/unit.test.mjs site/checks/wallet-discovery.test.mjs site/checks/wallet-events.test.mjs
       - name: Verify frontend behavior and TypeScript
         working-directory: deployments/multichain/site/vela-dashboard
         run: |

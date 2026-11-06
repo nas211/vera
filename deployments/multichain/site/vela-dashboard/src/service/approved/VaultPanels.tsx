@@ -9,6 +9,8 @@ import { GatedButton } from '@/components/common/GatedButton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatUnits, parseDecimal } from '@/lib/units';
 import { useAccountDashboard } from './context';
+import { useWalletBalance } from './WalletBalance';
+import { Button } from '@/components/ui/button';
 import { doge, exactDoge, amountOk } from './presentation';
 
 export function AccountRewardTerms() {
@@ -18,10 +20,11 @@ export function AccountRewardTerms() {
 export function AccountDepositWithdraw() {
   const { native, controller, nativeReason }=useAccountDashboard(); const v=native?.vault;
   const [mode,setMode]=useState<'deposit'|'withdraw'>('deposit'),[amount,setAmount]=useState('');
-  const maximum=mode==='withdraw' ? v?.withdrawable : native?.walletBalanceWei;
+  const walletBalance=useWalletBalance(native?.walletBalanceWei);
+  const maximum=mode==='withdraw' ? v?.withdrawable : walletBalance.balanceWei??undefined;
   const max=maximum!==undefined ? BigInt(maximum) : 0n;
   const reason=nativeReason ?? (!v ? 'Create and confirm your vault first.' : v.paused ? 'Vault is paused.' : mode==='withdraw' && max===0n ? 'Collateral is locked or no balance is withdrawable.' : !amountOk(amount,18,max) ? 'Enter an available amount.' : null);
-  return <Panel title="Deposit / withdraw" aside={<SourceTag kind="testnet" />}>
+  return <Panel title="Deposit / withdraw" aside={<SourceTag kind="testnet" />}><Row k="Wallet balance" v={walletBalance.loading&&walletBalance.balanceWei===null?'Reading wallet…':doge(walletBalance.balanceWei??undefined)} /><Button size="sm" variant="ghost" disabled={walletBalance.loading} onClick={()=>void walletBalance.refresh()}>Refresh balance</Button>{walletBalance.error&&<p role="alert" className="text-sm text-warning">{walletBalance.error}</p>}
     {native?.vault===null && <div className="mb-4"><GatedButton reason={nativeReason} onClick={()=>void controller.reviewNative({kind:'create'})}>Create collateral vault</GatedButton></div>}
     {v?.kind==='legacy' && native?.upgrade && <div className="mb-4"><GatedButton reason={nativeReason ?? (native.upgrade.eligible ? null : native.upgrade.reason)} onClick={()=>void controller.reviewNative({kind:'migrate'})}>Move to reward vault</GatedButton><p className="mt-2 text-xs text-muted-foreground">Same wallet and account history. Review creation, then deposit into your new vault.</p></div>}
     <Tabs value={mode} onValueChange={v=>{setMode(v as typeof mode);setAmount('');}} className="mb-4"><TabsList className="grid w-full grid-cols-2"><TabsTrigger value="deposit">Deposit</TabsTrigger><TabsTrigger value="withdraw">Withdraw</TabsTrigger></TabsList></Tabs>

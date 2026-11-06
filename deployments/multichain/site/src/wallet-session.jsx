@@ -1,7 +1,8 @@
 import {useState,useEffect,useRef,useCallback} from 'react';
-import {request,authenticate,prepareWallet,restoreSession,sdkMatches,CHAIN_ID,walletNetwork} from './wallet.js';
+import {request,authenticate,prepareWallet,restoreSession,sdkMatches,CHAIN_ID,walletNetwork,current} from './wallet.js';
 import {metamaskProvider,phantomProvider,watchWallets,walletError} from './wallet-discovery.js';
 import {walletAttempt} from './wallet-attempt.js';
+import {walletIdentityChanged} from './wallet-events.js';
 
 const storageKey='autodefi.wallet.connector';
 function selectedWallet(){try{return localStorage.getItem(storageKey);}catch{return null;}}
@@ -37,7 +38,7 @@ export function useWalletSession(config,{onClear,onError,onNotice}){
  }
  async function connect(p,walletKind='injected'){
   if(connecting.current||!config)return;
-  if(walletNetwork().family==='solana'?!p?.signMessage:!p?.request){callbacks.current.onError(walletNetwork().family==='solana'?'No compatible Solana wallet found. Open Phantom or a compatible wallet browser.':'No EVM wallet provider found. Open a compatible wallet browser.');return;}
+  if(walletNetwork().family==='solana'?!p?.signMessage:!p?.request){callbacks.current.onError(walletNetwork().family==='solana'?'No compatible Solana wallet found. Open Phantom or a compatible wallet browser.':'MetaMask is not available in this browser. On your phone, open this page inside MetaMask. On desktop, unlock your MetaMask extension and refresh.');return;}
   restored.current=true;pending.current=false;clear();connecting.current=true;setRetryAvailable(false);
   const gen=generation.current;provider.current=p;setKind(walletKind);setPhase('CONNECTING');callbacks.current.onError('');
   const run=walletAttempt(()=>{if(gen===generation.current){clear();setRetryAvailable(true);callbacks.current.onError('Wallet connection timed out after 45 seconds. Dismiss any pending wallet prompt, then Retry. You can also switch networks.');}});
@@ -57,12 +58,12 @@ export function useWalletSession(config,{onClear,onError,onNotice}){
     p=sdkRef.current?.provider;
    }
    if(!currentAttempt())throw Error('Wallet changed');
-   const expected=await prepareWallet(p,config.network,{alreadyConnected:walletKind==='mydoge',isCurrent:currentAttempt});
+   const expected=await prepareWallet(p,config.network,{alreadyConnected:walletKind==='mydoge',isCurrent:currentAttempt,selectAccount:walletKind==='injected'});
    if(!currentAttempt())throw Error('Wallet changed');
    provider.current=p;
    const isCurrent=()=>currentAttempt()&&(walletKind!=='mydoge'||sdkMatches(sdkRef.current,expected,p));
    const wallet=await authenticate(p,api,s=>{if(currentAttempt())setPhase(s);},
-    {isCurrent,alreadyConnected:true,...(walletKind==='mydoge'?{signMessage:sdkRef.current.signMessage}:{})});
+    {isCurrent,alreadyConnected:true,expectedAddress:expected,...(walletKind==='mydoge'?{signMessage:sdkRef.current.signMessage}:{})});
    if(!isCurrent())throw Error('Wallet changed');
    selected.current=walletKind;remember(walletKind);setAddress(wallet);addressRef.current=wallet;setPhase('DASHBOARD');
    callbacks.current.onNotice('Wallet signature verified. Testnet collateral and simulated funds are shown separately.');
@@ -116,8 +117,16 @@ export function useWalletSession(config,{onClear,onError,onNotice}){
   if(!['SIGNING','AUTHENTICATED','DASHBOARD'].includes(phase))return;
   const p=provider.current,gen=generation.current;
   const invalidate=()=>{if(gen===generation.current){logout();callbacks.current.onNotice('Wallet changed. Reconnect and sign in again.');}};
-  for(const event of ['accountsChanged','accountChanged','chainChanged','disconnect'])p?.on?.(event,invalidate);
-  return()=>{for(const event of ['accountsChanged','accountChanged','chainChanged','disconnect'])p?.removeListener?.(event,invalidate);};
+  const identity={address,network:walletNetwork()};
+  const handlers=Object.fromEntries(['accountsChanged','accountChanged','chainChanged','disconnect'].map(event=>[event,value=>{
+   if(walletIdentityChanged(event,value,identity))invalidate();
+  }]));
+  for(const [event,handler] of Object.entries(handlers))p?.on?.(event,handler);
+  let checking=false,disposed=false;
+  const verifyIdentity=async()=>{if(phase!=='DASHBOARD'||checking||document.visibilityState==='hidden')return;checking=true;try{const active=await current(p);if(!disposed&&active!==address)invalidate();}catch{if(!disposed)invalidate();}finally{checking=false;}};
+  const timer=phase==='DASHBOARD'?setInterval(verifyIdentity,3000):null;
+  window.addEventListener('focus',verifyIdentity);document.addEventListener('visibilitychange',verifyIdentity);
+  return()=>{disposed=true;clearInterval(timer);window.removeEventListener('focus',verifyIdentity);document.removeEventListener('visibilitychange',verifyIdentity);for(const [event,handler] of Object.entries(handlers))p?.removeListener?.(event,handler);};
  },[phase,address]);
  return {phase,address,authenticated,provider,generation,addressRef,sdk,onSdk,connect,connectMyDoge,clear,logout,cancelConnect,retryAvailable,
   connecting:['CONNECTING','SIGNING','AUTHENTICATED'].includes(phase)};

@@ -1,111 +1,72 @@
-# Vela — DogeOS vaults, rewards and AI paper trading
+# Vela — DOGE lending on DogeOS
 
-[Working application](https://defivela.xyz/app/) · [Noah project](https://trynoah.ai/playground/6aeb352f7d19514dabedc93a) · [Hackathon](https://trynoah.ai/hackathon/6ad632514ff7b2bf9f7ea37d)
+[Live website](https://defivela.xyz/) · [Lending dashboard](https://defivela.xyz/app/) · [Trading dashboard](https://defivela.xyz/app/trading) · [Existing Noah project](https://trynoah.ai/playground/6aeb352f7d19514dabedc93a)
 
-Vela combines owner-controlled native DOGE vaults, reserve-funded rewards, demo borrowing and AI paper trading. The current implementation is in **`deployments/multichain/`**. Other top-level code and earlier documents are retained as project history; they are not the current deployment manifest.
+Vela lets users deposit test DOGE as collateral, borrow test DOGE, withdraw their borrowed funds to a wallet, and repay their loan. Optional AI paper trading can support repayment through a simulated conversion and a separately funded test-DOGE reserve.
 
-## What Noah built
+The current implementation is in **this directory**. Earlier code and documents remain as project history. See [the current release record](docs/VELA-CURRENT-RELEASE.json) for deployment identities and verification scope.
 
-The **VELA Collateral Rewards** project was created in Noah on November 4, 2026. Noah contributed the dashboard, initial rewards-accounting logic, vault/factory components and build checkpoints. We exported that module, repaired financial and wallet-flow edge cases and integrated it with Vela's pre-existing backend and paper-trading engine. The whole Vela application was not built in Noah. The saved Noah preview uses deterministic fixtures; the connected experience is the external application linked above. Eligibility is for the organizers to assess; this repository does not claim organizer approval.
+## Current product
 
-## Current functionality
+- Native lending on DogeOS Chikyū testnet, chain **6281971**. Borrow up to **70%** of deposited DOGE collateral, subject to pool liquidity, at **5% simple APR**. Debt and collateral use the same asset. The 80% risk marker is informational; this market does not implement automatic liquidation.
+- Borrowed DOGE is available to withdraw to the wallet. Withdrawal does not repay the loan. Wallet repayment, repayment from available borrowed funds, and collateral management use the reviewed on-chain contract.
+- Separate Lending and Trading dashboards, mobile layouts, a profile menu and Settings, with persistent light/dark appearance.
+- MetaMask and DogeOS Wallet/MyDoge connection choices. Mobile Chrome/Safari users can open Vela inside MetaMask; DogeOS Wallet also supports its SDK login flow. Sign-in is bound to the account returned by wallet approval, with signature/session checks and account-change invalidation.
+- Scalp and swing strategy controls, Start/Stop, settings and open positions. Running traders must stop before switching strategies.
+- Deposit confirmation updates the displayed status and balances. Reverted transactions show a failure rather than a success; receipt recovery does not resend a transaction.
 
-- DogeOS testnet chain **6281971**: native-DOGE vault creation, deposits, reserve-funded rewards, owner-signed claims and withdrawals.
-- Current reward rate: **5% simple APR**, accruing while the shared reserve supports it. This is not a guaranteed yield or an immediate 5% payout.
-- Demo lending: simulated USD credit, interest-first repayment and owner-confirmed testnet collateral settlement.
-- AI trading: paper execution only. No live exchange orders or real stablecoin lending.
-- Same-owner migration from an empty, settled legacy vault preserves account history and demo cash.
-- Every account retains its stricter existing limit or a **$2 fee-inclusive per-position stop-trigger budget**. Long/short positions, partial exits, inward rounding and existing-position reconciliation are covered by automated checks. Slippage and funding can exceed that trigger budget.
+## Trading and repayment scope
 
-## Validation and deployment
+Market prices are live; trading balances, fills and the USDC-to-DOGE conversion are simulated. No real USDC or exchange orders are involved. With explicit, time-limited consent, eligible net closed-trade profit after fees, funding and losses is converted at **1 demo USDC = 1 test DOGE**. A separate project reserve supplies the actual test DOGE through `repayFor` on the lending contract. The lending pool and customer collateral do not fund these payments.
 
-The published implementation previously passed **502 backend tests, 251 frontend tests and 47 contract tests**, including fuzz properties. TypeScript, scoped lint, build and release integrity checks passed. Those local results are separate from GitHub Actions for this source-publication commit. This is not an independent security audit or a production-readiness certification. Dependency advisories remain in the wider repository/tooling tree.
+The worker requires a fully closed account with no pending orders and complete funding history. It persists the signed transaction before broadcast, retries uncertain outcomes with the same transaction, verifies canonical receipts, and refunds unused simulated cash exactly once. Limits are 1 DOGE per payment, 10 DOGE per wallet lifetime and 100 DOGE project-wide lifetime, further restricted by debt, earned profit, cash and reserve availability. Profit and repayment are not guaranteed.
 
-The deployed reconciler records completed loan and reward-vault round trips. The reward payout is recorded as **0.000003757610350076 DOGE**, followed by principal withdrawal and zero collateral/debt. Additional accrued rewards remain claimable. On November 5, independent public RPC checks confirmed the reward-cycle receipts, canonical blocks, decoded events, runtime code hashes and current vault/pool state. The wallet balance reconciles with the payout and both DogeOS fee components (execution plus data/finality). Public proof is in `deployments/multichain/docs/VELA-REWARD-CYCLE-RPC-EVIDENCE.json` (or `docs/` from this directory); this is transaction verification, not an independent contract audit. A deployed AI paper trade was recorded on November 4: SOL/USD long, entry 96.109, exit 96.060, net result -0.02593010399593067168235653005 demo USD including fees and observed funding. It was closed by owner settlement. This verifies a paper entry/close/accounting cycle, not a live-exchange fill, a triggered protective exit or a financed-profit repayment. The owner account remains stopped. A sanitized record is in `deployments/multichain/docs/VELA-PAPER-TRADE-EVIDENCE.json` (or `docs/` from this directory).
+Every account retains the stricter of its existing limit and a **$2 fee-inclusive per-position stop-trigger budget**. Account size, leverage, strategy and overrides cannot raise it. Tests cover long and short positions, inward rounding, partial exits and existing-position reconciliation. Slippage and funding can exceed this trigger budget.
 
-On November 5, a separate disposable account demonstrated **automatic protective-stop execution for both long and short SOL/USD paper positions**. Both closes were generated by the engine with `reason=stop`; the account finished flat and stopped. Exact fee-inclusive stop calculations and net results are in `deployments/multichain/docs/VELA-DEPLOYED-STOP-EVIDENCE.json` (or `docs/` from this directory). This does not establish live exchange execution. The connected dashboard also passes an exact-version advisory/module reachability check; remaining SDK/tooling findings are documented in `deployments/multichain/docs/VELA-HACKATHON-SECURITY-REVIEW.txt`. Run `node tools/audit_frontend_exposure.mjs --refresh` from the implementation directory to repeat it. A deployed loan-funded profit sweep remains unverified. A fresh loan-funded AI BTC long in a separate simulated Base-vault diagnostic completed on November 5 with an AI exit and a net loss of 0.2679090018173102181911521688 demo USD including fees/funding; no profit sweep was expected. Cleanup left the account flat/stopped and retained its simulated debt shortfall. The allowlisted result and final engineering checks are documented in `deployments/multichain/docs/VELA-FINANCED-AI-LOSS-EVIDENCE.json` and `deployments/multichain/docs/VELA-FINAL-ENGINEERING-CHECK.txt` (or `docs/` from this directory).
+## What Noah contributed
 
-## Inspect the code
+The same **VELA Collateral Rewards** Noah project and its build history are retained. Noah contributed the initial dashboard/rewards components; Vela reused and adapted those components and integrated them with its existing backend. The complete backend was not generated in Noah.
 
-- `deployments/multichain/backend/autodefi/`: vault, loan, account, repayment and trading orchestration.
-- `deployments/multichain/contracts/`: reviewed vault/factory/shared-pool contracts and tests.
-- `deployments/multichain/site/vela-dashboard/`: integrated Noah-derived dashboard.
-- `deployments/multichain/tests/`: backend and financial invariants.
-- `deployments/multichain/noah/vela-collateral-rewards/`: original build prompts and module architecture.
-- `deployments/multichain/tools/`: build and deployment tooling; publication does not execute deployment scripts.
+The owner reports that the browser extension saved the new landing, lending, trading and Settings design in that same Noah project. Desktop/mobile navigation and theme checks were reported. Its latest export and independent build results are not available in this repository; the reported Noah profile-picture section remains unfinished. The connected product is hosted on Vela's origin. An unconnected Noah preview must not invent account data or copy authentication tokens from Vela.
 
-No live database, user session, wallet private key or production environment file is included in this update. Example configuration files contain placeholders. Keep credentials server-side and never import them into a frontend build.
+## Deployed and verified
 
-## Run the app locally (judges)
+Current frontend release: `vela-app-8a5ec923157b-6b872caca0cf`.
 
-Requirements: **Python 3.11+**, **Node.js 22.12+**, npm and an internet connection for package installation/public market data. macOS/Linux/WSL; no Docker, Foundry, wallet, private repository or project credentials needed for the paper desk.
+Backend fingerprint: `1fd2215cd96d7fb939716af7ba5ffb078abd011767d8052e514260d7400e9d1d`.
+
+Native lending market: `0xB0D753703B1a207bC980b3667C007fd5c2F26573`.
+
+The market is deployed and the project-funded lending pool was activated with 20 test DOGE. The separate repayment reserve was funded with 10 test DOGE. These are funding observations, not promises about the current remaining balances. The owner reports completing the lending cycle; independently observed native receipts also establish lending actions.
+
+Recent checks include 46 wallet/authentication tests, 25 mobile/loan/theme tests, 13 packaging tests, TypeScript and build checks, 10 desktop/mobile lending browser scenarios, and public-browser rejection of account mismatches. Repayment logic passed 12 policy/API tests and a local EVM integration with actual local contract repayment, uncertain-broadcast recovery and revert/refund cases. These runs were performed at different stages; they are not a claim that every historical suite was rerun together.
+
+Public profitable AI trading followed by automatic native repayment remains unverified and its observation was deferred by the owner. Physical mobile wallet approval and real exchange stop protection remain unverified. Public browser and simulated-provider checks are distinct from those observations. Publishing this source does not redeploy services or establish new live protection.
+
+The latest connected-bundle dependency exposure check passed after scoped dependency fixes. The wider repository/tooling dependency tree still has advisories. This is not an independent security audit.
+
+## Run locally
+
+Use Python 3.11+ and Node 22.12+:
 
 ```bash
-git clone https://github.com/nas211/vera.git
-cd vera/deployments/multichain
 bash tools/setup_judge_demo.sh
 .venv/bin/python tools/run_judge_demo.py
 ```
 
-Open **http://127.0.0.1:8802/** (use this exact host, not localhost). The launcher binds only to loopback and stores a separate local ledger in `.runtime/lighter-showcase/judge.sqlite3`.
+Open the local URL printed by the runner. The judge demo uses isolated simulated accounts; it does not deploy contracts or spend wallet funds. The public app is the connected DogeOS experience.
 
-- **`/paper`**: the actual backend, SQLite accounting and paper execution engine using public market data. The separate browser desk starts with 10,000 simulated USD. Place a long/short order, inspect its stop, close 50%, then close the remainder and inspect closed fills. No wallet or AI key is required for manual paper trades. Wait for fresh market data; network failures block new entries.
-- **`/app/`**: the connected Noah-derived dashboard against your local backend. Wallet authentication is optional and requires your signature. This local launcher deliberately has no factory/attestor configuration and disables native vault writes. It cannot show your production account or deploy/borrow testnet collateral.
-- **`/preview/`**: the Noah dashboard with visibly labeled deterministic sample data; it is separate from the backend ledger. No wallet or model is used.
-- **`/api/health`**: runtime/market status. `modelConfigured=false` is expected by default. The launcher does not load project secrets or ambient model credentials.
-
-To run the same API paper-trading check against your local server:
+Selected checks:
 
 ```bash
-.venv/bin/python tools/check_paper_trading.py
-```
-
-It creates a fresh disposable paper desk, opens a $20 long and short, closes partial/remainder quantities, checks fee-inclusive stops and accounting, and leaves no positions or pending orders. These are simulated trades, not blockchain transactions.
-
-For the deterministic loan → AI research/review/direction → paper fill → repayment → settlement rehearsal (synthetic model, prices, wallet and chain):
-
-```bash
-.venv/bin/python tools/rehearse.py
-```
-
-To inspect without network reads, use `tools/run_judge_demo.py --offline`; the fixture preview works, while paper entries correctly wait for market data. For optional real AI decisions, set your own `VELA_MODEL`, `VELA_MODEL_KEY` and `VELA_MODEL_ENDPOINT` in the server process and start with `--with-ai`. Model calls may incur provider charges; never put the key in `VITE_*`, source files or the frontend. An AI HOLD is a valid result, not an entry guarantee. The default runner makes no model calls.
-
-The fully configured DogeOS testnet experience is [the deployed app](https://defivela.xyz/app/). Reproducing its wallet transactions requires test DOGE and explicit wallet approvals; the local quickstart does not automatically deploy contracts or use the owner's database. The `judge-quickstart` CI job runs the documented setup and checks dashboard assets plus the real paper API using explicit test market fixtures.
-
-## Reproduce local checks
-
-```bash
-cd deployments/multichain
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-npm --prefix contracts install --ignore-scripts
-forge build --root contracts
-npm --prefix site ci --legacy-peer-deps --ignore-scripts
-npm --prefix site run build
-npm --prefix site run build:candidate
-# Only in a fresh local checkout, initialize the legacy UI test fixture:
-test -d site/dist || cp -R site/prepared site/dist
-PYTHONPATH=backend .venv/bin/python -m pytest tests -q
-npm --prefix site/vela-dashboard ci --legacy-peer-deps --ignore-scripts
+PYTHONPATH=backend .venv/bin/python -m pytest tests/test_demo_doge_repayment.py tests/test_doge_lending_reader.py tests/test_strategy_profiles.py tests/test_noah_testnet_release.py -q
+node --test site/checks/unit.test.mjs site/checks/wallet-discovery.test.mjs site/checks/wallet-events.test.mjs
 cd site/vela-dashboard
 npx vitest run src/lib
 npx tsc --noEmit -p tsconfig.app.json
-npx tsc --noEmit -p tsconfig.node.json
+npm run build -- --mode testnet
 ```
 
-Contract checks use Solidity 0.8.30 and Foundry with dependencies from `contracts/package.json`. Test fixtures are not live transactions. Native actions require the owner's browser wallet and the configured testnet backend; do not deploy or fund contracts to browse the repository.
+Solidity sources and tests are under `contracts/`; use the compiler and Foundry configuration pinned there. Deployment/activation scripts are operator tools and are not part of the normal user or judge setup. Never run them merely to browse the project.
 
-## DogeOS evidence
-
-Reward factory: `0x7304EbdE8D313c95c3a89caa20e7915545a0665e`  
-Shared pool: `0x79a20c6c39525A6253C8aA5D04EE5682ECB2B0Ae`  
-Demonstrated vault: `0x2937bfdaea76fc29529d7792ac674b6eef55eca5`
-
-| Action | Recorded confirmed transaction |
-| --- | --- |
-| Reward vault creation | [0x5b2750…8b603](https://dogeos-testnet.l2scan.co/tx/0x5b2750a6cd5db170cbb456cb2dab13edfaae3df2682b326524513d2c6da8b603) |
-| Reward vault deposit | [0x1fad3b…202c](https://dogeos-testnet.l2scan.co/tx/0x1fad3b1797bc08c7aa6339501f320180e61d7cff91906201d72fd9d8d501202c) |
-| Reward claim | [0x737df8…d53d](https://dogeos-testnet.l2scan.co/tx/0x737df894fca8138f8fcbd57ca9473775092053caa2c3d310fdbd7b46a6b6d53d) |
-| Principal withdrawal | [0x764907…a886](https://dogeos-testnet.l2scan.co/tx/0x764907c41d388795073b92b89645997925a123a4b0ad1de19f968daa6722a886) |
-
-Third-party components retain their existing notices and licenses. Making the repository public does not relicense those components or grant an additional license to the rest of the repository.
+No live database, wallet key, session token, operator log or private environment file is included. Third-party components retain their existing licenses and notices.

@@ -91,6 +91,10 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         if body.get('loanId')!=(loan['id'] if loan else None):raise ValueError('Matching loan identifier required')
         row=db.execute('SELECT address FROM vaults WHERE owner=?',(who,)).fetchone()
         if body.get('vaultId')!=(row[0] if row else None):raise ValueError('Matching vault identifier required')
+    from .doge_lending import attach as attach_doge_lending
+    attach_doge_lending(app, config, chain, owner)
+    from .demo_doge_repayment import attach as attach_demo_doge, public_status as demo_doge_status
+    attach_demo_doge(app, db, config, chain, owner)
     @app.get('/api/config')
     async def public_config(req:Request):
         selected=network(req);descriptor=selected.public(config)
@@ -152,8 +156,8 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
         who=owner(req);v=db.execute('SELECT data FROM vaults WHERE owner=?',(who,)).fetchone()
         return dict(address=split_owner(who)[1],network=split_owner(who)[0],vault=json.loads(v[0]) if v else None,
             health=lending.health(who) if v and lending.quote(who) else None,paper=paper.snapshot(who),
-            repayment=repayment.status(who),agent=agent.status(who),tradingPermission=paper.permission(who),
-            authorizationMaxLossMicro=paper.authorization_budget(who),
+            repayment=repayment.status(who),demoDogeRepayment=demo_doge_status(db,who),agent=agent.status(who),tradingPermission=paper.permission(who),
+            authorizationMaxLossMicro=paper.authorization_budget(who),tradingSetup=paper.setup(who),
             directAllocation=get(db,'demo-allocated:'+who,'0'),
             demoSurplus=get(db,'demo-surplus:'+who,'0'),events=[dict(x) for x in db.execute('SELECT * FROM loan_events WHERE owner=? ORDER BY id DESC LIMIT 80',(who,))],
             transactions=[dict(x) for x in db.execute('SELECT * FROM chain_receipts WHERE owner=? ORDER BY block DESC LIMIT 40',(who,))])
@@ -217,6 +221,10 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     async def permission(req:Request):
         who=owner(req);b=await req.json()
         return once(db,who,req.headers.get('idempotency-key'),{'action':'trading-permission','payload':b},lambda:paper.configure(who,b))
+    @app.post('/api/trading/strategy')
+    async def trading_strategy(req:Request):
+        who=owner(req);b=await req.json()
+        return once(db,who,req.headers.get('idempotency-key'),{'action':'trading-strategy','payload':b},lambda:paper.choose_strategy(who,b))
     @app.post('/api/quote')
     async def quote(req:Request):
         who=owner(req);b=await req.json()
@@ -257,16 +265,30 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
     @app.post('/api/trading/start')
     async def start(req:Request):
         who=owner(req)
+        body=await req.json()
+        if set(body)-{'confirm','permissionRevision'} or body.get('confirm') is not True:raise ValueError('Confirm Start Trading to authorize paper execution for 24 hours')
         if who in runtime.starting:raise HTTPException(409,'A trading start check is already pending')
         if not model.ready:raise ValueError('Dedicated AI model is not configured')
-        paper.gate(who,require_running=False)
+        paper.gate(who,require_running=False,starting=True)
         generation=get(db,'paper-prefs:'+who,{}).get('generation',0)
         revision=paper.revision(who)
+        if 'permissionRevision' in body and body['permissionRevision']!=revision:raise ValueError('Trading settings changed. Review Start Trading again.')
         runtime.starting.add(who)
         try:
-            try:
-                await runtime.run_blocking(model.ask,'review',{'purpose':'Connection preflight only; no trade authorization. Return delay.','financialPosition':dict(loanHealth=lending.health(who) if db.execute('SELECT 1 FROM vaults WHERE owner=?',(who,)).fetchone() and lending.quote(who) else None,trading=paper.snapshot(who),repayment=repayment.status(who))},model_module.ASSESSMENT)
-            except Exception:raise ValueError('AI connection unavailable; trading remains stopped') from None
+            # A connectivity check needs no account history or trade instruction.
+            # Retry one transient failure, within the existing metered budget.
+            for attempt in range(2):
+                try:
+                    await runtime.run_blocking(model.ask,'review',{'purpose':'Connection preflight only; no trade authorization. Return delay.','mode':'PAPER'},model_module.ASSESSMENT)
+                    break
+                except Exception as exc:
+                    allowed={'AI_REQUEST_FAILED','AI_RATE_LIMIT','AI_QUOTA_OR_RATE_LIMIT','AI_AUTH_FAILED','AI_PERSISTENT_BUDGET','AI_INPUT_LIMIT','AI_INCOMPLETE','AI_SCHEMA','AI_REFUSAL'}
+                    code=str(exc) if str(exc) in allowed else 'AI_CHECK_FAILED'
+                    with transaction(db):put(db,'ai-start-check:'+who,dict(ok=False,at=time.time(),code=code,attempt=attempt+1))
+                    if attempt==0 and code in {'AI_REQUEST_FAILED','AI_RATE_LIMIT','AI_QUOTA_OR_RATE_LIMIT'}:
+                        await asyncio.sleep(2)
+                        continue
+                    raise ValueError('AI connection unavailable; trading remains stopped. Try Start Trading again.') from None
             # Stop, logout, expiry, or a changed permission during network I/O
             # invalidates this request. Model success cannot restore consent.
             if owner(req)!=who:raise PermissionError('Wallet/session mismatch')
@@ -274,6 +296,7 @@ def create_app(config=None,feed=None,chain=None,model=None,frontend=None):
                 if generation!=get(db,'paper-prefs:'+who,{}).get('generation',0) or revision!=paper.revision(who):
                     raise ValueError('Trading permission changed during start; reconnect or retry')
                 put(db,'ai-connection',dict(ok=True,at=time.time(),model=model.model))
+                put(db,'ai-start-check:'+who,dict(ok=True,at=time.time()))
                 put(db,'agent-session:'+who,digest(req.cookies['adp_session']))
                 paper.start(who,model)
                 paper.authorize_run(who)

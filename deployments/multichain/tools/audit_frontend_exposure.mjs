@@ -6,6 +6,8 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { parseArgs } from 'node:util';
+import { checkedSnapshot, saveSnapshot } from './advisory_snapshot.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dashboard = path.join(root, 'site/vela-dashboard');
@@ -13,18 +15,31 @@ const require = createRequire(path.join(dashboard, 'package.json'));
 const semver = require('semver');
 const { build } = await import(require.resolve('vite'));
 const evidence = path.join(root, 'verification/noah');
-const snapshotPath = path.join(root, 'config/security/npm-advisories-20261105.json');
-const snapshot = JSON.parse(fs.readFileSync(snapshotPath));
+const { values: args } = parseArgs({ options: {
+  refresh: { type: 'boolean', default: false },
+  snapshot: { type: 'string' },
+  output: { type: 'string' },
+} });
+const snapshotPath = path.resolve(root, args.snapshot || (args.refresh
+  ? 'config/security/npm-advisories-current.json' : 'config/security/npm-advisories-20261105.json'));
+const directories = ['site', 'site/vela-dashboard', 'site/products-toolchain'];
+const lockfiles = Object.fromEntries(directories.map(directory =>
+  [directory, fs.readFileSync(path.join(root, directory, 'package-lock.json'))]));
+const snapshot = args.refresh ? {
+  observedAt: new Date().toISOString(),
+  endpoint: 'https://registry.npmjs.org/-/npm/v1/security/advisories/bulk', responses: {},
+} : checkedSnapshot(fs.readFileSync(snapshotPath),
+  JSON.parse(fs.readFileSync(snapshotPath+'.inputs.json')), lockfiles);
 const findings = [];
 const inputs = {};
-for (const directory of ['site', 'site/vela-dashboard', 'site/products-toolchain']) {
+for (const directory of directories) {
   const lockName = path.join(root, directory, 'package-lock.json');
-  for (const file of [lockName, snapshotPath]) {
+  for (const file of [lockName]) {
     inputs[path.relative(root, file)] = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
   }
   const lock = JSON.parse(fs.readFileSync(lockName));
   let advisories = snapshot.responses[directory];
-  if (process.argv.includes('--refresh')) {
+  if (args.refresh) {
     const versions = {};
     for (const [node, metadata] of Object.entries(lock.packages)) {
       if (!node || !metadata.version) continue;
@@ -38,6 +53,7 @@ for (const directory of ['site', 'site/vela-dashboard', 'site/products-toolchain
     });
     if (!response.ok) throw new Error(`Advisory service returned ${response.status}`);
     advisories = await response.json();
+    snapshot.responses[directory] = advisories;
   }
   if (!advisories || typeof advisories !== 'object' || Array.isArray(advisories)) throw new Error('Invalid advisory snapshot');
   for (const [node, metadata] of Object.entries(lock.packages)) {
@@ -51,6 +67,10 @@ for (const directory of ['site', 'site/vela-dashboard', 'site/products-toolchain
         absolute: path.join(root, directory, node), rendered: {} });
     }
   }
+}
+if (args.refresh) saveSnapshot(snapshotPath, snapshot, lockfiles);
+for (const file of [snapshotPath, snapshotPath+'.inputs.json']) {
+  inputs[path.relative(root, file)] = createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 process.chdir(dashboard);
 const builds = {};
@@ -90,7 +110,7 @@ const fixtureUnassessed = findings.filter(f => f.rendered.production.length && !
 ));
 const result = {
   observedAt: new Date().toISOString(), advisorySource: 'npm registry bulk advisory API',
-  advisoryMode: process.argv.includes('--refresh') ? 'Fresh registry query for each lockfile' : 'Saved registry snapshot',
+  advisoryMode: args.refresh ? 'Fresh registry query for each lockfile' : 'Saved registry snapshot bound to exact lockfiles',
   advisorySnapshotAt: snapshot.observedAt,
   inputs, builds, findings,
   scope: 'Three maintained npm lockfiles; exact versions and browser module reachability. No backend, contract or whole-repository security certification.',
@@ -99,8 +119,8 @@ const result = {
   fixtureUnassessed,
   review: 'docs/VELA-HACKATHON-SECURITY-REVIEW.txt',
 };
-const output = path.join(evidence, 'green-frontend-exposure.json');
-fs.mkdirSync(evidence, { recursive: true });
+const output = path.resolve(root, args.output || path.join(evidence, 'frontend-exposure-current.json'));
+fs.mkdirSync(path.dirname(output), { recursive: true });
 fs.writeFileSync(output, JSON.stringify(result, null, 2)+'\n');
 console.log(JSON.stringify({ output, gate: result.connectedBuildGate, builds,
   fixtureGate: result.fixtureBuildGate, advisoryInstances: findings.length }));

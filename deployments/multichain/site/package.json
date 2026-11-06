@@ -19,7 +19,7 @@
     "test:flow": "node checks/flow-browser.mjs"
   },
   "dependencies": {
-    "@dogeos/dogeos-sdk": "4.0.4",
+    "@dogeos/dogeos-sdk": "4.0.6",
     "@wallet-standard/app": "1.1.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -31,6 +31,10 @@
     "playwright": "1.58.2"
   },
   "overrides": {
-    "protobufjs": "7.6.6"
+    "protobufjs": "7.6.6",
+    "axios": "1.21.0",
+    "jayson": {
+      "uuid": "11.1.1"
+    }
   }
 }

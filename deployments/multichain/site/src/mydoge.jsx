@@ -29,8 +29,8 @@ export default function MyDoge({config,onChange}){
   nativeCurrency:config.network.nativeCurrency,rpcUrls:{default:{http:config.network.rpcUrls}},
   blockExplorers:{default:{name:'DogeOS L2Scan',url:config.network.blockExplorerUrls[0]}},testnet:true}),[config.network]);
  const options=useMemo(()=>({clientId:config.myDogeClientId,defaultConnectChain:ChainTypeEnum.EVM,
-  chains:{evm:[network]},embeddedWalletConfig:{stage:'sandbox'},
-  login:{basicLogins:['externalWallets'],socialLogins:[]},
+  chains:{evm:[network]},
+  login:{basicLogins:['email','externalWallets'],socialLogins:[]},
   theme:{defaultTheme:'dark',themes:{dark:{colors:{primary:{DEFAULT:config.brand.accent},background:'#101710'}}}},
   ...(config.walletConnectProjectId?{walletConnectProjectId:config.walletConnectProjectId}:{}),
   metadata:{name:config.brand.name,description:'DogeOS testnet collateral and simulated lending',url:location.origin,icons:[]}

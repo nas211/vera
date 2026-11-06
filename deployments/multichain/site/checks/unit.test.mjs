@@ -1,6 +1,17 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {authenticate,units,calculator,current,CHAIN_ID,restoreSession,sdkMatches,walletBalance,formatDoge,ensureNetwork,prepareWallet} from '../src/wallet.js';
 const alice='0x'+'11'.repeat(20),bob='0x'+'22'.repeat(20);
+test('approved account cannot be replaced by a different provider account',async()=>{
+ const p={request:async({method})=>method==='eth_requestAccounts'?[alice]:method==='eth_accounts'?[bob]:'0x'+CHAIN_ID.toString(16)};
+ await assert.rejects(prepareWallet(p,{}),/Wallet changed after approval/);
+});
+test('authentication is pinned to the selected approval before requesting a nonce',async()=>{
+ const f=fixture();f.setAccount(bob);await assert.rejects(authenticate(f.p,f.api,()=>{},{alreadyConnected:true,expectedAddress:alice}),/Wallet changed after approval/);assert.ok(!f.calls.includes('/api/auth/nonce'));
+});
+test('explicit reconnect asks MetaMask to choose an account and pins that account',async()=>{
+ const f=fixture(),original=f.p.request;f.p.request=async q=>{if(q.method==='wallet_requestPermissions'){f.calls.push(q.method);f.setAccount(bob);return [{parentCapability:'eth_accounts'}];}return original(q);};
+ assert.equal(await prepareWallet(f.p,{},{selectAccount:true}),bob);assert.equal(f.calls[0],'wallet_requestPermissions');
+});
 test('first connection approves account access before reading account or requesting authentication',async()=>{
  const calls=[];let approved=false;
  const p={request:async({method})=>{calls.push(method);

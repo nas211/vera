@@ -17,9 +17,9 @@ function fixture(): NativeState {
     vault:{address:target,owner,kind:'rewarded',collateral:'10000000000000000000',withdrawable:'10000000000000000000',loanState:0,loanId:toHex(0n,{size:32}),loanNonce:0,principalMicro:'0',paused:false,trading:false,settlementSigner:signer.address,stopBudgetMicro:'2000000',limits:{maxLoss:'2000000'},
       rewards:{source:'chain',pool,aprBps:'500',reserveWei:'1000000000000000000',claimableWei:'20000000000000000',availableReserveWei:'980000000000000000',claimedWei:'0',fundedWei:'1000000000000000000',principalWei:'10000000000000000000',loanLocked:false}}};
 }
-function setup(enabled=true) {
+function setup(enabled=true, lockOverride?: <T>(name:string,fn:()=>Promise<T>)=>Promise<T>) {
   const state=fixture();let capacity='1000',quoteAt=now,prior='2000000',fee='0x1',chain=toHex(NATIVE_CHAIN),wallet=owner,runtime=code,failSync=false;
-  let authorizationMaxLossMicro:string|undefined;
+  let authorizationMaxLossMicro:string|undefined;let clock=now;
   const storageMap=new Map<string,string>();
   const storage={getItem:(k:string)=>storageMap.get(k)??null,setItem:(k:string,v:string)=>{storageMap.set(k,v);},removeItem:(k:string)=>{storageMap.delete(k);}};
   let customSend:(()=>Promise<unknown>)|undefined;
@@ -43,7 +43,7 @@ function setup(enabled=true) {
   // Same lock name serializes confirmations as navigator.locks does in the browser.
   let queue:Promise<unknown>=Promise.resolve();
   const withLock=async <T,>(_:string,fn:()=>Promise<T>)=>{const run=queue.then(fn);queue=run.catch(()=>{});return run;};
-  const make=()=>new NativeVaultWorkflow({service,provider:{request:rpc},storage,writesEnabled:enabled,withLock,now:()=>now});
+  const make=()=>new NativeVaultWorkflow({service,provider:{request:rpc},storage,writesEnabled:enabled,withLock:lockOverride??withLock,now:()=>clock});
   const workflow=make();
   const confirm=(status:'CONFIRMED'|'REVERTED'='CONFIRMED')=>{
     const p=workflow.pending()!;
@@ -54,10 +54,38 @@ function setup(enabled=true) {
     const digest=keccak256(encodeAbiParameters([{type:'bytes32'},{type:'uint256'},{type:'address'},{type:'address'},{type:'uint256'},{type:'uint8'},{type:'bytes32'},{type:'uint256'},{type:'uint256'},{type:'uint256'},{type:'uint64'}],[keccak256(toHex('ADP_DEMO_V1')),BigInt(NATIVE_CHAIN),v.address,owner,BigInt(v.loanNonce),action,v.loanId,BigInt(a),BigInt(b),BigInt(c),BigInt(deadline)]));
     certificate={action,a,b,c,deadline,signature:await signer.signMessage({message:{raw:digest}})};
   };
-  return {state,workflow,service,rpc,api,storage,make,confirm,cert,capacity:(v:string)=>{capacity=v;},quoteAt:(v:number)=>{quoteAt=v;},send:(fn:()=>Promise<unknown>)=>{customSend=fn;},fee:(v:string)=>{fee=v;},prior:(v:string)=>{prior=v;},authorization:(v:string)=>{authorizationMaxLossMicro=v;},network:(v:Hex)=>{chain=v;},wallet:(v:Hex)=>{wallet=v;},code:(v:Hex)=>{runtime=v;},syncFail:()=>{failSync=true;},syncRecover:()=>{failSync=false;}};
+  return {state,workflow,service,rpc,api,storage,make,confirm,cert,advance:(seconds:number)=>{clock+=seconds;},capacity:(v:string)=>{capacity=v;},quoteAt:(v:number)=>{quoteAt=v;},send:(fn:()=>Promise<unknown>)=>{customSend=fn;},fee:(v:string)=>{fee=v;},prior:(v:string)=>{prior=v;},authorization:(v:string)=>{authorizationMaxLossMicro=v;},network:(v:Hex)=>{chain=v;},wallet:(v:Hex)=>{wallet=v;},code:(v:Hex)=>{runtime=v;},syncFail:()=>{failSync=true;},syncRecover:()=>{failSync=false;}};
 }
 
 describe('owner reviewed native workflow',()=>{
+  it('times out a held browser lock and never sends when that lock arrives later',async()=>{
+    vi.useFakeTimers();
+    try {
+      let unlock!:()=>void;
+      const held=<T,>(_name:string,fn:()=>Promise<T>)=>new Promise<T>((resolve,reject)=>{
+        unlock=()=>{void fn().then(resolve,reject);};
+      });
+      const e=setup(true,held),q=await e.workflow.review({kind:'deposit',amount:'1'});
+      const result=e.workflow.submit(q,true),failed=expect(result).rejects.toThrow('Another Vela tab');
+      await vi.advanceTimersByTimeAsync(15001);await failed;
+      unlock();await vi.advanceTimersByTimeAsync(1);
+      expect(e.workflow.pending()).toBeNull();
+      expect(e.rpc.mock.calls.some(([r])=>r.method==='eth_sendTransaction')).toBe(false);
+    } finally {vi.useRealTimers();}
+  });
+  it('reports wallet handoff only when the reviewed deposit actually reaches the provider',async()=>{
+    const e=setup(),notify=vi.fn(),q=await e.workflow.review({kind:'deposit',amount:'1'});
+    expect(notify).not.toHaveBeenCalled();
+    await e.workflow.submit(q,true,undefined,notify);
+    expect(notify).toHaveBeenCalledTimes(1);
+    const sends=e.rpc.mock.calls.filter(([r])=>r.method==='eth_sendTransaction');
+    expect(sends).toHaveLength(1);
+    expect((sends[0][0].params?.[0] as {value:string}).value).toBe(toHex(10n**18n));
+    const blocked=setup(),beforePrompt=vi.fn(),other=await blocked.workflow.review({kind:'deposit',amount:'1'});
+    blocked.network('0x1');
+    await expect(blocked.workflow.submit(other,true,undefined,beforePrompt)).rejects.toThrow('network');
+    expect(beforePrompt).not.toHaveBeenCalled();
+  });
   it('uses one canonical server observation for the synchronized state',async()=>{
     const e=setup();const state=await e.workflow.refresh();
     expect(state.vault?.address).toBe(target);
@@ -162,9 +190,25 @@ describe('owner reviewed native workflow',()=>{
     expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);expect(e.rpc.mock.calls.filter(([r])=>r.method==='eth_sendTransaction')).toHaveLength(1);
     await expect(e.workflow.review({kind:'deposit',amount:'1'})).rejects.toThrow('pending');
   });
-  it('requires review again when fees or collateral context change',async()=>{
-    const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'});e.fee('0x2');await expect(e.workflow.submit(q,true)).rejects.toThrow('changed');
+  it('retains fresh fee and collateral rechecks for withdrawals',async()=>{
+    const e=setup(),q=await e.workflow.review({kind:'withdraw',amount:'1'});e.fee('0x2');await expect(e.workflow.submit(q,true)).rejects.toThrow('changed');
     e.fee('0x1');e.state.vault!.loanNonce++;await expect(e.workflow.submit(q,true)).rejects.toThrow('changed');expect(e.workflow.pending()).toBeNull();
+  });
+  it('dispatches a reviewed deposit without waiting for another server read or gas estimate',async()=>{
+    const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'});
+    e.api.mockClear();e.rpc.mockClear();e.api.mockImplementation(()=>new Promise(()=>{}));
+    await e.workflow.submit(q,true);
+    expect(e.api).not.toHaveBeenCalled();
+    expect(e.rpc.mock.calls.map(([r])=>r.method)).toEqual(['eth_chainId','eth_accounts','eth_sendTransaction']);
+  });
+  it('expires a deposit review after 30 seconds before any wallet send',async()=>{
+    const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'});e.advance(31);
+    await expect(e.workflow.submit(q,true)).rejects.toThrow('expired');
+    expect(e.rpc.mock.calls.some(([r])=>r.method==='eth_sendTransaction')).toBe(false);
+  });
+  it('rejects a deposit when a newer observation changes its vault context',async()=>{
+    const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'});e.state.vault!.loanNonce++;await e.workflow.read();
+    await expect(e.workflow.submit(q,true)).rejects.toThrow('changed');expect(e.workflow.pending()).toBeNull();
   });
   it('rejected wallet request clears pending but ambiguous send does not',async()=>{
     const e=setup(),q=await e.workflow.review({kind:'claim'});e.send(async()=>{throw Object.assign(Error('Rejected'),{code:4001});});
@@ -184,7 +228,7 @@ describe('owner reviewed native workflow',()=>{
   it('starts the wallet timeout after slow confirmation checks, not before the prompt',async()=>{
     vi.useFakeTimers();
     try {
-      const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'});
+      const e=setup(),q=await e.workflow.review({kind:'withdraw',amount:'1'});
       let finishRead!:(value:NativeState)=>void,finished=false;
       vi.spyOn(e.service,'nativeState').mockImplementationOnce(()=>new Promise(resolve=>{finishRead=resolve;}));
       const submitted=e.workflow.submit(q,true);
@@ -197,14 +241,14 @@ describe('owner reviewed native workflow',()=>{
     } finally {vi.useRealTimers();}
   });
   it('cancels during preflight without opening a later wallet prompt',async()=>{
-    const e=setup(),q=await e.workflow.review({kind:'deposit',amount:'1'}),abort=new AbortController();
+    const e=setup(),q=await e.workflow.review({kind:'withdraw',amount:'1'}),abort=new AbortController();
     let finishRead!:(value:NativeState)=>void;
     vi.spyOn(e.service,'nativeState').mockImplementationOnce(()=>new Promise(resolve=>{finishRead=resolve;}));
     const submitted=e.workflow.submit(q,true,abort.signal),rejected=expect(submitted).rejects.toThrow('Stopped waiting');
     await vi.waitFor(()=>expect(finishRead).toBeTypeOf('function'));abort.abort();await rejected;
     finishRead(structuredClone(e.state));
     // Acquiring the same lock waits for the cancelled background preflight to finish.
-    const next=await e.workflow.review({kind:'deposit',amount:'1'});await e.workflow.submit(next,true);
+    const next=await e.workflow.review({kind:'withdraw',amount:'1'});await e.workflow.submit(next,true);
     expect(e.rpc.mock.calls.filter(([r])=>r.method==='eth_sendTransaction')).toHaveLength(1);
   });
   it('bounds the actual wallet prompt and preserves a late transaction hash',async()=>{

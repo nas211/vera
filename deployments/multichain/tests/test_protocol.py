@@ -23,16 +23,20 @@ def test_zero_account_and_demo_credit_idempotency(env):
     with pytest.raises(ValueError,match='conflict'):once(db,owner,'borrow-one',{'action':'other'},lambda:None)
 
 def test_ltv_and_health_scenarios(env):
+    # $2,000 test collateral keeps this stress/insolvency scenario meaningful.
+    env['v']['collateral']=str(2000*10**18);save_vault(env['db'],env['v'])
     funded(env);h=env['lending'].health(env['owner'])
     assert D(h['collateralValue'])==2000
-    assert D(h['healthFactor'])==pytest.approx(D('1.625'),abs=D('.000001'))
+    assert D(h['healthFactor'])==pytest.approx(D('2.125'),abs=D('.000001'))
     assert h['withdrawableDoge']=='0'
     with transaction(env['db']):env['lending'].quote(env['owner'],'.50')
-    assert D(env['lending'].health(env['owner'])['healthFactor'])<1
+    assert D(env['lending'].health(env['owner'])['healthFactor'])==D('1.0625')
+    # Interest pushes the 80% boundary over the new-entry cutoff.
+    env['db'].execute("UPDATE loans SET interest='0.01'")
     with pytest.raises(ValueError,match='health'):env['paper'].gate(env['owner'])
 
 def test_excess_ltv_rolls_back(env):
-    env['v']['principalMicro']='900000000';save_vault(env['db'],env['v'])
+    env['v']['principalMicro']='7000000001';save_vault(env['db'],env['v'])
     with pytest.raises(ValueError,match='LTV'):
         once(env['db'],env['owner'],'too-much',{},lambda:env['lending'].borrow(env['owner']))
     assert env['lending'].loan(env['owner']) is None and env['paper'].snapshot(env['owner'])['balance']=='0'
@@ -74,10 +78,12 @@ def test_stop_cancels_entries_not_positions(env):
 def test_revocation_between_submit_and_fill(env):
     funded(env)
     with transaction(env['db']):r=env['paper'].submit(env['owner'],order(),'pending-revoke')
-    env['v']['agent']='0x'+'0'*40;save_vault(env['db'],env['v'])
+    env['paper'].configure(env['owner'],dict(confirm=True,allocation='800',positionSize='200',maxLoss='.5'))
     env['db'].execute('UPDATE paper_orders SET due=0');env['paper'].tick()
     assert not env['paper'].getPosition(env['owner'])
-    assert env['db'].execute('SELECT status FROM paper_orders WHERE id=?',(r['id'],)).fetchone()[0]=='rejected'
+    # Saving tighter settings pauses entries and cancels the pending order before fill.
+    assert env['db'].execute('SELECT status FROM paper_orders WHERE id=?',(r['id'],)).fetchone()[0]=='cancelled'
+    assert env['paper'].permission(env['owner'])['maxLoss']=='500000.0'
 
 def test_profit_settlement_preserves_pnl_and_requires_chain(env):
     funded(env);p=fill(env);m=env['feed'].markets['BTC/USD']
@@ -101,6 +107,8 @@ def test_loss_shortfall_and_simulated_liquidation(env):
     assert D(get(env['db'],'pool')['buyerCash'])<1000000
 
 def test_combined_losses_default_not_erased(env):
+    # $2,000 test collateral keeps this stress/insolvency scenario meaningful.
+    env['v']['collateral']=str(2000*10**18);save_vault(env['db'],env['v'])
     funded(env);db=env['db']
     db.execute("UPDATE users SET balance='0' WHERE address=?",(env['owner'],))
     with transaction(db):
@@ -197,6 +205,8 @@ def test_two_wallet_ledgers_are_isolated(env):
     assert env['paper'].snapshot(env['owner'])['balance']=='800'
 
 def test_negative_execution_equity_is_not_erased(env):
+    # $2,000 test collateral keeps this stress/insolvency scenario meaningful.
+    env['v']['collateral']=str(2000*10**18);save_vault(env['db'],env['v'])
     funded(env);db=env['db'];owner=env['owner']
     # Explicit gap-loss fixture: realized losses can exceed a stop trigger budget.
     db.execute("UPDATE users SET balance='-1500' WHERE address=?",(owner,))
@@ -208,6 +218,7 @@ def test_negative_execution_equity_is_not_erased(env):
     assert D(l['principal'])>0 # No fabricated loan repayment.
 
 def test_reduced_health_limits_size_and_leverage(env):
+    env['v']['collateral']=str(1600*10**18);save_vault(env['db'],env['v'])
     funded(env)
     with transaction(env['db']):env['lending'].quote(env['owner'],'.25')
     caps=env['paper'].gate(env['owner']);assert caps['position']==100 and caps['leverage']==1
@@ -215,6 +226,8 @@ def test_reduced_health_limits_size_and_leverage(env):
         env['paper'].submit(env['owner'],{**order(),'notional':'150'},'health-limit')
 
 def test_additional_collateral_after_default_quote_can_be_reconciled(env):
+    # $2,000 test collateral keeps this stress/insolvency scenario meaningful.
+    env['v']['collateral']=str(2000*10**18);save_vault(env['db'],env['v'])
     funded(env);db=env['db'];owner=env['owner']
     db.execute("UPDATE users SET balance='-1500' WHERE address=?",(owner,))
     with transaction(db):env['lending'].repay_available(owner);env['lending'].liquidate(owner,True)

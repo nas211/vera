@@ -1,0 +1,8 @@
+{
+  "snapshotSha256": "a4a8215a29886849c0ea9269c68c5341f82d098bd2027b0b20f20ad8205af889",
+  "lockfiles": {
+    "site": "e6ff31be8e227429871ba4d05e982c7151a59fc363f0f09e8322e679851d5e7c",
+    "site/vela-dashboard": "7b3fd033366a281ad8a67bd2ee4fb7990e3101ec95504564a5dc74b608327fc9",
+    "site/products-toolchain": "e6f85fabfc8001f93cf856ec38595a14a16d1061785dc9b8d43367b4bd9ca6c6"
+  }
+}

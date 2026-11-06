@@ -4,6 +4,7 @@ import vaultAbi from './RewardedCollateralVault.abi.json';
 import factoryAbi from './RewardedVaultFactory.abi.json';
 import poolAbi from './NativeRewardPool.abi.json';
 import { parseDecimal } from '../units';
+import { walletRead } from './walletRpc';
 import type { AccountService, SessionContext } from './accountService';
 export const NATIVE_CHAIN = 6281971;
 export type NativeProvider = { request(request: { method: string; params?: unknown[] }): Promise<unknown> };
@@ -135,6 +136,7 @@ function transaction(s: NativeState, a: NativeAction, certificate?: Certificate)
 
 export class NativeVaultWorkflow {
   private reviews = new WeakSet<NativeReview>();
+  private observed:NativeState|null=null;
   private context: SessionContext;
   constructor(private readonly deps: { service: AccountService; provider: NativeProvider; storage: Store; writesEnabled: boolean; withLock: <T>(name:string,fn:()=>Promise<T>)=>Promise<T>; now?:()=>number }) { this.context=deps.service.sessionContext(); }
   get writesEnabled() { return this.deps.writesEnabled; }
@@ -143,7 +145,7 @@ export class NativeVaultWorkflow {
     let timer: ReturnType<typeof setTimeout>;
     try {
       return await Promise.race([
-        this.deps.provider.request(request),
+        walletRead(this.deps.provider,request),
         new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Wallet RPC timed out; refresh to retry')),15_000);}),
       ]);
     } finally { clearTimeout(timer!); }
@@ -154,17 +156,17 @@ export class NativeVaultWorkflow {
   }
   private async wallet() {
     this.current();
-    const chain=await this.rpc({method:'eth_chainId'}), accounts=await this.rpc({method:'eth_accounts'});
+    const [chain,accounts]=await Promise.all([this.rpc({method:'eth_chainId'}),this.rpc({method:'eth_accounts'})]);
     this.current();
     if(BigInt(chain as string)!==BigInt(NATIVE_CHAIN)||!Array.isArray(accounts)||accounts[0]?.toLowerCase()!==this.context.address) throw new Error('Wallet or network changed');
   }
-  async read(tx?:string) { this.current(); const s=validateNativeState(await this.deps.service.nativeState(tx),this.context.address,this.now());this.current();return s; }
+  async read(tx?:string) { this.current(); const s=validateNativeState(await this.deps.service.nativeState(tx),this.context.address,this.now());this.current();this.observed=s;return s; }
   async refresh() {
     if(!this.deps.writesEnabled)return this.read();
     this.current();
     // One canonical read supplies both the view and the ledger synchronization.
     const s=validateNativeState(await this.deps.service.syncNative(undefined,true),this.context.address,this.now());
-    this.current();return s;
+    this.current();this.observed=s;return s;
   }
   pending(): NativePending | null {
     const raw=this.deps.storage.getItem(key(this.context.address));if(!raw)return null;
@@ -181,7 +183,8 @@ export class NativeVaultWorkflow {
     // Only loan/permission decisions need synchronized ledger state. Pure chain
     // actions still recheck confirmed state, runtime, locks, wallet and fees.
     const ledgerRequired=['requestBorrow','acknowledge','settle','cancel','authorize','migrate'].includes(action.kind);
-    const s=await (ledgerRequired ? this.refresh() : this.read());
+    const cached=action.kind==='deposit'&&this.observed&&this.now()-this.observed.observedAt>=0&&this.now()-this.observed.observedAt<=30?this.observed:null;
+    const s=cached??await (ledgerRequired ? this.refresh() : this.read());
     let certificate:Certificate|undefined;
     if(['acknowledge','settle','cancel'].includes(action.kind)) {
       if(!s.vault)throw new Error('Missing vault');
@@ -234,19 +237,35 @@ export class NativeVaultWorkflow {
     const q=Object.freeze({owner:this.context.address,generation:this.context.generation,factory:s.factory,vault:s.vault?.address??null,loanId:s.vault?.loanId??null,loanNonce:s.vault?.loanNonce??null,action:Object.freeze({...action}),tx:Object.freeze({...tx,gas:toHex(gas),gasPrice:toHex(gasPrice)}),feeReserveWei:fee.toString(),createdAt:this.now(),certificate,...(action.kind==='migrate'?{migration:Object.freeze({...s.upgrade!})}:{})});
     this.reviews.add(q);return q;
   }
-  async submit(q:NativeReview,confirmed:boolean,signal?:AbortSignal) {
+  async submit(q:NativeReview,confirmed:boolean,signal?:AbortSignal,onWalletRequest?:()=>void) {
     if(!this.deps.writesEnabled||!confirmed||!this.reviews.has(q))throw new Error('Confirm the reviewed native transaction');
     if(signal?.aborted)throw new Error('Wallet wait cancelled');
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let lockTimer: ReturnType<typeof setTimeout> | undefined;
+    let lockExpired=false;
     let cancel!: () => void;
     const stopped=new Promise<never>((_,reject)=>{
       cancel=()=>reject(new Error('Stopped waiting. Check wallet history; any sent transaction still needs reconciliation.'));
       signal?.addEventListener('abort',cancel,{once:true});
     });
+    const lockWait=new Promise<never>((_,reject)=>{
+      lockTimer=setTimeout(()=>{
+        lockExpired=true;
+        reject(new Error('Another Vela tab is using the wallet. Close that review and try again. No wallet request was sent by this attempt.'));
+      },15_000);
+    });
     const launch=this.deps.withLock(key(this.context.address),async()=>{
+      clearTimeout(lockTimer);
+      if(lockExpired||signal?.aborted)throw new Error('Wallet request cancelled before acquiring its lock');
       this.current();if(this.pending())throw new Error('A wallet transaction is already pending');
-      if(this.now()-q.createdAt>120)throw new Error('Review expired; refresh amounts and fees');
-      const fresh=await this.prepare(q.action,q.certificate);
+      const age=this.now()-q.createdAt;
+      if(age<0||age>(q.action.kind==='deposit'?30:120))throw new Error('Review expired; refresh amounts and fees');
+      // Deposit checks, code verification and bounded gas are completed before
+      // the review opens. Confirmation uses that exact short-lived transaction.
+      // Wallet identity and the durable cross-tab send guard still run here.
+      // Loan, permission, withdrawal and settlement actions retain full rechecks.
+      if(q.action.kind==='deposit'&&this.observed&&(this.observed.factory!==q.factory||this.observed.vault?.address!==q.vault||this.observed.vault?.loanNonce!==q.loanNonce||this.observed.vault.paused))throw new Error('Vault changed; review again');
+      const fresh=q.action.kind==='deposit'?q:await this.prepare(q.action,q.certificate);
       if(fresh.factory!==q.factory||fresh.vault!==q.vault||fresh.loanId!==q.loanId||fresh.loanNonce!==q.loanNonce||fresh.tx.to!==q.tx.to||fresh.tx.data!==q.tx.data||fresh.tx.value!==q.tx.value||fresh.migration?.targetVault!==q.migration?.targetVault||BigInt(fresh.feeReserveWei)>BigInt(q.feeReserveWei))throw new Error('Vault, certificate or fees changed; review again');
       const pending:NativePending={version:1,attemptId:crypto.randomUUID(),owner:q.owner,chainId:NATIVE_CHAIN,action:q.action,tx:{...fresh.tx},hash:null,createdAt:this.now(),phase:'AWAITING_WALLET'};
       if(q.action.kind==='migrate') {
@@ -259,7 +278,10 @@ export class NativeVaultWorkflow {
       // Persist under the cross-tab lock, then release it while MetaMask is
       // open so hash recovery can complete without waiting for the extension.
       timer=setTimeout(cancel,45_000);
-      const response=Promise.resolve().then(()=>this.deps.provider.request({method:'eth_sendTransaction',params:[{...fresh.tx,chainId:toHex(NATIVE_CHAIN)}]}));
+      const response=Promise.resolve().then(()=>{
+        const result=this.deps.provider.request({method:'eth_sendTransaction',params:[{...fresh.tx,chainId:toHex(NATIVE_CHAIN)}]});
+        onWalletRequest?.();return result;
+      });
       const walletResult=response.then(async sent=>{
         if(!hash(sent))throw new Error('No valid hash returned; check wallet history before retrying');
         return this.deps.withLock(key(q.owner),async()=>{
@@ -285,8 +307,8 @@ export class NativeVaultWorkflow {
     const run=launch.then(({walletResult})=>walletResult);
     // Stopping the UI wait cannot cancel a wallet broadcast. The durable record and
     // late hash survive; no new send is allowed until that action is reconciled.
-    try{return await Promise.race([run,stopped]);}
-    finally{clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
+    try{return await Promise.race([run,stopped,lockWait]);}
+    finally{clearTimeout(timer);clearTimeout(lockTimer);signal?.removeEventListener('abort',cancel);}
   }
   async attachHash(value:string) {
     this.current();if(!hash(value))throw new Error('Enter a valid wallet transaction hash');

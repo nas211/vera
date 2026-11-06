@@ -175,8 +175,8 @@ class LighterPaperAdapter(PaperAdapter):
             if not 1<=leverage<=min(D(3),self.settings.max_leverage):
                 raise ValueError("Leverage exceeds Vela risk limit")
             notional=decimal(payload.get("notional",100),True)
-            if not 10<=notional<=100000:
-                raise ValueError("Notional must be between $10 and $100,000")
+            if notional>100000:
+                raise ValueError("Notional must not exceed $100,000")
             for name,default in (("stopBps",50),("targetBps",75)):
                 val=decimal(payload.get(name,default),True)
                 if not 1<=val<=5000:
@@ -187,6 +187,8 @@ class LighterPaperAdapter(PaperAdapter):
             if any(p["symbol"]==payload["symbol"] for p in self.getPosition(user)):
                 raise ValueError("Close the existing position in this market first")
         m=self.market(payload["symbol"])
+        if not payload.get("reduceOnly") and D(payload["notional"])<m.min_notional:
+            raise ValueError("Notional is below the market minimum")
         if payload.get("reduceOnly") and rounded(D(p["qty"])*D(payload["fraction"]),m.step)<=0:
             raise ValueError("Partial close is below size precision")
         if protective:

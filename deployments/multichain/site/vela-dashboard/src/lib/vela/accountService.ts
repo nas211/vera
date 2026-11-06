@@ -7,27 +7,35 @@ export type Transport = (request: ApiRequest) => Promise<unknown>;
 export type ResultScope = { realized: string; trades: number; wins: number; losses: number };
 export type ServicePosition = { id: string; symbol: string; side: string; qty: string; entry: string; stop: string; riskBudget: string; unrealized: string | null; fresh: boolean; mark?: string | null; funding?: string; entry_fee_left?: string };
 export type ServiceFill = { id: string; symbol: string; side: string; pnl: string; closed: number; fees?: string; funding?: string };
+export type TradingLimits = { allocation?: string; positionSize?: string; maxLoss?: string; expiresAt?: string };
+export type DemoDogeRepayment = {mode:'TESTNET_SIMULATED_CONVERSION';demoDogePerUsd:'1';configured:boolean;ready:boolean;enabled:boolean;reason:string;revision:number;pending:boolean;paidWei:string;reserveAddress:string|null;maximumPerWalletDoge:string;receipts:{hash:string;paidWei:string;block:number}[]};
 export type AccountSnapshot = {
+  demoDogeRepayment?: DemoDogeRepayment;
   address: string; network: 'dogeos'; vault: { address: string; collateral: string; loanState: number; loanId?: string } | null;
   health: { quote?: { at: number; source: string }; borrowCapacity?: string; debt: string; healthFactor: string | null; loan: { id: string; state: string; principal: string; interest: string } | null;
-    ltv?: string | null; interest?: string; principal?: string; collateralValue?: string; scenarios?: { drop: string; collateralValue: string; healthFactor: string | null }[] } | null;
+    ltv?: string | null; interest?: string; principal?: string; collateralValue?: string; price?: string; maxLtv?: string; maxTradingLtv?: string; liquidationThreshold?: string;
+    lendingLiquidity?: { currency: string; cash: string; reserved: string; available: string; source: string };
+    scenarios?: { drop: string; collateralValue: string; healthFactor: string | null }[] } | null;
   paper: { mode: 'PAPER'; balance: string; equity: string | null; unrealized: string | null; positions: ServicePosition[];
-    orders: { id: string; status: string }[]; today: ResultScope; totals: ResultScope;
+    orders: { id: string; status: string; payload?: {positionId?: string; reduceOnly?: boolean}; error?: string | null }[]; today: ResultScope; totals: ResultScope;
     preferences: { autonomous?: boolean }; entryStop?: { reason: string; action: string } | null;
     trades?: ServiceFill[]; costs?: Record<string, string>; fundingIncomplete?: boolean };
   repayment: { simulated: true; freeEquity: string; maxRepayable: string; debt: string; restriction: string | null; policy: Record<string, unknown> | null };
-  tradingPermission: { maxLoss?: string };
+  tradingPermission: TradingLimits;
+  tradingSetup?: { strategy: { id: 'scalp'|'swing'; name: string; description: string; horizon: string }; permissionRevision?: number[]; renewalRequired?: boolean; paperRequired: boolean; nativeRequired: boolean; nativeEnableRequired: boolean; paperLimits: TradingLimits; phase: string; approvedAt: number|null };
   authorizationMaxLossMicro?: string;
   events: { id: number; kind: string; amount: string; detail: string; at?: number }[];
 };
 export type ServiceAction =
   | { kind: 'allocate' | 'withdraw' | 'repay' | 'repayFull'; amount: string }
   | { kind: 'permission'; allocation: string; positionSize: string; maxLoss: string }
+  | { kind: 'strategy'; strategyStyle: 'scalp'|'swing' }
   | { kind: 'sweep'; percent: number; days: number; floor: string }
   | { kind: 'revokeSweep' | 'start' | 'stop' | 'issueBorrow' | 'cancelBorrow' | 'settle' | 'liquidate' | 'refreshQuote' }
   | { kind: 'close'; positionId: string; fraction: '0.5' | '1' }
   | { kind: 'cancel'; orderId: string };
-export type ReviewedAction = Readonly<{ path: string; body: Readonly<Record<string, unknown>>; key: string; context: SessionContext; vaultId: string | null; loanId: string | null }>;
+export type ReviewedAction = Readonly<{ path: string; body: Readonly<Record<string, unknown>>; key: string; context: SessionContext; vaultId: string | null; loanId: string | null; tradingLimits?: Readonly<TradingLimits> }>;
+export const isTradingControl = (action: ServiceAction) => ['start', 'stop', 'close', 'cancel', 'strategy', 'permission'].includes(action.kind);
 
 const record = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
 const decimal = (x: unknown) => typeof x === 'string' && /^-?\d+(\.\d+)?$/.test(x);
@@ -66,8 +74,13 @@ export function validateAccount(value: unknown, context: SessionContext): Accoun
   let health = value.health;
   if (record(health)) {
     health = { ...health };
-    for (const name of ['ltv','healthFactor','interest','principal','collateralValue','borrowCapacity']) {
+    for (const name of ['ltv','healthFactor','interest','principal','collateralValue','borrowCapacity','price','maxLtv','maxTradingLtv','liquidationThreshold']) {
       const x = health[name]; if (x !== undefined && x !== null) health[name] = riskDecimal(x);
+    }
+    if (health.lendingLiquidity !== undefined) {
+      const pool=health.lendingLiquidity;
+      if (!record(pool) || pool.currency !== 'demo USD' || typeof pool.source !== 'string') throw Error('Invalid lending liquidity');
+      health.lendingLiquidity={...pool,cash:riskDecimal(pool.cash),reserved:riskDecimal(pool.reserved),available:riskDecimal(pool.available)};
     }
     if (health.scenarios !== undefined) {
       if (!Array.isArray(health.scenarios)) throw Error('Invalid risk scenarios');
@@ -99,6 +112,10 @@ function amount(text: string, allowZero = false): string {
 export function planAction(snapshot: AccountSnapshot, action: ServiceAction) {
   const financial = identity(snapshot);
   switch (action.kind) {
+    case 'strategy':
+      if (snapshot.paper.preferences.autonomous) throw Error('Stop trading to change strategy.');
+      if (!['scalp','swing'].includes(action.strategyStyle)) throw Error('Choose Scalp or Swing');
+      return {path:'/api/trading/strategy',body:{strategyStyle:action.strategyStyle,confirm:true}};
     case 'allocate': case 'withdraw': return { path: `/api/trading/${action.kind}`, body: { amount: amount(action.amount), confirm: true } };
     case 'repay': case 'repayFull': return { path: '/api/repay', body: { ...financial, amount: amount(action.amount), full: action.kind === 'repayFull', confirm: true } };
     case 'permission': {
@@ -120,7 +137,7 @@ export function planAction(snapshot: AccountSnapshot, action: ServiceAction) {
       return { path: action.kind === 'issueBorrow' ? '/api/borrow' : '/api/borrow/cancel', body: { vaultId: snapshot.vault.address, loanId: snapshot.vault.loanId, confirm: true } };
     case 'settle': return { path: snapshot.health?.loan && !['REPAID', 'CANCELLED'].includes(snapshot.health.loan.state) ? '/api/settle' : '/api/trading/settle', body: { ...financial, confirm: true } };
     case 'liquidate': return { path: '/api/liquidate', body: { ...financial, confirm: true } };
-    case 'start': return { path: '/api/trading/start', body: { confirm: true } };
+    case 'start': return { path: '/api/trading/start', body: { confirm: true, ...(snapshot.tradingSetup?.permissionRevision?{permissionRevision:[...snapshot.tradingSetup.permissionRevision]}:{}) } };
     case 'stop': return { path: '/api/trading/stop', body: {} };
     case 'close':
       if (!snapshot.paper.positions.some(p => p.id === action.positionId) || !['0.5', '1'].includes(action.fraction)) throw new Error('Review an owned position');
@@ -139,6 +156,7 @@ export class AccountService {
   private controller = new AbortController();
   private issued = new WeakSet<ReviewedAction>();
   private pending = new Map<ReviewedAction, Promise<unknown>>();
+  private independent = new WeakMap<ReviewedAction, ServiceAction>();
   constructor(private readonly transport: Transport) {}
   setSession(context: SessionContext | null) {
     this.controller.abort(); this.controller = new AbortController();
@@ -146,6 +164,17 @@ export class AccountService {
     this.snapshot = null; this.sequence++; this.issued = new WeakSet();
   }
   sessionContext() { return this.active(); }
+  async setDemoDogeRepayment(enabled:boolean, revision:number) {
+    const context=this.active();
+    const result=await this.transport({path:'/api/demo-doge-repayment',body:{confirm:true,enabled,revision},key:crypto.randomUUID(),context,signal:this.controller.signal});
+    this.active(context);return result;
+  }
+  async dogeLending(path: 'config' | 'account', tx?: string) {
+    if (tx && !/^0x[0-9a-f]{64}$/i.test(tx)) throw Error('Invalid transaction hash');
+    const context = this.active();
+    const value = await this.transport({path:'/api/doge-lending/'+path+(tx?'?tx='+tx:''),context,signal:this.controller.signal});
+    this.active(context); return value;
+  }
   async nativeState(tx?: string) {
     if (tx && !/^0x[0-9a-f]{64}$/i.test(tx)) throw new Error('Invalid transaction hash');
     const context = this.active();
@@ -183,12 +212,29 @@ export class AccountService {
     this.snapshot = structuredClone(snapshot);
     return snapshot;
   }
-  review(action: ServiceAction, key: string): ReviewedAction {
+  /** Fresh authenticated read, independent of the native-sync cache generation. */
+  async inspect() {
     const context = this.active();
+    const value = await this.transport({path:'/api/account', context, signal:this.controller.signal});
+    this.active(context);
+    return validateAccount(value, context);
+  }
+  async prepareTrading(action: ServiceAction, key: string) {
+    if (!isTradingControl(action)) throw Error('Trading control required');
+    const frozenAction = structuredClone(action), snapshot = await this.inspect();
+    const request = this.issue(snapshot, frozenAction, key);
+    this.independent.set(request, frozenAction);
+    return {snapshot, request};
+  }
+  review(action: ServiceAction, key: string): ReviewedAction {
     if (!this.snapshot) throw new Error('Refresh account before reviewing an action');
+    return this.issue(this.snapshot, action, key);
+  }
+  private issue(snapshot: AccountSnapshot, action: ServiceAction, key: string): ReviewedAction {
+    const context = this.active();
     if (!/^[\w:-]{8,160}$/.test(key)) throw new Error('Stable idempotency key required');
-    const plan = planAction(this.snapshot, action);
-    const reviewed = Object.freeze({ ...plan, body: Object.freeze(plan.body), key, context, ...identity(this.snapshot) });
+    const plan = planAction(snapshot, action);
+    const reviewed = Object.freeze({ ...plan, body: Object.freeze(plan.body), key, context, ...identity(snapshot), ...(action.kind==='start'?{tradingLimits:Object.freeze({...snapshot.tradingSetup?.paperLimits??snapshot.tradingPermission})}:{}) });
     this.issued.add(reviewed);
     return reviewed;
   }
@@ -202,7 +248,8 @@ export class AccountService {
   }
   private async submit(reviewed: ReviewedAction) {
     this.active(reviewed.context);
-    const current = await this.refresh();
+    const control = this.independent.get(reviewed);
+    const current = control ? await this.inspect() : await this.refresh();
     const ids = identity(current);
     const resumedBorrow = ['/api/borrow', '/api/borrow/cancel'].includes(reviewed.path) && current.vault?.loanId === reviewed.body.loanId;
     if (ids.vaultId !== reviewed.vaultId || (!resumedBorrow && ids.loanId !== reviewed.loanId)) throw new Error('Loan or vault changed — review again');

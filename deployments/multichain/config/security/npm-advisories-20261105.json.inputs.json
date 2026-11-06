@@ -1,0 +1,14 @@
+{
+  "snapshotSha256": "a47241c3d3faa5f09846f7412d441e417e86fcad7af7d8824015b0a21b31b7ee",
+  "lockfiles": {
+    "site": "e6ff31be8e227429871ba4d05e982c7151a59fc363f0f09e8322e679851d5e7c",
+    "site/vela-dashboard": "7b3fd033366a281ad8a67bd2ee4fb7990e3101ec95504564a5dc74b608327fc9",
+    "site/products-toolchain": "e6f85fabfc8001f93cf856ec38595a14a16d1061785dc9b8d43367b4bd9ca6c6"
+  },
+  "bindingEvidence": {
+    "path": "verification/noah/green-frontend-exposure.json",
+    "sha256": "9f0258b119f9888d807c95b1179187997c3c7b68180306535bf1e9758203b048",
+    "observedAt": "2026-11-05T11:42:00.122Z",
+    "note": "Binding recovered from the matching historical scan; no fresh registry query claimed."
+  }
+}

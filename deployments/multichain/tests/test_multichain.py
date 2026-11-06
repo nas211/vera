@@ -62,9 +62,10 @@ def test_borrow_pauses_previous_run_with_demo_reason_and_can_restart(env,network
     assert snap['preferences']['autonomous'] is False and not paper.run_authorized(owner)
     assert 'demo loan' in snap['entryStop']['reason']
     assert 'Start AI Trading' in snap['entryStop']['action']
-    with pytest.raises(ValueError,match='demo loan trading authorization'):
-        paper.gate(owner,require_running=False)
-    operation(env,owner,'authorize',allocation='400',positionSize='100')
+    # The explicit Start renews saved paper settings; no separate native/demo
+    # vault authorization is required, and borrowing did not restart execution.
+    assert paper.gate(owner,require_running=False,starting=True)['budget']==D('0.5')
+    assert not paper.run_authorized(owner)
     with transaction(db):
         paper.start(owner,FixtureModel());paper.authorize_run(owner)
     assert paper.run_authorized(owner)
@@ -158,6 +159,8 @@ def test_stale_quote_health_deterioration_losses_and_revocation(env):
     q=lending.quote(owner);put(db,'quote:'+owner,dict(q,at=0))
     with pytest.raises(ValueError):env['paper'].gate(owner)
     with transaction(db):lending.quote(owner,'.50')
+    # $500 collateral value / $400 debt gives reduced, unblocked health.
+    put(db,'quote:'+owner,dict(lending.quote(owner),price='50'))
     assert env['paper'].gate(owner)['position']==100
     # A deeper explicitly recorded illustrative price deterioration blocks entries.
     put(db,'quote:'+owner,dict(lending.quote(owner),price='40'))
@@ -176,7 +179,9 @@ def test_permission_before_vault_authorization_and_stricter_limit(env,network):
     operation(env,owner,'borrow',amount='400')
     with transaction(env['db']):
         env['paper'].configure(owner,dict(confirm=True,allocation='400',positionSize='100',maxLoss='1'))
-    assert env['paper'].permission(owner)['allocation']=='0'
+    assert env['paper'].permission(owner)['allocation']=='400000000'
+    assert not env['paper'].run_authorized(owner)
+    assert env['paper'].gate(owner,require_running=False)['budget']==1
     operation(env,owner,'authorize',allocation='400',maxLoss='2')
     assert D(env['paper'].permission(owner)['maxLoss'])==1000000
     assert env['paper'].gate(owner,require_running=False)['budget']==1

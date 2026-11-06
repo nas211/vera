@@ -6,6 +6,7 @@ import { DashboardController } from '../vela/dashboardController';
 import type { NativePending, NativeReceipt, NativeReview, NativeState, NativeVaultWorkflow } from '../vela/nativeVault';
 import { NativeReviewDetails } from '../../service/approved/NativeReviewDetails';
 import { AccountDashboard } from '../../service/approved/AccountDashboard';
+import { AccountFills } from '../../service/approved/ActivityPanels';
 import { amountOk, maxCash, units } from '../../service/approved/presentation';
 import { AccountContext, useAccountDashboard } from '../../service/approved/context';
 const context: SessionContext = { address: `0x${'11'.repeat(20)}`, network: 'dogeos', generation: 1 };
@@ -55,6 +56,25 @@ const NativeGate = () => <span>{useAccountDashboard().nativeReason ?? 'Ready for
 const gate = (controller: DashboardController) => renderToStaticMarkup(<AccountContext.Provider value={controller}><NativeGate /></AccountContext.Provider>);
 
 describe('approved account presentation and coordination', () => {
+  it('keeps the main screens simple and moves preferences to settings',async()=>{
+    const s=setup();await s.controller.refresh();
+    const overview=render(s.controller,'/'),trading=render(s.controller,'/trading'),settings=render(s.controller,'/settings');
+    expect(overview).toContain('Loan amount');expect(overview).toContain('Amount to repay');expect(overview).toContain('Open trades');
+    expect(overview).not.toContain('Connections');
+    expect(trading).toContain('Start Trading');expect(trading).toContain('/settings?section=trading');
+    expect(trading).not.toContain('Paper fills');expect(trading).not.toContain('Position size');
+    expect(settings).toContain('Change profile picture');expect(settings).toContain('Light');expect(settings).toContain('Dark');
+    expect(settings).toContain('Trading settings');expect(settings).toContain('account limit $0.75');
+  });
+  it('refreshes an expired test valuation as part of reviewing a loan, without issuing credit or sending a wallet transaction',async()=>{
+    const s=setup(),n=nativeStub();n.stub.writesEnabled=true;
+    const a=account();a.health!.quote!.at=0;s.set(a);
+    const c=new DashboardController(s.service,n.workflow);await c.refresh();
+    await c.reviewNative({kind:'requestBorrow',amount:'1',loanId:txhash});
+    expect(s.calls.filter(r=>r.body).map(r=>r.path)).toEqual(['/api/quote']);
+    expect(n.stub.review).toHaveBeenCalledWith({kind:'requestBorrow',amount:'1',loanId:txhash});
+    expect(n.stub.submit).not.toHaveBeenCalled();
+  });
   it('refreshes the illustrative quote without starting a slow native observation', async () => {
     const s=setup(), n=nativeStub();n.stub.writesEnabled=true;
     n.stub.refresh.mockImplementation(()=>new Promise(()=>{}));
@@ -63,6 +83,16 @@ describe('approved account presentation and coordination', () => {
     expect(s.calls.filter(r=>r.body).map(r=>r.path)).toEqual(['/api/quote']);
     expect(n.stub.refresh).not.toHaveBeenCalled();expect(c.snapshot().busy).toBe(false);
     expect(c.snapshot().account).not.toBeNull();
+  });
+  it('reviews and confirms a deposit while a background vault poll is still waiting',async()=>{
+    const s=setup(),n=nativeStub();n.stub.writesEnabled=true;
+    const c=new DashboardController(s.service,n.workflow);await c.refresh();
+    const q=await n.stub.review();n.stub.review.mockClear();n.stub.review.mockResolvedValue({...q,action:{kind:'deposit',amount:'1'}});
+    let finish!:(s:NativeState)=>void;n.stub.refresh.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+    const polling=c.poll();await c.reviewNative({kind:'deposit',amount:'1'});
+    expect(c.snapshot().refreshing).toBe(true);expect(n.stub.review).toHaveBeenCalledOnce();
+    await c.confirm();expect(n.stub.submit).toHaveBeenCalledOnce();
+    finish(nativeState());await polling;
   });
   it('lets funding review queue once behind a slow background sync, without repeating polls', async () => {
     const s = setup(), n = nativeStub(); n.stub.writesEnabled = true;
@@ -119,19 +149,17 @@ describe('approved account presentation and coordination', () => {
   it.each(['/', '/vault', '/borrow', '/trading', '/risk'])('renders %s without invented balances or connected actions', route => {
     const html = render(new DashboardController(null, null), route);
     expect(html).toContain('Connect your wallet to load your account');
-    expect(html.toLowerCase()).toContain('unavailable');
-    expect(html).toContain('lg:grid-cols-12');
     expect(html).toContain('disabled=""');
     expect(html).not.toContain('FixtureProvider');
     expect(html).not.toContain('Healthy');
   });
   it('renders authoritative amounts, separate P&L scopes and stricter stop limits', async () => {
     const s = setup(); await s.controller.refresh();
-    const html = render(s.controller, '/trading');
+    const html = renderToStaticMarkup(<AccountContext.Provider value={s.controller}><AccountFills /></AccountContext.Provider>)+render(s.controller,'/');
     expect(html).toContain('Today UTC'); expect(html).toContain('All-time');
     expect(html).toContain('1 fills · 0 wins / 1 losses'); expect(html).toContain('4 fills · 2 wins / 2 losses');
-    expect(html).toContain('$0.75'); expect(html).toContain('Owner stopped new entries');
-    expect(html).toContain('Review permission then resume'); expect(html).toContain('Close half');
+    expect(html).toContain('$0.75'); expect(render(s.controller,'/trading')).toContain('Owner stopped new entries');
+    expect(html).toContain('Close half');
     expect(html).toContain('Slippage or funding can exceed this');
   });
   it('clears stale balances after failure and restores only a successful read', async () => {
@@ -188,6 +216,30 @@ describe('approved account presentation and coordination', () => {
     const posts = s.calls.filter(x => x.body); expect(posts).toHaveLength(2);
     expect(posts.map(x => x.key)).toEqual(['review-key-1', 'review-key-1']);
     expect(posts.map(x => x.body?.amount)).toEqual(['1.01', '1.01']); expect(s.controller.snapshot().review).toBeNull();
+  });
+  it('shows plain-object mobile wallet errors without losing the reviewed deposit', async () => {
+    const s=setup(),n=nativeStub();n.stub.writesEnabled=true;
+    n.stub.submit.mockRejectedValue({code:-32002,message:'Request already pending'});
+    const c=new DashboardController(s.service,n.workflow);
+    await c.refresh();await c.reviewNative({kind:'deposit',amount:'1'});
+    const review=c.snapshot().review;await c.confirm();
+    expect(c.snapshot().review).toBe(review);
+    expect(c.snapshot().busy).toBe(false);
+    expect(c.snapshot().error).toContain('MetaMask request is already open');
+    expect(render(c,'/vault')).toContain('MetaMask request is already open');
+  });
+  it('explains an invalidated connection instead of silently ignoring confirmation', async () => {
+    const s=setup();await s.controller.reviewLedger({kind:'allocate',amount:'10'});
+    s.service.setSession({...context,generation:2});await s.controller.confirm();
+    expect(s.controller.snapshot().error).toContain('Reconnect');
+    expect(s.controller.snapshot().review).toBeNull();
+    expect(s.calls.filter(x=>x.body)).toHaveLength(0);
+  });
+  it('distinguishes a successful demo allocation from a vault deposit', async () => {
+    const s=setup();await s.controller.reviewLedger({kind:'allocate',amount:'10'});await s.controller.confirm();
+    expect(s.calls.filter(x=>x.body).map(x=>x.path)).toEqual(['/api/trading/allocate']);
+    expect(s.controller.snapshot().notice).toContain('Demo trading cash added');
+    expect(s.controller.snapshot().notice).toContain('vault collateral are unchanged');
   });
   it('coalesces double confirmation and respects cancellation and review-stable polling', async () => {
     const s = setup(); await s.controller.reviewLedger({ kind: 'withdraw', amount: '1' });
@@ -246,7 +298,7 @@ describe('approved account presentation and coordination', () => {
     n.stub.reconcile.mockImplementation(async () => { n.setPending(null); return { state: nativeState(), pending: false, receipt: { kind: 'native-reward-claim', action: 'claim', hash: txhash, block: 10, status, rewardPaidWei: status === 'CONFIRMED' ? '1000' : '0' } }; });
     await c.refresh(); expect(c.snapshot().pending).toBeNull(); expect(c.snapshot().receipts[0].status).toBe(status);
     expect(c.snapshot().notice).toContain(status === 'CONFIRMED' ? 'confirmed and account synchronized' : 'reverted; no payout');
-    expect(render(c, '/risk')).toContain(status === 'CONFIRMED' ? '0.000000000000001 test DOGE paid' : 'No payout');
+    expect(render(c, '/vault')).toContain(status === 'CONFIRMED' ? '0.000000000000001 test DOGE paid' : 'No payout');
   });
   it('stopping a wallet wait preserves unknown durable state for hash recovery', async () => {
     const s = setup(), n = nativeStub(); n.stub.writesEnabled = true;
@@ -269,4 +321,73 @@ describe('approved account presentation and coordination', () => {
     expect(amountOk('1.001',6,2_000_000n,2)).toBe(false); expect(amountOk('1.01',6,1_009_999n,2)).toBe(false);
     expect(amountOk('1.01',6,1_010_000n,2)).toBe(true);
   });
+});
+
+
+describe('immediate trading controls',()=>{
+  it.each(['start','stop','close','strategy'] as const)('opens %s immediately during a stalled native refresh',async kind=>{
+    const s=setup(),n=nativeStub();n.stub.writesEnabled=true;
+    const c=new DashboardController(s.service,n.workflow,()=> 'instant-trading-review');await c.refresh();
+    let finish!:(value:NativeState)=>void;
+    n.stub.refresh.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+    const polling=c.poll();
+    const action=kind==='close'?{kind,positionId:'long-1',fraction:'1' as const}:kind==='strategy'?{kind,strategyStyle:'scalp' as const}:{kind};
+    const reviewing=c.reviewLedger(action);
+    expect(c.snapshot().review?.kind).toBe('preparing');
+    await reviewing;expect(c.snapshot().review?.kind).toBe('ledger');
+    await c.confirm();expect(c.snapshot().busy).toBe(false);
+    expect(s.calls.filter(r=>r.body)).toHaveLength(1);expect(n.stub.refresh).toHaveBeenCalledTimes(2);
+    finish(nativeState());await polling;c.stop();
+  });
+  it.each(['long','short'] as const)('keeps a %s position visible until a delayed close fills and blocks duplicate closes',async side=>{
+    vi.useFakeTimers();
+    const value=account();value.paper.positions[0].side=side;
+    const writes:ApiRequest[]=[];
+    const service=new AccountService(async request=>{
+      if(request.body){writes.push(request);value.paper.orders=[{id:'closing-order',status:'pending',payload:{positionId:'long-1',reduceOnly:true}}];return {id:'closing-order',status:'pending'};}
+      return structuredClone(value);
+    });service.setSession(context);
+    const c=new DashboardController(service,null,()=> 'delayed-close-key');
+    try{
+      await c.reviewLedger({kind:'close',positionId:'long-1',fraction:'1'});
+      await Promise.all([c.confirm(),c.confirm()]);
+      expect(writes).toHaveLength(1);expect(c.snapshot().account?.paper.positions).toHaveLength(1);
+      expect(c.snapshot().closing['long-1']).toBeTruthy();
+      await c.reviewLedger({kind:'close',positionId:'long-1',fraction:'1'});await c.confirm();
+      expect(writes).toHaveLength(1);c.cancelReview();
+      value.paper.positions=[];value.paper.orders[0].status='filled';
+      await vi.advanceTimersByTimeAsync(500);
+      expect(c.snapshot().account?.paper.positions).toHaveLength(0);expect(c.snapshot().closing).toEqual({});
+      expect(c.snapshot().notice).toBe('Trade closed.');
+    }finally{c.stop();vi.useRealTimers();}
+  });
+  it('reports a rejected close without hiding the position or resending',async()=>{
+    vi.useFakeTimers();const value=account();let sends=0;
+    const service=new AccountService(async r=>{if(r.body){sends++;return {id:'failed-close'};}return structuredClone(value);});service.setSession(context);
+    const c=new DashboardController(service,null,()=> 'rejected-close-key');
+    try{
+      await c.reviewLedger({kind:'close',positionId:'long-1',fraction:'1'});await c.confirm();
+      value.paper.orders=[{id:'failed-close',status:'rejected',error:'Market unavailable'}];
+      await vi.advanceTimersByTimeAsync(500);
+      expect(c.snapshot().account?.paper.positions).toHaveLength(1);expect(c.snapshot().closing).toEqual({});
+      expect(c.snapshot().error).toBe('Market unavailable');expect(sends).toBe(1);
+    }finally{c.stop();vi.useRealTimers();}
+  });
+  it('keeps fast reviews bound to the wallet and loan identity',async()=>{
+    const s=setup();await s.controller.reviewLedger({kind:'start'});
+    const changed=account();changed.health!.loan!.id='changed';s.set(changed);await s.controller.confirm();
+    expect(s.controller.snapshot().error).toContain('Loan or vault changed');
+    expect(s.calls.filter(r=>r.body)).toHaveLength(0);
+  });
+});
+
+
+it('keeps the vault-trading window open while its fresh review is pending',async()=>{
+  const s=setup(),n=nativeStub();n.stub.writesEnabled=true;
+  const c=new DashboardController(s.service,n.workflow);await c.refresh();
+  let finish!:(value:NativeReview)=>void;const original=await n.stub.review();
+  n.stub.review.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  const waiting=c.reviewNative({kind:'startTrading'});
+  expect(c.snapshot().review?.kind).toBe('preparingNative');
+  finish(original);await waiting;expect(c.snapshot().review?.kind).toBe('native');c.stop();
 });

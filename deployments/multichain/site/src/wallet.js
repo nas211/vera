@@ -37,7 +37,7 @@ export async function current(provider){
   if(!accounts?.[0])throw Error('Wallet disconnected');if(chain!==activeNetwork.chainId)throw Error('Switch to '+(activeNetwork.name||'DogeOS Chikyū Testnet'));
   return accounts[0].toLowerCase();
 }
-export async function prepareWallet(provider,network,{alreadyConnected=false,isCurrent=()=>true}={}){
+export async function prepareWallet(provider,network,{alreadyConnected=false,isCurrent=()=>true,selectAccount=false}={}){
   const check=()=>{if(!isCurrent())throw Error('Wallet changed');};
   check();
   if(activeNetwork.family==='solana'){
@@ -46,16 +46,31 @@ export async function prepareWallet(provider,network,{alreadyConnected=false,isC
   }
   // eth_accounts is empty until the user grants access on a first connection.
   // Native MyDoge has already completed its SDK approval and must not prompt twice.
-  if(!alreadyConnected)await provider.request({method:'eth_requestAccounts'});
+  let approved;
+  if(!alreadyConnected){
+    if(selectAccount){
+      try{await provider.request({method:'wallet_requestPermissions',params:[{eth_accounts:{}}]});}
+      catch(error){if(![-32601,4200].includes(Number(error?.code)))throw error;}
+      check();
+    }
+    const accounts=await provider.request({method:'eth_requestAccounts'});check();
+    if(!Array.isArray(accounts)||!/^0x[0-9a-f]{40}$/i.test(accounts[0]))throw Error('Wallet approval did not return an account. Reconnect.');
+    approved=accounts[0].toLowerCase();
+  }
   check();await ensureNetwork(provider,network);check();
-  const owner=await current(provider);check();return owner;
+  const owner=await current(provider);check();
+  if(approved&&owner!==approved)throw Error('Wallet changed after approval. Select the same account in your wallet and reconnect.');
+  return owner;
 }
 export async function authenticate(provider,api=request,onState=()=>{},options={}){
   const check=()=>{if(options.isCurrent&&!options.isCurrent())throw Error('Wallet changed');};
   onState('CONNECTING');check();
   const network=activeNetwork;
-  if(!options.alreadyConnected){if(network.family==='solana')await provider.connect();else await provider.request({method:'eth_requestAccounts'});}
-  const owner=await current(provider);const challenge=await api('/api/auth/nonce',{address:owner,chainId:network.chainId});
+  let expected=options.expectedAddress;
+  if(!options.alreadyConnected){if(network.family==='solana')await provider.connect();else {const approved=await provider.request({method:'eth_requestAccounts'});if(!Array.isArray(approved)||!/^0x[0-9a-f]{40}$/i.test(approved[0]))throw Error('Wallet approval did not return an account. Reconnect.');expected=approved[0].toLowerCase();}}
+  const owner=await current(provider);
+  if(expected&&owner!==expected)throw Error('Wallet changed after approval. Reconnect the account you selected.');
+  const challenge=await api('/api/auth/nonce',{address:owner,chainId:network.chainId});
   check();if(await current(provider)!==owner)throw Error('Wallet changed');
   onState('SIGNING');
   const hex='0x'+Array.from(new TextEncoder().encode(challenge.message),b=>b.toString(16).padStart(2,'0')).join('');

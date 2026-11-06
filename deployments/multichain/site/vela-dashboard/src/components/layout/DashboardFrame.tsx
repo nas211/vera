@@ -11,7 +11,7 @@ const NAV = [
   { to: '/risk', label: 'Risk & Activity', icon: Activity },
 ];
 
-export function DashboardFrame({ banner, wallet, children, footer }: { banner: ReactNode; wallet: ReactNode; children: ReactNode; footer: ReactNode }) {
+export function DashboardFrame({ banner, wallet, children, footer, basePath='' }: { banner: ReactNode; wallet: ReactNode; children: ReactNode; footer: ReactNode; basePath?: string }) {
   return (
     <div className="bg-atmosphere grain min-h-screen">
       {banner}
@@ -25,7 +25,7 @@ export function DashboardFrame({ banner, wallet, children, footer }: { banner: R
         </div>
         <nav className="container -mb-px flex gap-1 overflow-x-auto" aria-label="Sections">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => cn(
+            <NavLink key={to} to={basePath+to} end={to === '/'} className={({ isActive }) => cn(
               'interactive flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-xs font-medium sm:text-sm',
               isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
             )}>

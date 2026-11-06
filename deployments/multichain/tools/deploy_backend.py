@@ -69,16 +69,20 @@ def ledger_state(path):
         identities = {digest((str(row[0])+':'+str(row[1])).encode()) for row in db.execute('SELECT address,session FROM users')}
         positions = db.execute('SELECT COUNT(*) FROM positions').fetchone()[0]
         pending = db.execute("SELECT COUNT(*) FROM paper_orders WHERE status='pending'").fetchone()[0]
+        autonomous = sum(bool(json.loads(r[0]).get('autonomous')) for r in
+                         db.execute("SELECT value FROM kv WHERE key LIKE 'paper-prefs:%'"))
         exposure = [db.execute('SELECT * FROM '+table+' ORDER BY rowid').fetchall()
                     for table in ('positions','paper_orders')]
         return dict(inode=(info.st_dev, info.st_ino), counts=counts, identities=identities,
-                    positions=positions, pending=pending, exposureDigest=digest(json.dumps(exposure).encode()))
+                    positions=positions, pending=pending, autonomous=autonomous, exposureDigest=digest(json.dumps(exposure).encode()))
     finally:
         db.close()
 
 
 def assert_idle(state, preserve_paper_positions=False):
-    if (state['positions'] and not preserve_paper_positions) or state['pending']:
+    # Preserving rows cannot preserve market/funding continuity during restart.
+    # Keep the argument for old callers, but never permit an open-position restart.
+    if state['positions'] or state['pending'] or state.get('autonomous', 0):
         raise RuntimeError('Wait for an idle paper ledger; deployment never force-closes positions or cancels orders')
 
 
@@ -308,7 +312,7 @@ def main():
     parser.add_argument('--repair-model-error', action='store_true',
                         help='Allow only the known model-loop error before repair; require healthy acceptance afterward')
     parser.add_argument('--preserve-paper-positions', action='store_true',
-                        help='Permit a controlled PAPER-only restart with open positions; refuse pending orders and verify exposure is unchanged during overlay')
+                        help='Deprecated compatibility flag; open positions, pending orders and running traders always block restart')
     args = parser.parse_args()
     os.umask(0o077)
     if os.geteuid() != 0:raise SystemExit('Existing root-owned Vela service access is required')

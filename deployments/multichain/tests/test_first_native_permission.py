@@ -18,7 +18,7 @@ def test_first_permission_can_be_reviewed_without_enabling_execution(env):
     changes = env['db'].total_changes
     assert paper.authorization_budget(owner) == '2000000'
     assert paper.permission(owner)['maxLoss'] == '0'
-    with pytest.raises(ValueError, match='on-chain agent authorization'):
+    with pytest.raises(ValueError, match='paper trading permission'):
         paper.gate(owner)
     assert env['db'].total_changes == changes
 

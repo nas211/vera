@@ -16,6 +16,14 @@ function setup() {
 }
 
 describe('authoritative service boundary', () => {
+  it('validates and preserves the reported test valuation, LTV limits and separate demo liquidity', () => {
+    const a=account();
+    Object.assign(a.health!, {price:'1.00',maxLtv:'0.70',maxTradingLtv:'0.80',liquidationThreshold:'0.85',borrowCapacity:'7',
+      lendingLiquidity:{currency:'demo USD',cash:'1000000',reserved:'200000',available:'800000',source:'Simulated lending ledger'}});
+    expect(validateAccount(a,context).health).toEqual(a.health);
+    a.health!.lendingLiquidity!.available='NaN';
+    expect(()=>validateAccount(a,context)).toThrow('risk amount');
+  });
   it('requires an authenticated context and never substitutes fixture balances', async () => {
     const service = new AccountService(async () => account());
     await expect(service.refresh()).rejects.toThrow('context');

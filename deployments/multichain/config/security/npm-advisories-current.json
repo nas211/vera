@@ -1,0 +1,1020 @@
+{
+  "observedAt": "2026-11-06T00:33:12.103Z",
+  "endpoint": "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+  "responses": {
+    "site": {
+      "bn.js": [
+        {
+          "id": 1113441,
+          "url": "https://github.com/advisories/GHSA-378v-28hj-76wf",
+          "title": "bn.js affected by an infinite loop",
+          "severity": "moderate",
+          "vulnerable_versions": ">=5.0.0 <5.2.3",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          }
+        },
+        {
+          "id": 1113442,
+          "url": "https://github.com/advisories/GHSA-378v-28hj-76wf",
+          "title": "bn.js affected by an infinite loop",
+          "severity": "moderate",
+          "vulnerable_versions": "<4.12.3",
+          "cwe": [
+            "CWE-835"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          }
+        }
+      ],
+      "ws": [
+        {
+          "id": 1119108,
+          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+          "title": "ws: Uninitialized memory disclosure",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <8.20.1",
+          "cwe": [
+            "CWE-908"
+          ],
+          "cvss": {
+            "score": 4.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N"
+          }
+        },
+        {
+          "id": 1123259,
+          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+          "severity": "high",
+          "vulnerable_versions": ">=8.0.0 <8.21.0",
+          "cwe": [
+            "CWE-400",
+            "CWE-770",
+            "CWE-1050"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        }
+      ],
+      "axios": [
+        {
+          "id": 1118607,
+          "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj",
+          "title": "Axios has prototype pollution read-side gadgets in HTTP adapter that allow credential injection and request hijacking",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.15.2",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          }
+        },
+        {
+          "id": 1119404,
+          "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx",
+          "title": "Axios has Unrestricted Cloud Metadata Exfiltration via Header Injection Chain",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.0",
+          "cwe": [
+            "CWE-113",
+            "CWE-444",
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          }
+        },
+        {
+          "id": 1120125,
+          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9",
+          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        },
+        {
+          "id": 1120547,
+          "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf",
+          "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.16.0",
+          "cwe": [
+            "CWE-400",
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        },
+        {
+          "id": 1120643,
+          "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf",
+          "title": "Allocation of Resources Without Limits or Throttling in Axios",
+          "severity": "high",
+          "vulnerable_versions": ">=1.7.0 <1.16.0",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        },
+        {
+          "id": 1120645,
+          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v",
+          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.16.0",
+          "cwe": [
+            "CWE-201"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1120647,
+          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc",
+          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.16.0",
+          "cwe": [
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          }
+        },
+        {
+          "id": 1120649,
+          "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw",
+          "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.15.2",
+          "cwe": [
+            "CWE-94",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L"
+          }
+        },
+        {
+          "id": 1120650,
+          "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh",
+          "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.16.0",
+          "cwe": [
+            "CWE-441",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 8.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:N"
+          }
+        },
+        {
+          "id": 1120652,
+          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg",
+          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.16.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:L"
+          }
+        },
+        {
+          "id": 1116673,
+          "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5",
+          "title": "Axios has a NO_PROXY Hostname Normalization Bypass that Leads to SSRF",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.0",
+          "cwe": [
+            "CWE-441",
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          }
+        },
+        {
+          "id": 1117574,
+          "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63",
+          "title": "Axios: Authentication Bypass via Prototype Pollution Gadget in `validateStatus` Merge Strategy",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-287",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 4.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N"
+          }
+        },
+        {
+          "id": 1117576,
+          "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7",
+          "title": "Axios: Incomplete Fix for CVE-2025-62718 — NO_PROXY Protection Bypassed via RFC 1122 Loopback Subnet (127.0.0.0/8) in Axios 1.15.0",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-183",
+            "CWE-441",
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 7.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:N"
+          }
+        },
+        {
+          "id": 1117577,
+          "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23",
+          "title": "Axios: Invisible JSON Response Tampering via Prototype Pollution Gadget in `parseReviver`",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.2",
+          "cwe": [
+            "CWE-915",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 6.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:N"
+          }
+        },
+        {
+          "id": 1117580,
+          "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw",
+          "title": "Axios: Null Byte Injection via Reverse-Encoding in AxiosURLSearchParams",
+          "severity": "low",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-116",
+            "CWE-626"
+          ],
+          "cvss": {
+            "score": 3.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          }
+        },
+        {
+          "id": 1117581,
+          "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77",
+          "title": "Axios: CRLF Injection in multipart/form-data body via unsanitized blob.type in formDataToStream",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-93"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          }
+        },
+        {
+          "id": 1117583,
+          "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm",
+          "title": "Axios: no_proxy bypass via IP alias allows SSRF",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 6.8,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:N/A:N"
+          }
+        },
+        {
+          "id": 1117587,
+          "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx",
+          "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          }
+        },
+        {
+          "id": 1117589,
+          "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99",
+          "title": "Axios: HTTP adapter streamed responses bypass maxContentLength",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+          }
+        },
+        {
+          "id": 1117591,
+          "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf",
+          "title": "Axios: Prototype Pollution Gadgets - Response Tampering, Data Exfiltration, and Request Hijacking",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          }
+        },
+        {
+          "id": 1117593,
+          "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9",
+          "title": "Axios: Header Injection via Prototype Pollution",
+          "severity": "high",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-113",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          }
+        },
+        {
+          "id": 1117595,
+          "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c",
+          "title": "Axios: XSRF Token Cross-Origin Leakage via Prototype Pollution Gadget in `withXSRFToken` Boolean Coercion",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.15.1",
+          "cwe": [
+            "CWE-183",
+            "CWE-201"
+          ],
+          "cvss": {
+            "score": 5.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N"
+          }
+        },
+        {
+          "id": 1147949,
+          "url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx",
+          "title": "Axios: Prototype pollution gadgets can alter axios request construction",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.18.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1147950,
+          "url": "https://github.com/advisories/GHSA-pmv8-rq9r-6j72",
+          "title": "Axios: Deep formToJSON Key Recursion Can Cause Denial of Service",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.18.0",
+          "cwe": [
+            "CWE-400",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1153175,
+          "url": "https://github.com/advisories/GHSA-mwf2-3pr3-8698",
+          "title": "Axios: HTTP/2 streamed uploads bypass `maxBodyLength`",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.13.0 <1.18.0",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1153180,
+          "url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq",
+          "title": "Axios: Nested axios option objects can consume polluted prototype values",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.18.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1153182,
+          "url": "https://github.com/advisories/GHSA-jqh4-m9w3-8hp9",
+          "title": "Axios: Fetch adapter `ReadableStream` uploads bypass `maxBodyLength`",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.7.0 <1.18.0",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1153185,
+          "url": "https://github.com/advisories/GHSA-42h9-826w-cgv3",
+          "title": "Axios: Excessive recursion in formDataToJSON can cause denial of service",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.18.0",
+          "cwe": [
+            "CWE-400",
+            "CWE-674"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240600,
+          "url": "https://github.com/advisories/GHSA-vh66-26gq-q6x8",
+          "title": "Axios: Prototype pollution gadget in fetch adapter can alter outbound requests",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.7.0 <1.20.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240601,
+          "url": "https://github.com/advisories/GHSA-9fr6-4gfg-395g",
+          "title": "Axios: Prototype-Pollution Gadget in the Default Instance Allows Inherited Object.prototype.method to Override HTTP Method",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.20.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240607,
+          "url": "https://github.com/advisories/GHSA-3pq3-5fj3-cg6v",
+          "title": "Axios: HTTP/2 adapter bypasses configured DNS lookup and proxy controls",
+          "severity": "high",
+          "vulnerable_versions": ">=1.13.0 <1.20.0",
+          "cwe": [
+            "CWE-918"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240608,
+          "url": "https://github.com/advisories/GHSA-542g-h47m-68v8",
+          "title": "Axios: Denial of Service via Unhandled 'error' Event in HTTP/2 ClientHttp2Session Initialization",
+          "severity": "high",
+          "vulnerable_versions": ">=1.13.0 <1.20.0",
+          "cwe": [
+            "CWE-400"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240626,
+          "url": "https://github.com/advisories/GHSA-j8rh-479h-cp32",
+          "title": "Axios: Header Injection via Inherited headers After Minimal Interceptor",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.0.0 <1.20.0",
+          "cwe": [
+            "CWE-74",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1240627,
+          "url": "https://github.com/advisories/GHSA-4hqw-qxg8-jxx2",
+          "title": "Axios: Fetch Adapter Header Injection via Inherited FormData getHeaders",
+          "severity": "moderate",
+          "vulnerable_versions": ">=1.12.0 <1.20.0",
+          "cwe": [
+            "CWE-74",
+            "CWE-693",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ],
+      "bigint-buffer": [
+        {
+          "id": 1103747,
+          "url": "https://github.com/advisories/GHSA-3gc7-fjrx-p6mg",
+          "title": "bigint-buffer Vulnerable to Buffer Overflow via toBigIntLE() Function",
+          "severity": "high",
+          "vulnerable_versions": "<=1.1.5",
+          "cwe": [
+            "CWE-120"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        }
+      ],
+      "deepmerge": [
+        {
+          "id": 1243505,
+          "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+          "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+          "severity": "low",
+          "vulnerable_versions": ">=4.2.0 <=4.3.1",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          }
+        }
+      ],
+      "elliptic": [
+        {
+          "id": 1112030,
+          "url": "https://github.com/advisories/GHSA-848j-6mx2-7j84",
+          "title": "Elliptic Uses a Cryptographic Primitive with a Risky Implementation",
+          "severity": "low",
+          "vulnerable_versions": "<=6.6.1",
+          "cwe": [
+            "CWE-1240"
+          ],
+          "cvss": {
+            "score": 5.6,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L"
+          }
+        }
+      ],
+      "follow-redirects": [
+        {
+          "id": 1244003,
+          "url": "https://github.com/advisories/GHSA-mrwp-f3q8-3g9p",
+          "title": "follow-redirects: Cross-realm sensitiveHeaders arrays are discarded and custom credentials can follow redirects",
+          "severity": "high",
+          "vulnerable_versions": ">=1.16.0 <=1.16.1",
+          "cwe": [
+            "CWE-201"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          }
+        }
+      ],
+      "uuid": [
+        {
+          "id": 1119441,
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "moderate",
+          "vulnerable_versions": "<11.1.1",
+          "cwe": [
+            "CWE-787",
+            "CWE-1285"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          }
+        },
+        {
+          "id": 1119442,
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "moderate",
+          "vulnerable_versions": ">=13.0.0 <13.0.1",
+          "cwe": [
+            "CWE-787",
+            "CWE-1285"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          }
+        }
+      ],
+      "stream-json": [
+        {
+          "id": 1241262,
+          "url": "https://github.com/advisories/GHSA-hqr4-qq8f-hg3x",
+          "title": "stream-json: JSONC parser and verifier re-scan the whole accumulated comment on every input chunk",
+          "severity": "moderate",
+          "vulnerable_versions": "<=3.5.0",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 6.2,
+            "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        },
+        {
+          "id": 1241263,
+          "url": "https://github.com/advisories/GHSA-mjw6-4jj6-33hc",
+          "title": "stream-json has a prototype pollution issue: Assembler writes this.current[this.key] on plain objects",
+          "severity": "moderate",
+          "vulnerable_versions": "<3.6.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 5.1,
+            "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L"
+          }
+        },
+        {
+          "id": 1164823,
+          "url": "https://github.com/advisories/GHSA-528h-pc64-c93x",
+          "title": "stream-json: pick/ignore/filter/replace filters are O(depth²) on nested input — small crafted JSON blocks the event loop for seconds→minutes (DoS)",
+          "severity": "moderate",
+          "vulnerable_versions": "<=3.4.0",
+          "cwe": [
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 6.2,
+            "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        }
+      ],
+      "valibot": [
+        {
+          "id": 1110992,
+          "url": "https://github.com/advisories/GHSA-vqpr-j7v3-hqw9",
+          "title": "Valibot has a ReDoS vulnerability in `EMOJI_REGEX`",
+          "severity": "high",
+          "vulnerable_versions": ">=0.31.0 <1.2.0",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        },
+        {
+          "id": 1124298,
+          "url": "https://github.com/advisories/GHSA-5qjj-4xww-7phc",
+          "title": "Valibot: record() issue paths can make flatten() throw for inherited Object property names",
+          "severity": "moderate",
+          "vulnerable_versions": "<=1.4.1",
+          "cwe": [
+            "CWE-755"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ]
+    },
+    "site/vela-dashboard": {
+      "uuid": [
+        {
+          "id": 1119441,
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "severity": "moderate",
+          "vulnerable_versions": "<11.1.1",
+          "cwe": [
+            "CWE-787",
+            "CWE-1285"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          }
+        }
+      ],
+      "zod": [
+        {
+          "id": 1243066,
+          "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+          "title": "Zod can exhaust memory while validating oversized constrained collections",
+          "severity": "high",
+          "vulnerable_versions": "<4.6.6",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          }
+        }
+      ],
+      "minimatch": [
+        {
+          "id": 1244623,
+          "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+          "title": "minimatch has potential denial of service via globparts amplification",
+          "severity": "moderate",
+          "vulnerable_versions": ">=7.0.0 <11.0.1",
+          "cwe": [
+            "CWE-405"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ],
+      "@vitest/mocker": [
+        {
+          "id": 1193684,
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "moderate",
+          "vulnerable_versions": ">=2.1.0 <4.1.11",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          }
+        },
+        {
+          "id": 1242767,
+          "url": "https://github.com/advisories/GHSA-qxg6-89mg-rqv8",
+          "title": "Vitest: Code injection via unauthenticated manual mock registration",
+          "severity": "moderate",
+          "vulnerable_versions": ">=2.1.0-beta.7 <4.1.12",
+          "cwe": [
+            "CWE-94",
+            "CWE-116",
+            "CWE-306"
+          ],
+          "cvss": {
+            "score": 4.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          }
+        }
+      ],
+      "decode-uri-component": [
+        {
+          "id": 1243857,
+          "url": "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+          "title": "decode-uri-component vulnerable to denial of service via quadratic replacement of percent-encoded runs",
+          "severity": "high",
+          "vulnerable_versions": "<=0.5.0",
+          "cwe": [
+            "CWE-400",
+            "CWE-407"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1147955,
+          "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+          "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+          "severity": "moderate",
+          "vulnerable_versions": "<=0.4.2",
+          "cwe": [
+            "CWE-400",
+            "CWE-405",
+            "CWE-407",
+            "CWE-1176"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ],
+      "deepmerge": [
+        {
+          "id": 1243505,
+          "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+          "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+          "severity": "low",
+          "vulnerable_versions": ">=4.2.0 <=4.3.1",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          }
+        }
+      ],
+      "tinypool": [
+        {
+          "id": 1241260,
+          "url": "https://github.com/advisories/GHSA-5gmw-xhrv-c9v3",
+          "title": "Tinypool: Prototype Pollution gadget in worker options leads to Remote Code Execution",
+          "severity": "critical",
+          "vulnerable_versions": "<=2.1.0",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1241261,
+          "url": "https://github.com/advisories/GHSA-85c8-ppgw-ccpr",
+          "title": "Tinypool: Prototype Pollution Gadget to RCE in run() options",
+          "severity": "critical",
+          "vulnerable_versions": "<2.1.2",
+          "cwe": [
+            "CWE-94",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ],
+      "vite": [
+        {
+          "id": 1120786,
+          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3",
+          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <=8.0.15",
+          "cwe": [
+            "CWE-73",
+            "CWE-522"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1242726,
+          "url": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw",
+          "title": "Vite: Cross origin script execution through Vite custom middleware",
+          "severity": "low",
+          "vulnerable_versions": ">=8.0.0 <=8.1.5",
+          "cwe": [
+            "CWE-80"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1242732,
+          "url": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22",
+          "title": "Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <=8.1.5",
+          "cwe": [
+            "CWE-22",
+            "CWE-284"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1242624,
+          "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+          "title": "launch-editor: escapeCmdArgs() omits % escaping on Windows",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <=8.1.5",
+          "cwe": [
+            "CWE-78"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1242653,
+          "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+          "title": "launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <=8.1.5",
+          "cwe": [
+            "CWE-88"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1242660,
+          "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+          "title": "launch-editor: `fs.existsSync()` existence check can be bypassed on Windows",
+          "severity": "high",
+          "vulnerable_versions": ">=8.0.0 <=8.1.5",
+          "cwe": [
+            "CWE-77"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        },
+        {
+          "id": 1243434,
+          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+          "severity": "moderate",
+          "vulnerable_versions": ">=8.0.0 <=8.0.15",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          }
+        }
+      ],
+      "vitest": [
+        {
+          "id": 1193683,
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "moderate",
+          "vulnerable_versions": ">=2.1.0 <4.1.11",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          }
+        }
+      ]
+    },
+    "site/products-toolchain": {}
+  }
+}

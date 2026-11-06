@@ -1,0 +1,40 @@
+{
+  "asOf": "2026-11-06",
+  "app": "https://defivela.xyz/",
+  "frontendRelease": "vela-app-8a5ec923157b-6b872caca0cf",
+  "backendFingerprint": "1fd2215cd96d7fb939716af7ba5ffb078abd011767d8052e514260d7400e9d1d",
+  "chainId": 6281971,
+  "market": "0xB0D753703B1a207bC980b3667C007fd5c2F26573",
+  "execution": "PAPER",
+  "lending": "NATIVE_TESTNET_DOGE",
+  "conversion": "SIMULATED_1_DEMO_USDC_TO_1_TEST_DOGE",
+  "repaymentWorkerDeployed": true,
+  "repaymentReserveFundedDoge": "10",
+  "frontendPublishedFilesVerified": 14,
+  "tests": {
+    "walletAuthentication": 46,
+    "mobileLoanAndTheme": 25,
+    "releasePackaging": 13,
+    "latestLendingBrowserCases": 10,
+    "repaymentPolicyAndApi": 12,
+    "localEvmRepaymentAndRecovery": true,
+    "scope": "Results from separate recent implementation stages, not one whole-repository rerun"
+  },
+  "noah": {
+    "project": "https://trynoah.ai/playground/6aeb352f7d19514dabedc93a",
+    "updated": "Reported saved by owner browser extension",
+    "independentlyInspected": false,
+    "testsAndProductionBuildReported": false,
+    "exportRetrieved": false,
+    "profilePictureReportedPresent": false
+  },
+  "verification": {
+    "ownerReportsLendingCycleComplete": true,
+    "publicAutomaticNativeProfitRepayment": false,
+    "publicAutomaticNativeProfitRepaymentObservation": "Deferred by owner",
+    "physicalMobileWalletApproval": false,
+    "realExchangeProtection": false
+  },
+  "publicationChangesDeployment": false,
+  "stopBudget": "Stricter existing or maximum $2 fee-inclusive per position; no guarantee against slippage or funding"
+}

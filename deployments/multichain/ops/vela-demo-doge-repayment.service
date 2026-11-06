@@ -1,0 +1,21 @@
+[Unit]
+Description=Vela test-DOGE demo profit repayment relay
+After=network-online.target vela-multichain-candidate.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/VellaMultichain
+Environment=PYTHONPATH=/root/VellaMultichain/backend
+ExecStart=/root/VellaMultichain/.venv/bin/python -m autodefi.demo_doge_relay
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/root/VellaMultichain/.runtime
+
+[Install]
+WantedBy=multi-user.target

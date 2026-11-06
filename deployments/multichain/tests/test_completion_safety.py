@@ -86,9 +86,9 @@ def test_pending_model_preflight_cannot_restore_revoked_consent(env, interrupt):
                 await release.wait()
                 return {'verdict': 'delay'}
             app.state.runtime.run_blocking = preflight
-            start = asyncio.create_task(client.post('/api/trading/start', json={}))
+            start = asyncio.create_task(client.post('/api/trading/start', json={'confirm':True}))
             await entered.wait()
-            duplicate = await client.post('/api/trading/start', json={})
+            duplicate = await client.post('/api/trading/start', json={'confirm':True})
             assert duplicate.status_code == 409
             if interrupt in ('stop', 'logout'):
                 route = '/api/trading/stop' if interrupt == 'stop' else '/api/logout'

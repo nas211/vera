@@ -63,16 +63,19 @@ return {
       this.emitFile({ type: 'asset', fileName: 'source-manifest.json', source: JSON.stringify(provenance, null, 2) + '\n' });
     },
   }],
-  base: './',
+  base: testnet ? '/app/' : './',
   build: {
     outDir: testnet ? 'dist-testnet' : 'dist',
     rollupOptions: { input },
   },
   resolve: {
-    dedupe: ['react', 'react-dom'],
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
+    dedupe: ['react', 'react-dom', 'tailwindcss', 'framer-motion'],
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "src") },
+      { find: /^deepmerge$/, replacement: path.resolve(__dirname, 'src/lib/vendor/deepmerge.js') },
+      { find: /^@dogeos\/dogeos-sdk\/style\.css$/, replacement: path.resolve(__dirname, "src/lib/vela/dogeosStyles.ts") },
+      ...(testnet ? [{ find: 'wagmi/connectors', replacement: path.resolve(__dirname, '../src/injected-connector.js') }] : []),
+    ],
   },
 };
 });

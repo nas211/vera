@@ -30,7 +30,29 @@ def test_account_package_has_distinct_identity_same_origin_api_and_no_sample_ent
     nginx=(out/'nginx-testnet.conf.pending').read_text()
     assert 'location = /app/' in nginx and "connect-src 'self'" in nginx
     assert 'location = / {' not in nginx and 'proxy_pass' not in nginx
+    assert 'location = /settings {' in nginx and 'location = /app/borrow {' in nginx
     with pytest.raises(FileExistsError):build(dashboard,out)
+
+
+def test_old_hosting_remains_verifiable_and_new_routes_use_same_app_assets(tmp_path):
+    from tools.build_noah_testnet import hosting, sha
+    dashboard=fixture_account(tmp_path);out=tmp_path/'account';manifest=build(dashboard,out)
+    old=hosting(manifest['release']['releaseId'],1)
+    assert '/settings' not in old
+    (out/'nginx-testnet.conf.pending').write_text(old)
+    manifest.pop('hostingVersion');manifest['nginxSha256']=sha(old.encode())
+    (out/'package.json').write_text(json.dumps(manifest))
+    assert verify(out)['verified']
+    html=dashboard/'dist-testnet/vela.html'
+    html.write_text(html.read_text().replace('./assets/account.js','/app/assets/account.js'))
+    new=build(dashboard,tmp_path/'direct-routes')
+    assert new['hostingVersion']==3
+    latest=(tmp_path/'direct-routes/nginx-testnet.conf.pending').read_text()
+    assert 'frame-src https://embedded-wallet.mydoge.com https://wallet.mydoge.com;' in latest
+    assert "script-src 'self';" in latest
+    assert 'https://*.mydoge.com' not in latest
+    previous=hosting(manifest['release']['releaseId'],2)
+    assert '/settings' in previous and 'frame-src' not in previous
 
 
 @pytest.mark.parametrize('change',['shared_wallet','source','profile','missing_asset','extra','symlink'])

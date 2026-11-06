@@ -22,6 +22,7 @@ def ledger(root):
         db.executescript('''
           PRAGMA journal_mode=WAL;
           CREATE TABLE users(address TEXT,session TEXT);
+          CREATE TABLE kv(key TEXT PRIMARY KEY,value TEXT);
           INSERT INTO users VALUES ('fixture-owner','fixture-session');
           CREATE TABLE trades(value TEXT);
           CREATE TABLE loan_events(value TEXT);
@@ -128,13 +129,15 @@ def test_second_ledger_owner_prevents_overlay_after_service_stop(release):
         assert host.events == ['preflight', 'stop', 'start']
 
 
-def test_explicit_paper_restart_preserves_open_exposure_but_not_pending_orders(release):
+def test_legacy_preserve_option_cannot_restart_with_open_positions(release):
     folder,target,recovery,path=release
     with sqlite3.connect(path) as db:db.execute("INSERT INTO positions VALUES ('existing-position')")
     before=ledger_state(path)
-    result=deploy(folder,target,recovery,host=FakeHost(target),apply=True,preserve_paper_positions=True)
-    assert result['existingPaperPositionsPreservedDuringOverlay']==1
+    host=FakeHost(target)
+    with pytest.raises(RuntimeError,match='idle paper ledger'):
+        deploy(folder,target,recovery,host=host,apply=True,preserve_paper_positions=True)
     assert ledger_state(path)==before
+    assert host.events==['preflight'] and not recovery.exists()
 
 
 def test_explicit_paper_restart_still_rejects_pending_orders(release):
@@ -143,6 +146,16 @@ def test_explicit_paper_restart_still_rejects_pending_orders(release):
     host=FakeHost(target)
     with pytest.raises(RuntimeError,match='idle paper ledger'):
         deploy(folder,target,recovery,host=host,apply=True,preserve_paper_positions=True)
+    assert host.events==['preflight'] and not recovery.exists()
+
+
+def test_running_trader_blocks_restart_even_before_its_first_position(release):
+    folder,target,recovery,path=release
+    with sqlite3.connect(path) as db:
+        db.execute('INSERT INTO kv VALUES (?,?)', ('paper-prefs:fixture-owner', json.dumps(dict(autonomous=True))))
+    host=FakeHost(target)
+    with pytest.raises(RuntimeError,match='idle paper ledger'):
+        deploy(folder,target,recovery,host=host,apply=True)
     assert host.events==['preflight'] and not recovery.exists()
 
 

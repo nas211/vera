@@ -87,7 +87,7 @@ location ^~ /vela-preview/ {{
 '''
 
 
-def validate_html(files, source_id, entries=('preview.html', 'vela.html')):
+def validate_html(files, source_id, entries=('preview.html', 'vela.html'), asset_prefix=None):
     for entry in entries:
         html = files[entry].decode()
         if f'name="vela-source-id" content="{source_id}"' not in html:
@@ -98,7 +98,8 @@ def validate_html(files, source_id, entries=('preview.html', 'vela.html')):
             remote = urlsplit(target)
             if remote.scheme == 'https' and remote.hostname in ('fonts.googleapis.com', 'fonts.gstatic.com') and not remote.username and remote.port in (None, 443):
                 continue
-            if not target.startswith('./') or target[2:] not in files:
+            local=target[2:] if target.startswith('./') else target[len(asset_prefix):] if asset_prefix and target.startswith(asset_prefix) else None
+            if local not in files:
                 raise ValueError('Missing or non-local entry asset: ' + target)
 
 

@@ -1,0 +1,9 @@
+Continue the SAME Noah project: https://trynoah.ai/playground/6aeb352f7d19514dabedc93a
+
+Current public app: https://defivela.xyz/app/
+Homepage: https://defivela.xyz/
+Trading: https://defivela.xyz/app/trading
+Settings: https://defivela.xyz/settings
+Current code: deployments/multichain in https://github.com/nas211/vera
+
+Read STATUS.json and the current repository README for deployed features and verification limits. The owner reports the latest frontend checkpoint was saved in Noah. The actual preview URL and export have not been retrieved into this repository. Do not create a new project or claim an independent Noah build check.

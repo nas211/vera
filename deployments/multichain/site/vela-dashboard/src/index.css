@@ -47,6 +47,32 @@
     --sidebar-border: 82.50 8.51% 18.43%;
     --sidebar-ring: 39.43 66.88% 69.22%;
   }
+  :root[data-theme="day"] {
+    color-scheme: light;
+    --background: 45 30% 96%;
+    --foreground: 80 12% 12%;
+    --card: 45 35% 99%;
+    --card-foreground: 80 12% 12%;
+    --popover: 45 35% 99%;
+    --popover-foreground: 80 12% 12%;
+    --primary: 38 70% 32%;
+    --primary-foreground: 45 35% 99%;
+    --secondary: 45 20% 90%;
+    --secondary-foreground: 80 12% 15%;
+    --muted: 45 20% 91%;
+    --muted-foreground: 80 6% 38%;
+    --accent: 42 35% 88%;
+    --accent-foreground: 38 70% 26%;
+    --destructive: 2 65% 40%;
+    --warning: 35 85% 30%;
+    --success: 135 45% 28%;
+    --border: 45 14% 80%;
+    --input: 45 14% 74%;
+    --ring: 38 70% 32%;
+    --glass-bg: 45 35% 99% / 0.96;
+    --glass-border: 45 14% 80% / 0.95;
+    --shadow-panel: 0 12px 28px -20px hsl(40 30% 20% / 0.18);
+  }
 }
 
 @layer base {
@@ -65,6 +91,9 @@
       radial-gradient(60rem 30rem at 12% -10%, hsl(var(--glow-primary)), transparent 60%),
       radial-gradient(40rem 24rem at 100% 0%, hsl(80 15% 20% / 0.05), transparent 60%),
       linear-gradient(180deg, hsl(80 12% 6%), hsl(var(--background)) 40%);
+  }
+  [data-theme="day"] .bg-atmosphere {
+    background-image: radial-gradient(60rem 30rem at 12% -10%, hsl(40 70% 70% / 0.12), transparent 60%);
   }
   .grain::after {
     content: '';

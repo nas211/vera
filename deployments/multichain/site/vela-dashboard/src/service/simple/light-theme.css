@@ -1,0 +1,43 @@
+/* Approved light preview, applied only to Day mode. */
+:root:not([data-theme="night"]){color-scheme:light;--background:45 44% 96%;--foreground:133 10% 15%;--card:50 100% 99%;--card-foreground:133 10% 15%;--popover:50 100% 99%;--popover-foreground:133 10% 15%;--primary:75 88% 71%;--primary-foreground:96 29% 16%;--secondary:262 45% 93%;--secondary-foreground:265 21% 35%;--muted:54 24% 93%;--muted-foreground:109 6% 42%;--accent:262 45% 93%;--accent-foreground:265 24% 39%;--border:67 16% 84%;--input:67 16% 80%;--ring:264 31% 60%;--success:145 33% 34%;--destructive:8 59% 43%}:root:not([data-theme="night"]) body{background:#faf8f2}:root:not([data-theme="night"]) .simple-app{--s-bg:#faf8f2;--s-card:#fffefa;--s-ink:#232b25;--s-muted:#657064;--s-line:#dedfd4;--s-soft:#f6f5ed;--s-gold:#b9d665;--s-button:#d8f776;font-family:Inter,ui-sans-serif,system-ui,sans-serif}:root:not([data-theme="night"]) .simple-header{background:#fffefa}:root:not([data-theme="night"]) .simple-logo svg path{fill:#ed725b}:root:not([data-theme="night"]) .simple-navlink.active{border-color:#a798d3;color:#383047}:root:not([data-theme="night"]) .simple-main .glass{border-radius:18px;box-shadow:0 8px 24px #3e442b06}:root:not([data-theme="night"]) .simple-main .simple-position{background:linear-gradient(140deg,#f1f6e5,#fffefa 48%)}:root:not([data-theme="night"]) .simple-main .simple-action{background:linear-gradient(135deg,#f1ebfc44,#fffefa 48%)}:root:not([data-theme="night"]) .simple-health{color:#3f6f48;background:#e3efde}:root:not([data-theme="night"]) .simple-steps b{background:#eae4f7;color:#775c96;border-color:#d9cdea}:root:not([data-theme="night"]) .simple-eyebrow{color:#796293}:root:not([data-theme="night"]) .simple-primary{background:#d8f776;color:#28321d;border:1px solid #c4df85;border-radius:100px;box-shadow:0 3px 0 #e3e8d0;font-weight:650}:root:not([data-theme="night"]) .simple-primary:hover{background:#ccef62}:root:not([data-theme="night"]) .simple-secondary{background:#fffefa;border-color:#d7d9ca;border-radius:100px;box-shadow:0 2px 0 #e8eadf}:root:not([data-theme="night"]) .simple-amount{background:#f6f4ee;border-radius:12px}:root:not([data-theme="night"]) .simple-amount button{border-radius:100px;padding:4px 10px;background:#eee8fb;border-color:#dcd1ee;color:#5d487b}:root:not([data-theme="night"]) .simple-tabs button.selected{border-color:#aa93cf;color:#5c467d}:root:not([data-theme="night"]) .simple-meter{background:#e5e8d9}:root:not([data-theme="night"]) .simple-meter>span{background:#bdcf88}:root:not([data-theme="night"]) .simple-main .simple-proceeds{background:#edf4df;border-color:#d4e2bf}:root:not([data-theme="night"]) .simple-main .simple-trading{background:#eee8fb;border-color:#dcd1ee}:root:not([data-theme="night"]) .simple-trade-icon{background:#d9cbee;color:#74549b;border-radius:14px}:root:not([data-theme="night"]) .simple-notice{background:#f0edf7;border-color:#dfd7ea;color:#62536c}:root:not([data-theme="night"]) .simple-button-row button{border-radius:100px}:root:not([data-theme="night"]) .simple-error{color:#a34233}:root:not([data-theme="night"]) .simple-wallet>div>button{border-radius:100px}:root:not([data-theme="night"]) .simple-source,:root:not([data-theme="night"]) .simple-input{border-radius:12px;background:#fffefa}:root:not([data-theme="night"]) .simple-card-head h2{color:#33432d}:root:not([data-theme="night"]) .simple-trade-top h2{color:#4b3866}:root:not([data-theme="night"]) .simple-auto input{accent-color:#9680bc}:root:not([data-theme="night"]) .simple-footer{color:#6d7566}:root:not([data-theme="night"]) .simple-main .bg-card\/50{background:#f6f4ee}:root:not([data-theme="night"]) .simple-main button.bg-primary{box-shadow:0 2px 0 #dfe7c8}:root:not([data-theme="night"]) .simple-main button{transition:background .15s,transform .15s}:root:not([data-theme="night"]) .simple-main button:active:not(:disabled){transform:translateY(1px)}:root:not([data-theme="night"]) .simple-wallet button[aria-label="Open profile menu"]>span{background:#eee8fb;border-color:#d6cbe8}:root:not([data-theme="night"]) .simple-wallet button[aria-label="Open profile menu"] svg,:root:not([data-theme="night"]) .simple-main .text-primary{color:#74549b}
+
+
+/* The same approved shapes and accents, with darker surfaces. */
+:root[data-theme="night"]{color-scheme:dark;--background:150 12% 9%;--foreground:90 27% 94%;--card:147 13% 14%;--card-foreground:90 27% 94%;--popover:147 13% 14%;--popover-foreground:90 27% 94%;--primary:75 88% 71%;--primary-foreground:96 29% 16%;--secondary:268 22% 20%;--secondary-foreground:269 44% 82%;--muted:145 11% 18%;--muted-foreground:140 9% 67%;--accent:268 22% 22%;--accent-foreground:269 44% 82%;--border:143 11% 25%;--input:143 11% 30%;--ring:264 40% 72%;--success:132 40% 72%;--destructive:8 72% 64%}
+:root[data-theme="night"] body{background:#151b18}
+:root[data-theme="night"] .simple-app{--s-bg:#151b18;--s-card:#1e2722;--s-ink:#eff4ec;--s-muted:#a5b1a8;--s-line:#36433a;--s-soft:#252e28;--s-gold:#bfd885;--s-button:#d8f776;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+:root[data-theme="night"] .simple-header{background:#1e2722}
+:root[data-theme="night"] .simple-logo svg path{fill:#f2927c}
+:root[data-theme="night"] .simple-navlink.active{border-color:#baa4de;color:#e5d9f5}
+:root[data-theme="night"] .simple-main .glass{border-radius:18px;box-shadow:0 8px 24px #00000012}
+:root[data-theme="night"] .simple-main .simple-position{background:linear-gradient(140deg,#26352a,#1e2722 48%)}
+:root[data-theme="night"] .simple-main .simple-action{background:linear-gradient(135deg,#30293a66,#1e2722 48%)}
+:root[data-theme="night"] .simple-health{color:#b4dbac;background:#304735}
+:root[data-theme="night"] .simple-steps b{background:#342c42;color:#c8b4e4;border-color:#51415e}
+:root[data-theme="night"] .simple-eyebrow{color:#c1a7dd}
+:root[data-theme="night"] .simple-primary{background:#d8f776;color:#28321d;border:1px solid #b9d66c;border-radius:100px;box-shadow:0 3px 0 #323e27;font-weight:650}
+:root[data-theme="night"] .simple-primary:hover{background:#e4ff97}
+:root[data-theme="night"] .simple-secondary{background:#253028;border-color:#45523f;border-radius:100px;box-shadow:0 2px 0 #18201b}
+:root[data-theme="night"] .simple-amount{background:#252e28;border-radius:12px}
+:root[data-theme="night"] .simple-amount button{border-radius:100px;padding:4px 10px;background:#3c304c;border-color:#554366;color:#d2bde9}
+:root[data-theme="night"] .simple-tabs button.selected{border-color:#bda4df;color:#d3c1e9}
+:root[data-theme="night"] .simple-meter{background:#3a4631}
+:root[data-theme="night"] .simple-meter>span{background:#bfd885}
+:root[data-theme="night"] .simple-main .simple-proceeds{background:#29351f;border-color:#455637}
+:root[data-theme="night"] .simple-main .simple-trading{background:#30283c;border-color:#51415e}
+:root[data-theme="night"] .simple-trade-icon{background:#463452;color:#cfb3ea;border-radius:14px}
+:root[data-theme="night"] .simple-notice{background:#2d2834;border-color:#4b4057;color:#d0bedc}
+:root[data-theme="night"] .simple-button-row button{border-radius:100px}
+:root[data-theme="night"] .simple-error{color:#f2aa9b}
+:root[data-theme="night"] .simple-wallet>div>button{border-radius:100px}
+:root[data-theme="night"] .simple-source,:root[data-theme="night"] .simple-input{border-radius:12px;background:#253028}
+:root[data-theme="night"] .simple-card-head h2{color:#e2eedb}
+:root[data-theme="night"] .simple-trade-top h2{color:#e4d2f4}
+:root[data-theme="night"] .simple-auto input{accent-color:#bda4df}
+:root[data-theme="night"] .simple-footer{color:#a8b3a1}
+:root[data-theme="night"] .simple-main .bg-card\/50{background:#252e28}
+:root[data-theme="night"] .simple-main button.bg-primary{box-shadow:0 2px 0 #323e27}
+:root[data-theme="night"] .simple-main button{transition:background .15s,transform .15s}
+:root[data-theme="night"] .simple-main button:active:not(:disabled){transform:translateY(1px)}
+:root[data-theme="night"] .simple-wallet button[aria-label="Open profile menu"]>span{background:#382c47;border-color:#5a4470}
+:root[data-theme="night"] .simple-wallet button[aria-label="Open profile menu"] svg,:root[data-theme="night"] .simple-main .text-primary{color:#c9afe7}

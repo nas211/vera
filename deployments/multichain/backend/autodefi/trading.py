@@ -7,6 +7,7 @@ from vela.db import get,put,transaction
 from .lending import Lending,number
 from .risk import RISK
 from .config import model_env
+from vela.strategy_profiles import profile,research_schema,validate as validate_strategy
 
 class ProtocolModel(VelaModel):
     def __init__(self,model_values=None):
@@ -42,6 +43,29 @@ class GovernedPaper(LighterPaperAdapter):
         result=super().snapshot(owner)
         result['entryStop']=get(self.db,'paper-stop-reason:'+owner) if not result['preferences'].get('autonomous') else None
         return result
+    def strategy(self,owner):
+        return profile(get(self.db,'paper-prefs:'+owner,{}).get('strategyStyle','swing'))
+    def choose_strategy(self,owner,body):
+        if body.get('confirm') is not True:raise ValueError('Confirm the strategy change')
+        chosen=profile(body.get('strategyStyle'))
+        if get(self.db,'paper-prefs:'+owner,{}).get('autonomous'):
+            raise ValueError('Stop trading to change strategy.')
+        self.pause_entries(owner,'Strategy changed. Select Start Trading to begin a new run.')
+        prefs=get(self.db,'paper-prefs:'+owner,{})
+        put(self.db,'paper-prefs:'+owner,dict(prefs,strategyStyle=chosen['id']))
+        for key in ('ai-stage:','ai-approved:','ai-last-research:','ai-decision:'):
+            self.db.execute('DELETE FROM kv WHERE key=?',(key+owner,))
+        self.activity(owner,'strategy_changed','Selected '+chosen['name']+' for future entries; existing position limits remain unchanged')
+        return chosen
+    def setup(self,owner):
+        saved=self.permission(owner)
+        required=not saved or any(number(saved.get(k,'0'))<=0 for k in ('allocation','positionSize','maxLoss','leverage','markets'))
+        stage=get(self.db,'ai-stage:'+owner,{})
+        return dict(strategy=self.strategy(owner),
+            paperRequired=required,renewalRequired=bool(saved and int(saved.get('expiresAt',0))<=time.time()),
+            nativeRequired=False,nativeEnableRequired=False,permissionRevision=self.revision(owner),
+            paperLimits=saved,phase=stage.get('phase','waiting'),
+            approvedAt=(get(self.db,'ai-approved:'+owner) or {}).get('at'))
     def authorize_run(self,owner):
         # Called only by authenticated Start, after its network preflight and
         # final session/revision check. Browser cookies are not ongoing consent.
@@ -92,7 +116,8 @@ class GovernedPaper(LighterPaperAdapter):
         if not D('.000002')<=budget<=min(D(2),self.settings.loss_budget) or not 1<=leverage<=3:raise ValueError('Invalid risk limits; stop budget must be at least two micro-USDC and cannot exceed $2')
         old=get(self.db,'trading-permission:'+owner,{})
         # Preserve any stricter existing stop budget even when editing settings.
-        budget=min(budget,number(old.get('maxLoss',budget*1000000))/1000000,self.account_budget(owner)/1000000)
+        budget=min(budget,number(old.get('maxLoss',budget*1000000))/1000000,number(self.authorization_budget(owner))/1000000)
+        if budget<D('.000002'):raise ValueError('Existing stop limit cannot be raised; reconcile the stored limit first')
         self.pause_entries(owner)
         permission=dict(allocation=str(allocation*1000000),positionSize=str(position*1000000),maxLoss=str(budget*1000000),leverage=str(leverage),markets='7',expiresAt=str(int(time.time())+86400),revision=old.get('revision',0)+1)
         put(self.db,'trading-permission:'+owner,permission)
@@ -100,12 +125,22 @@ class GovernedPaper(LighterPaperAdapter):
         return permission
     def permission(self,owner):
         lending=Lending(self.db);l=lending.loan(owner);extra=get(self.db,'trading-permission:'+owner,{})
+        p=extra
         if l and l['state'] not in ('REPAID','CANCELLED'):
-            p=lending.vault(owner,False)['limits']
-            if extra:
-                p=dict(p,**{k:str(min(D(p[k]),D(extra[k]))) for k in ('allocation','positionSize','maxLoss','leverage','expiresAt')})
-            return dict(p,maxLoss=str(min(number(p['maxLoss']),self.account_budget(owner))))
-        return dict(extra,maxLoss=str(min(number(extra['maxLoss']),self.account_budget(owner)))) if extra else extra
+            # Old on-chain limits may seed saved settings. Paper Start grants
+            # execution consent; vault agent/enable transactions are unnecessary.
+            p=extra or lending.vault(owner,False)['limits']
+        return dict(p,maxLoss=str(min(number(p['maxLoss']),number(self.authorization_budget(owner))))) if p else p
+    def start_permission(self,owner):
+        p=self.permission(owner)
+        if not p or any(number(p.get(k,'0'))<=0 for k in ('allocation','positionSize','maxLoss','leverage','markets')):
+            raise ValueError('Save your trading settings before starting')
+        if number(p['maxLoss'])<2:raise ValueError('Existing stop limit cannot be raised')
+        allocation=min(number(p['allocation']),D(10000_000000))
+        size=min(number(p['positionSize']),allocation,D(200_000000))
+        return dict(p,allocation=str(allocation),positionSize=str(size),
+            leverage=str(min(D(3),number(p['leverage']))),markets=str(int(p['markets'])&7),
+            expiresAt=str(int(time.time())+86400))
     def authorization_budget(self,owner):
         """Review ceiling, distinct from the currently executable permission.
 
@@ -135,7 +170,8 @@ class GovernedPaper(LighterPaperAdapter):
     def revision(self,owner):
         v=self.db.execute('SELECT data FROM vaults WHERE owner=?',(owner,)).fetchone()
         return [get(self.db,'trading-permission:'+owner,{}).get('revision',0),json.loads(v[0])['permissionRevision'] if v else 0]
-    def gate(self,owner,order=None,require_running=True, filling=False, manual=False):
+    def gate(self,owner,order=None,require_running=True, filling=False, manual=False,starting=False):
+        if starting and (require_running or order or filling or manual):raise ValueError('Start review only')
         if get(self.db,'paper-funding-incomplete:'+owner,False):
             raise ValueError('Funding history is incomplete; reconcile before opening positions')
         if get(self.db,'direct-settlement:'+owner,False):raise ValueError('Wait for position settlement to finish')
@@ -154,18 +190,11 @@ class GovernedPaper(LighterPaperAdapter):
         if financed:
             v=lending.vault(owner);lending.price(owner)
             if l['state']!='ACTIVE' or v['loanState']!=2 or l['id']!=v['loanId']: raise ValueError('Active confirmed demo loan required')
-            p=v['limits']
-            if v['paused'] or not v['trading'] or v['agent'].lower()!=v['settlementSigner'].lower() or int(p['expiresAt'])<=time.time():
-                raise ValueError('Active demo loan trading authorization required' if v.get('simulated') else 'Active on-chain agent authorization required')
+            if v['paused']:raise ValueError('Vault is paused; new paper positions are blocked')
             hf=D(lending.health(owner)['healthFactor'])
             if hf<D(RISK['blockHealthBelow']): raise ValueError('Loan health blocks new positions')
-        else:
-            p=get(self.db,'trading-permission:'+owner,{})
-            if int(p.get('expiresAt',0))<=time.time():raise ValueError('Active paper trading permission required')
-        extra=get(self.db,'trading-permission:'+owner,{})
-        if extra:
-            if int(extra['expiresAt'])<=time.time():raise ValueError('Active paper trading permission required')
-            p=dict(p,allocation=str(min(D(p['allocation']),D(extra['allocation']))),positionSize=str(min(D(p['positionSize']),D(extra['positionSize']))),maxLoss=str(min(D(p['maxLoss']),D(extra['maxLoss']))),leverage=str(min(D(p['leverage']),D(extra['leverage']))))
+        p=self.start_permission(owner) if starting else self.permission(owner)
+        if int(p.get('expiresAt',0))<=time.time():raise ValueError('Active paper trading permission required')
         if require_running and not prefs.get('autonomous'): raise ValueError('AI entries stopped')
         snap=self.snapshot(owner)
         if snap['equity'] is None or D(snap['equity'])<=0: raise ValueError('Fresh positive trading equity required')
@@ -214,8 +243,11 @@ class GovernedPaper(LighterPaperAdapter):
             agent=True,agentGeneration=prefs.get('generation',0)),'ai:'+hashlib.sha256(signal['signal_id'].encode()).hexdigest())
     def start(self,owner,model):
         if not model.ready: raise ValueError('Dedicated AI model is not configured')
-        self.gate(owner,require_running=False)
+        self.gate(owner,require_running=False,starting=True)
         for symbol in ('BTC/USD','ETH/USD','SOL/USD'): self.market(symbol)
+        permission=self.start_permission(owner)
+        permission['revision']=get(self.db,'trading-permission:'+owner,{}).get('revision',0)+1
+        put(self.db,'trading-permission:'+owner,permission)
         prefs=get(self.db,'paper-prefs:'+owner,{})
         put(self.db,'paper-prefs:'+owner,dict(prefs,autonomous=True,generation=prefs.get('generation',0)+1))
         self.db.execute('DELETE FROM kv WHERE key=?',('paper-stop-reason:'+owner,))
@@ -286,7 +318,8 @@ def agents_for(db,model,paper):
             context=dict(loanHealth=lending.health(self.owner) if has_vault and lending.quote(self.owner) else None,
                 trading={k:snap[k] for k in ('equity','available','unrealized','totals','positions','costs')},
                 repayment=Repayment(db,paper).status(self.owner),limits={k:str(v) for k,v in paper.gate(self.owner).items()})
-            return model.ask(role,dict(evidence,financialPosition=context),schema)
+            style=paper.strategy(self.owner)
+            return model.ask(role,dict(evidence,financialPosition=context,tradingStyle=style),research_schema(style['id']) if role=='research' else schema)
     contextual=FinancialContext()
     def eligible(u):
         try: paper.gate(u['address']);contextual.owner=u['address'];return True
@@ -297,4 +330,6 @@ def agents_for(db,model,paper):
         return ['BTC/USD','ETH/USD','SOL/USD']
     return Agents(db,contextual,eligible=eligible,markets=markets,
         entry_gate=lambda db,s:s in paper.feed.markets and paper.feed.markets[s].fresh(),
-        revision=lambda u:[get(db,'paper-prefs:'+u['address'],{}).get('generation',0),paper.revision(u['address'])])
+        revision=lambda u:[get(db,'paper-prefs:'+u['address'],{}).get('generation',0),paper.revision(u['address'])],
+        strategy_profile=lambda u:paper.strategy(u['address']),
+        validate_spec=lambda u,s,markets:validate_strategy(s,markets,paper.strategy(u['address'])['id']))

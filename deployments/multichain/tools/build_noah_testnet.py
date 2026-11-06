@@ -23,7 +23,7 @@ def active_source(dashboard):
     return dict(schemaVersion=2, sourceId=sha(json.dumps(content, separators=(',', ':')).encode()), **content)
 
 
-def hosting(release):
+def hosting(release, version=2):
     if not re.fullmatch(r'vela-app-[0-9a-f]{12}-[0-9a-f]{12}', release):
         raise ValueError('Invalid testnet release identity')
     root = '/var/www/defivela-app/' + release
@@ -33,6 +33,19 @@ def hosting(release):
     add_header Referrer-Policy "same-origin" always;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://rpc.testnet.dogeos.com wss://defivela.xyz; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'" always;
 '''
+    if version == 3:
+        headers = headers.replace("img-src 'self' data:;", "img-src 'self' data: https://web3-assets.mydoge.com;").replace("connect-src 'self' https://rpc.testnet.dogeos.com wss://defivela.xyz;", "connect-src 'self' https://rpc.testnet.dogeos.com wss://defivela.xyz https://web3-assets.mydoge.com https://relay.mydoge.com wss://relay.mydoge.com https://wallet.mydoge.com https://embedded-wallet.mydoge.com; frame-src https://embedded-wallet.mydoge.com https://wallet.mydoge.com;")
+    routes=''
+    if version in (2, 3):
+        for route in ('/app/vault','/app/borrow','/app/trading','/app/risk','/settings'):
+            routes+=f'''location = {route} {{
+    root {root};
+    try_files /vela.html =404;
+    default_type text/html;
+{headers}}}
+'''
+        routes+='location = /settings/ { return 308 /settings$is_args$args; }\n'
+    elif version!=1:raise ValueError('Unsupported account routing version')
     return f'''# PREPARED ONLY. Existing TLS server, homepage, API proxy and ledger stay in place.
 # Requires the separately configured native backend and gateway before wallet actions work.
 location = /app {{ return 308 /app/$is_args$args; }}
@@ -45,7 +58,7 @@ location ^~ /app/ {{
     alias {root}/;
     autoindex off;
 {headers}}}
-'''
+'''+routes
 
 
 def build(dashboard, destination):
@@ -56,14 +69,16 @@ def build(dashboard, destination):
     files = {n:d for n,d in inventory(dashboard/'dist-testnet').items() if n != 'robots.txt'}
     if not all(allowed_asset(n) and n not in ('preview.html','index.html') for n in files):
         raise ValueError('Unexpected account release output')
-    validate_html(files, source['sourceId'], ('vela.html',))
+    validate_html(files, source['sourceId'], ('vela.html',), asset_prefix=PREFIX)
     hashes = {n:sha(d) for n,d in files.items()}
     content = sha(json.dumps(dict(files=hashes, prefix=PREFIX), sort_keys=True, separators=(',', ':')).encode())
     release_id = 'vela-app-'+source['sourceId'][:12]+'-'+content[:12]
     release = dict(schemaVersion=1, mode='DOGEOS_TESTNET', sourceId=source['sourceId'], releaseId=release_id,
         chainId=6281971, execution='PAPER', lending='DEMO', entry='vela.html', plannedPrefix=PREFIX,
         serviceEnabled=True, walletActionsBuilt=True, backendGateRequired=True, files=hashes,
-        deployed=False, browserVerified=False, livePayoutsVerified=False, liveProtectionVerified=False)
+        deployed=False, browserVerified=False, livePayoutsVerified=False, liveProtectionVerified=False,
+        nativeDogeLending=dict(configuration='/api/doge-lending/config',requiresVerifiedDeployment=True,
+            usdcConversionEnabled=False,legacyLedgerCurrencyUnchanged=True))
     files['review-manifest.json'] = (json.dumps(release, indent=2)+'\n').encode()
     destination.mkdir(mode=0o700, parents=True, exist_ok=False)
     for name,data in files.items():
@@ -73,8 +88,8 @@ def build(dashboard, destination):
             for name,data in sorted(files.items()):
                 item=tarfile.TarInfo(name);item.size=len(data);item.mode=0o644;item.mtime=0
                 archive.addfile(item, io.BytesIO(data))
-    (destination/'nginx-testnet.conf.pending').write_text(hosting(release_id))
-    manifest=dict(schemaVersion=1, release=release, published=False, files={n:sha(d) for n,d in files.items()},
+    (destination/'nginx-testnet.conf.pending').write_text(hosting(release_id, 3))
+    manifest=dict(schemaVersion=1, hostingVersion=3, release=release, published=False, files={n:sha(d) for n,d in files.items()},
         archiveSha256=sha((destination/'website.tar.gz').read_bytes()),nginxSha256=sha((destination/'nginx-testnet.conf.pending').read_bytes()))
     (destination/'package.json').write_text(json.dumps(manifest, indent=2)+'\n')
     verify(destination)
@@ -91,6 +106,10 @@ def verify(directory):
         or r.get('backendGateRequired') is not True
         or any(r.get(k) is not False for k in ('deployed','browserVerified','livePayoutsVerified','liveProtectionVerified'))):
         raise ValueError('Invalid testnet account release')
+    if 'nativeDogeLending' in r and r['nativeDogeLending'] != dict(
+            configuration='/api/doge-lending/config',requiresVerifiedDeployment=True,
+            usdcConversionEnabled=False,legacyLedgerCurrencyUnchanged=True):
+        raise ValueError('Invalid native lending activation boundary')
     files=inventory(directory/'website');hashes={n:sha(d) for n,d in files.items()}
     if hashes!=manifest.get('files') or json.loads(files['review-manifest.json'])!=r:
         raise ValueError('Account release checksum mismatch')
@@ -106,9 +125,9 @@ def verify(directory):
     if (sha(json.dumps(identity,separators=(',', ':')).encode())!=source['sourceId']
         or r['releaseId']!='vela-app-'+source['sourceId'][:12]+'-'+content[:12]):
         raise ValueError('Account release identity mismatch')
-    validate_html(files,r['sourceId'],('vela.html',))
+    validate_html(files,r['sourceId'],('vela.html',),asset_prefix=PREFIX if manifest.get('hostingVersion') in (2, 3) else None)
     conf=checked_file(directory,'nginx-testnet.conf.pending')
-    if sha(conf)!=manifest['nginxSha256'] or conf.decode()!=hosting(r['releaseId']):
+    if sha(conf)!=manifest['nginxSha256'] or conf.decode()!=hosting(r['releaseId'],manifest.get('hostingVersion',1)):
         raise ValueError('Account hosting configuration mismatch')
     archive=checked_file(directory,'website.tar.gz')
     if sha(archive)!=manifest['archiveSha256']:raise ValueError('Account archive checksum mismatch')

@@ -1,0 +1,23 @@
+:root[data-theme="night"]{color-scheme:dark;--bg:#151b18;--panel:#1e2722;--text:#eff4ec;--muted:#a5b1a8;--gold:#f2927c;--line:#36433a;--goldline:#647a42;--accent:#d8f776;--green:#bfd885}
+:root[data-theme="night"] .topbar{background:#1e2722}
+:root[data-theme="night"] .brand{color:#eff4ec}
+:root[data-theme="night"] .button{box-shadow:0 3px 0 #323e27}
+:root[data-theme="night"] .button:hover{background:#e4ff97;box-shadow:0 4px 0 #3b482f}
+:root[data-theme="night"] .text-link,:root[data-theme="night"] .eyebrow{color:#bfd885}
+:root[data-theme="night"] .ecosystem small,:root[data-theme="night"] .preview-note,:root[data-theme="night"] .visual-note,:root[data-theme="night"] .flow-strip small,:root[data-theme="night"] .visual-heading span:last-child{color:#a5b1a8!important}
+:root[data-theme="night"] .hero-meta,:root[data-theme="night"] .flow-strip span{color:#b8c4b7}
+:root[data-theme="night"] .visual-heading,:root[data-theme="night"] .step-head{color:#c9afe7}
+:root[data-theme="night"] .step-head svg{stroke:#c9afe7}
+:root[data-theme="night"] .steps{background:#1e2722;border-color:#36433a}
+:root[data-theme="night"] .step:nth-child(1){background:#29351f}
+:root[data-theme="night"] .step:nth-child(2){background:#30283c}
+:root[data-theme="night"] .step:nth-child(3){background:#3a2c26}
+:root[data-theme="night"] .repay-card{background:linear-gradient(130deg,#30283c,#25202f 75%);border-color:#51415e}
+:root[data-theme="night"] .pill,:root[data-theme="night"] .route-icon{background:#382c47;color:#d3c1e9;border-color:#5a4470}
+:root[data-theme="night"] .repay-route{border-color:#51415e}
+:root[data-theme="night"] .repay-row,:root[data-theme="night"] .repay-small,:root[data-theme="night"] .optional-copy .risk-note{color:#beafc9}
+:root[data-theme="night"] .repay-row span:last-child{color:#eff4ec}
+:root[data-theme="night"] .optional-copy .text-link,:root[data-theme="night"] .questions summary:after{color:#c9afe7}
+:root[data-theme="night"] .footer-brand,:root[data-theme="night"] footer{color:#a8b3a1}
+:root[data-theme="night"] .vault-caption,:root[data-theme="night"] .vault-yield-label{color:#d2bde9}
+:root[data-theme="night"] .vault-yield-label>small,:root[data-theme="night"] .capital-anchor>small,:root[data-theme="night"] .wallet-anchor>span,:root[data-theme="night"] .capital-anchor>span,:root[data-theme="night"] .ai-anchor>span{color:#b8c4b7}

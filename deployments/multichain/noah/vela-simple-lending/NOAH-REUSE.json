@@ -1,0 +1,51 @@
+{
+  "existingProject": "https://trynoah.ai/playground/6aeb352f7d19514dabedc93a",
+  "newLayoutBuiltExternally": true,
+  "noahProjectUpdated": true,
+  "components": [
+    {
+      "integratedFile": "site/vela-dashboard/src/components/common/Panel.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/common/Panel.tsx",
+      "originalExists": true,
+      "sha256": "291cabdf761448554f394769421e7468ca41f7f2a658aea06641993796505e9c",
+      "unchangedFromNoah": false
+    },
+    {
+      "integratedFile": "site/vela-dashboard/src/components/common/Metric.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/common/Metric.tsx",
+      "originalExists": true,
+      "sha256": "5a60cfe3152efc4455d073eccbea1c2d52db2db94031a36aeb84f9805b1c67ed",
+      "unchangedFromNoah": false
+    },
+    {
+      "integratedFile": "site/vela-dashboard/src/components/common/Details.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/common/Details.tsx",
+      "originalExists": false,
+      "sha256": "6e3adfbe3582aacdfd54a0b821b0a2e5179a47df59d423643e94b022df6bbbd4",
+      "unchangedFromNoah": false
+    },
+    {
+      "integratedFile": "site/vela-dashboard/src/components/ui/button.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/ui/button.tsx",
+      "originalExists": true,
+      "sha256": "415ccc47cf69a2a87db699cc6da7f1fdcb799a1f40dab3a6220d91ac8da8abbe",
+      "unchangedFromNoah": true
+    },
+    {
+      "integratedFile": "site/vela-dashboard/src/components/ui/dialog.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/ui/dialog.tsx",
+      "originalExists": true,
+      "sha256": "bb67c322bfde96ee051ae32c0760c65a1dea25146472d3bcaba5c21040ddeb7b",
+      "unchangedFromNoah": true
+    },
+    {
+      "integratedFile": "site/vela-dashboard/src/components/ui/input.tsx",
+      "originalNoahFile": "site/noah-dashboard/src/components/ui/input.tsx",
+      "originalExists": true,
+      "sha256": "0a40fe1c4efdfd164797f25dff775ae5ce213b87215f485c6d7fd947ac7c5ea6",
+      "unchangedFromNoah": true
+    }
+  ],
+  "updateEvidence": "Owner-reported saved checkpoint; latest export and independent build verification unavailable",
+  "componentHashScope": "Original integration provenance snapshot, not the latest Noah export"
+}

@@ -98,6 +98,11 @@ def test_migration_cap_survives_review_configuration_and_gate(env,cap):
     authorize(env,o,b);DogeOS.record(env['db'],env['owner'],destination(v))
     p=env['paper'];owner=env['owner']
     env['db'].execute("UPDATE users SET balance='500',initial='500'")
+    if cap=='0':
+        with pytest.raises(ValueError,match='Existing stop limit cannot be raised'):
+            p.configure(owner,dict(confirm=True,allocation='100',positionSize='100',maxLoss='2',leverage='1'))
+        assert p.authorization_budget(owner)=='0'
+        return
     configured=p.configure(owner,dict(confirm=True,allocation='100',positionSize='100',maxLoss='2',leverage='1'))
     assert D(configured['maxLoss'])==D(cap)
     assert D(p.authorization_budget(owner))==D(cap)

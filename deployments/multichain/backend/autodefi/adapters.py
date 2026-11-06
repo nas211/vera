@@ -45,7 +45,7 @@ class ChainAdapter:
             transactionHandling='Local atomic ledger; no wallet transaction or blockchain receipt' if self.simulated else 'Existing confirmed DogeOS transactions')
 
 CHAINS={a.id:a for a in (
-    ChainAdapter('dogeos','DogeOS','evm',6281971,'DOGE','.20','https://rpc.testnet.dogeos.com/','https://dogeos-testnet.l2scan.co',True),
+    ChainAdapter('dogeos','DogeOS','evm',6281971,'DOGE','1.00','https://rpc.testnet.dogeos.com/','https://dogeos-testnet.l2scan.co',True),
     ChainAdapter('solana','Solana','solana','solana:mainnet-beta','SOL','150','https://api.mainnet-beta.solana.com','https://explorer.solana.com'),
     ChainAdapter('base','Base','evm',8453,'ETH','3000','https://mainnet.base.org','https://basescan.org'),
     ChainAdapter('ethereum','Ethereum','evm',1,'ETH','3000','','https://etherscan.io'),
